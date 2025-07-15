@@ -37,10 +37,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   const navigationItems = [
-    { name: 'Dashboard', icon: Home, path: '/dashboard', active: true },
+    { name: 'Dashboard', icon: Home, path: '/', active: true },
     { name: 'Projetos', icon: FolderOpen, path: '/projects' },
     { name: 'Tarefas', icon: CheckSquare, path: '/tasks' },
     { name: 'Clientes', icon: Users, path: '/clients' },
+    { name: 'Comercial', icon: BarChart3, path: '/commercial' },
     { name: 'Equipe', icon: Users, path: '/team' },
     { name: 'Documentos', icon: FileText, path: '/docs' },
     { name: 'Relatórios', icon: BarChart3, path: '/reports' },
