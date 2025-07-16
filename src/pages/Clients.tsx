@@ -1,20 +1,26 @@
 import React, { useState } from 'react';
-import { Plus, Grid, List, Search, Filter, Users, Mail, Phone, Building, TrendingUp, X } from 'lucide-react';
+import { Plus, Grid, List, Search, Filter, Users, Mail, Phone, Building, TrendingUp, X, Star, Heart, UserPlus, Flame } from 'lucide-react';
 import { mockClients, mockProjects, mockTasks } from '../data/mockData';
+import ClientProfile from '../components/ClientProfile';
 
 const Clients = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<any>({});
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState<'active' | 'history' | 'cases'>('active');
+  const [selectedClient, setSelectedClient] = useState<any>(null);
 
   const filteredClients = mockClients.filter(client => {
     const matchesSearch = client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (client.company && client.company.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = !filters.status || client.status === filters.status;
+    const matchesTab = activeTab === 'active' ? client.status === 'active' :
+                      activeTab === 'history' ? client.status === 'inactive' || client.status === 'churn' :
+                      activeTab === 'cases' ? client.tags.includes('Case') : true;
     
-    return matchesSearch && matchesStatus;
+    return matchesSearch && matchesStatus && matchesTab;
   });
 
   const getClientStats = (clientId: string) => {
@@ -53,19 +59,62 @@ const Clients = () => {
 
   const activeFiltersCount = Object.values(filters).filter(Boolean).length;
 
+  const isNewClient = (client: any) => {
+    const daysSinceCreated = Math.floor((Date.now() - new Date(client.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+    return daysSinceCreated <= 30;
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Clientes</h1>
-          <p className="text-gray-600 mt-1">Gerencie seus clientes e relacionamentos</p>
+    <div className="flex space-x-6">
+      {/* Main Content */}
+      <div className="flex-1 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900">Clientes</h1>
+            <p className="text-gray-600 mt-1">Gerencie seus clientes e relacionamentos</p>
+          </div>
+          <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+            <Plus className="w-4 h-4" />
+            <span>Novo Cliente</span>
+          </button>
         </div>
-        <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
-          <Plus className="w-4 h-4" />
-          <span>Novo Cliente</span>
-        </button>
-      </div>
+
+        {/* Tabs */}
+        <div className="border-b border-gray-200">
+          <nav className="flex space-x-8">
+            <button
+              onClick={() => setActiveTab('active')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'active'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Ativos
+            </button>
+            <button
+              onClick={() => setActiveTab('history')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'history'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Histórico
+            </button>
+            <button
+              onClick={() => setActiveTab('cases')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'cases'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Cases
+            </button>
+          </nav>
+        </div>
 
       {/* Search and Controls */}
       <div className="flex items-center justify-between space-x-4">
@@ -163,101 +212,71 @@ const Clients = () => {
         </div>
       </div>
 
-      {/* Clients Display */}
-      {viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredClients.map((client) => {
-            const stats = getClientStats(client.id);
+        {/* Clients Display */}
+        {viewMode === 'grid' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredClients.map((client) => {
+              const stats = getClientStats(client.id);
 
-            return (
-              <div key={client.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
-                {/* Client Cover */}
+              return (
                 <div 
-                  className="h-20 bg-gradient-to-br from-blue-500 to-purple-600 relative"
-                  style={{ background: `linear-gradient(135deg, ${client.color}40, ${client.color}60)` }}
+                  key={client.id} 
+                  className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => setSelectedClient(client)}
                 >
-                  <div className="absolute top-3 right-3">
-                    <span className={`px-2 py-1 rounded-md text-xs font-medium ${getStatusColor(client.status)}`}>
-                      {getStatusLabel(client.status)}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Client Content */}
-                <div className="p-4">
-                  {/* Avatar and Name */}
-                  <div className="flex items-center space-x-3 mb-3">
-                    <div 
-                      className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg"
-                      style={{ backgroundColor: client.color }}
-                    >
-                      {client.name.split(' ').map(n => n[0]).join('')}
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">{client.name}</h3>
-                      {client.company && (
-                        <p className="text-sm text-gray-600">{client.company}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Contact Info */}
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center space-x-2 text-sm text-gray-600">
-                      <Mail className="w-4 h-4" />
-                      <span className="truncate">{client.email}</span>
-                    </div>
-                    {client.phone && (
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <Phone className="w-4 h-4" />
-                        <span>{client.phone}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Stats */}
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-gray-900">{stats.projectCount}</div>
-                      <div className="text-xs text-gray-600">Projetos</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-gray-900">{stats.totalTasks}</div>
-                      <div className="text-xs text-gray-600">Tarefas</div>
-                    </div>
-                  </div>
-
-                  {/* Contract Value */}
-                  {client.contractValue && (
-                    <div className="text-center mb-4">
-                      <div className="text-lg font-bold text-green-600">
-                        R$ {(client.contractValue / 1000).toFixed(0)}k
-                      </div>
-                      <div className="text-xs text-gray-600">Valor do contrato</div>
-                    </div>
-                  )}
-
-                  {/* Tags */}
-                  {client.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {client.tags.slice(0, 2).map((tag, index) => (
-                        <span
-                          key={index}
-                          className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-md"
-                        >
-                          {tag}
+                  {/* Client Cover */}
+                  <div 
+                    className="h-32 bg-gradient-to-br from-blue-500 to-purple-600 relative"
+                    style={{ 
+                      backgroundImage: client.cover ? `url(${client.cover})` : `linear-gradient(135deg, ${client.color}40, ${client.color}80)`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center'
+                    }}
+                  >
+                    <div className="absolute top-3 right-3 flex items-center space-x-2">
+                      {isNewClient(client) && (
+                        <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+                          Novo
                         </span>
-                      ))}
-                      {client.tags.length > 2 && (
-                        <span className="text-gray-400 text-xs">+{client.tags.length - 2}</span>
                       )}
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(client.status)}`}>
+                        {getStatusLabel(client.status)}
+                      </span>
                     </div>
-                  )}
+                  </div>
+
+                  {/* Client Content */}
+                  <div className="p-4">
+                    {/* Avatar and Name */}
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div 
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm"
+                        style={{ backgroundColor: client.color }}
+                      >
+                        {client.name.split(' ').map(n => n[0]).join('')}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900">{client.name}</h3>
+                        <p className="text-sm text-gray-500">
+                          Desde {new Date(client.startDate).getFullYear()}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex space-x-2 mb-3">
+                      <button className="flex-1 bg-gray-800 text-white px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-700 transition-colors">
+                        {client.segment || 'Segmento'}
+                      </button>
+                      <button className="flex-1 bg-gray-800 text-white px-3 py-1 rounded-md text-sm font-medium hover:bg-gray-700 transition-colors">
+                        {getStatusLabel(client.status)}
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
       ) : (
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
@@ -278,8 +297,8 @@ const Clients = () => {
                   const stats = getClientStats(client.id);
 
                   return (
-                    <tr key={client.id} className="hover:bg-gray-50 cursor-pointer">
-                      <td className="py-4 px-4">
+                  <tr key={client.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setSelectedClient(client)}>
+                    <td className="py-4 px-4">
                         <div className="flex items-center space-x-3">
                           <div 
                             className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm"
@@ -324,6 +343,66 @@ const Clients = () => {
             </table>
           </div>
         </div>
+      )}
+      </div>
+
+      {/* Sidebar with Metrics */}
+      <div className="w-80 space-y-4">
+        <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+              <Flame className="w-5 h-5 text-orange-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-900">Produtividade do time</p>
+              <p className="text-2xl font-bold text-gray-900">68/mês</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Building className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-900">Projetos pausados</p>
+              <p className="text-2xl font-bold text-gray-900">12/50</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+              <Heart className="w-5 h-5 text-red-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-900">Nível de satisfação</p>
+              <p className="text-2xl font-bold text-gray-900">8/10</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+              <UserPlus className="w-5 h-5 text-green-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-900">Clientes em onboarding</p>
+              <p className="text-2xl font-bold text-gray-900">5</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Client Profile Modal */}
+      {selectedClient && (
+        <ClientProfile 
+          client={selectedClient} 
+          onClose={() => setSelectedClient(null)} 
+        />
       )}
     </div>
   );
