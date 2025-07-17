@@ -1,4 +1,3 @@
-
 import { Client, Project, Task } from '../types/entities';
 
 export const mockClients: Client[] = [
@@ -82,6 +81,7 @@ export const mockProjects: Project[] = [
     tags: ['marketing', 'e-commerce', 'campanha'],
     teamMembers: ['Ana Silva', 'Carlos Mendes', 'Marina Costa'],
     progress: 65,
+    responsibleManager: 'Marina Costa',
     createdAt: '2024-10-01'
   },
   {
@@ -99,6 +99,7 @@ export const mockProjects: Project[] = [
     tags: ['branding', 'design', 'identidade'],
     teamMembers: ['João Santos', 'Maria Oliveira'],
     progress: 40,
+    responsibleManager: 'Pedro Lima',
     createdAt: '2024-09-15'
   }
 ];
