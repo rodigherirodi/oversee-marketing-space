@@ -8,6 +8,7 @@ import AppLayout from "./components/AppLayout";
 import Index from "./pages/Index";
 import Tasks from "./pages/Tasks";
 import Projects from "./pages/Projects";
+import ProjectDetails from "./pages/ProjectDetails";
 import Clients from "./pages/Clients";
 import ClientProfile from "./pages/ClientProfile";
 import Commercial from "./pages/Commercial";
@@ -26,6 +27,7 @@ const App = () => (
             <Route index element={<Index />} />
             <Route path="tasks" element={<Tasks />} />
             <Route path="projects" element={<Projects />} />
+            <Route path="projects/:id" element={<ProjectDetails />} />
             <Route path="clients" element={<Clients />} />
             <Route path="clients/:id" element={<ClientProfile />} />
             <Route path="commercial" element={<Commercial />} />

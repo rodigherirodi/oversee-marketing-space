@@ -1,10 +1,13 @@
+
 import React, { useState } from 'react';
 import { mockProjects } from '@/data/mockData';
 import { Project } from '@/types/entities';
-import { Search, Grid, List, Plus, Calendar, Users } from 'lucide-react';
+import { Search, Grid, List, Plus, Calendar, Users, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 const Projects = () => {
+  const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClient, setSelectedClient] = useState('');
@@ -31,6 +34,10 @@ const Projects = () => {
   React.useEffect(() => {
     filterProjects();
   }, [searchTerm, selectedClient, selectedStatus]);
+
+  const handleProjectClick = (projectId: string) => {
+    navigate(`/projects/${projectId}`);
+  };
 
   return (
     <div className="space-y-6">
@@ -106,24 +113,55 @@ const Projects = () => {
       {viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProjects.map((project) => (
-            <div key={project.id} className="bg-white rounded-lg border shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-              <div className="h-32 bg-gradient-to-br from-blue-500 to-purple-600"></div>
+            <div 
+              key={project.id} 
+              className="bg-white rounded-lg border shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => handleProjectClick(project.id)}
+            >
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">{project.name}</h3>
                 <p className="text-gray-600 text-sm mb-4 line-clamp-2">{project.description}</p>
                 
-                <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
-                    <span>{new Date(project.startDate).toLocaleDateString()}</span>
+                <div className="space-y-3 mb-4">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">Cliente:</span>
+                    <span className="font-medium">{project.client.name}</span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Users className="w-4 h-4" />
-                    <span>{project.teamMembers.length}</span>
+                  
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">Data de início:</span>
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4 text-gray-400" />
+                      <span>{new Date(project.startDate).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">Data de entrega:</span>
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4 text-gray-400" />
+                      <span>{project.endDate ? new Date(project.endDate).toLocaleDateString() : 'Não definida'}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">Responsável:</span>
+                    <div className="flex items-center gap-1">
+                      <User className="w-4 h-4 text-gray-400" />
+                      <span>{project.responsibleManager}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">Equipe:</span>
+                    <div className="flex items-center gap-1">
+                      <Users className="w-4 h-4 text-gray-400" />
+                      <span>{project.teamMembers.length} membros</span>
+                    </div>
                   </div>
                 </div>
                 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-4">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                     project.status === 'in-progress' ? 'bg-green-100 text-green-700' :
                     project.status === 'planning' ? 'bg-blue-100 text-blue-700' :
@@ -136,12 +174,16 @@ const Projects = () => {
                      project.status === 'review' ? 'Em Revisão' :
                      project.status === 'paused' ? 'Em Pausa' : 'Concluído'}
                   </span>
-                  <div className="w-16 bg-gray-200 rounded-full h-2">
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 bg-gray-200 rounded-full h-2">
                     <div 
-                      className="bg-blue-500 h-2 rounded-full" 
+                      className="bg-blue-500 h-2 rounded-full transition-all duration-300" 
                       style={{ width: `${project.progress}%` }}
                     ></div>
                   </div>
+                  <span className="text-sm font-medium text-gray-700">{project.progress}%</span>
                 </div>
               </div>
             </div>
@@ -157,13 +199,19 @@ const Projects = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progresso</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prazo</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Início</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Entrega</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Responsável</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Equipe</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredProjects.map((project) => (
-                  <tr key={project.id} className="hover:bg-gray-50">
+                  <tr 
+                    key={project.id} 
+                    className="hover:bg-gray-50 cursor-pointer"
+                    onClick={() => handleProjectClick(project.id)}
+                  >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900">{project.name}</div>
@@ -197,7 +245,13 @@ const Projects = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {project.endDate ? new Date(project.endDate).toLocaleDateString() : '-'}
+                      {new Date(project.startDate).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {project.endDate ? new Date(project.endDate).toLocaleDateString() : 'Não definida'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {project.responsibleManager}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {project.teamMembers.length} membros
