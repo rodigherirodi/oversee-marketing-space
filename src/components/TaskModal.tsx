@@ -1,41 +1,69 @@
 import React, { useState } from 'react';
 import { X, Calendar, User, Tag, AlertCircle } from 'lucide-react';
-import { Task } from '../types/entities';
+import { Task, Client, Project } from '../types/entities';
 
 interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (task: Omit<Task, 'id' | 'createdAt'>) => void;
+  clients?: Client[];
+  projects?: Project[];
 }
 
-export const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSubmit }) => {
+export const TaskModal: React.FC<TaskModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  onSubmit, 
+  clients = [], 
+  projects = [] 
+}) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     status: 'todo' as Task['status'],
     priority: 'medium' as Task['priority'],
     assignee: '',
-    client: '',
-    project: '',
+    clientId: '',
+    projectId: '',
     dueDate: '',
     tags: [] as string[]
   });
 
   const [newTag, setNewTag] = useState('');
 
+  // Find selected client and project
+  const selectedClient = clients.find(c => c.id === formData.clientId);
+  const selectedProject = projects.find(p => p.id === formData.projectId);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title.trim()) return;
+    if (!formData.title.trim() || !formData.clientId) return;
 
-    onSubmit(formData);
+    // Create the task object matching the Task interface
+    const taskData: Omit<Task, 'id' | 'createdAt'> = {
+      title: formData.title,
+      description: formData.description,
+      status: formData.status,
+      priority: formData.priority,
+      assignee: formData.assignee,
+      clientId: formData.clientId,
+      client: selectedClient!, // We know it exists because clientId is required
+      projectId: formData.projectId || undefined,
+      project: selectedProject || undefined,
+      dueDate: formData.dueDate,
+      tags: formData.tags,
+      completedAt: formData.status === 'done' ? new Date().toISOString() : undefined
+    };
+
+    onSubmit(taskData);
     setFormData({
       title: '',
       description: '',
       status: 'todo',
       priority: 'medium',
       assignee: '',
-      client: '',
-      project: '',
+      clientId: '',
+      projectId: '',
       dueDate: '',
       tags: []
     });
@@ -143,28 +171,42 @@ export const TaskModal: React.FC<TaskModalProps> = ({ isOpen, onClose, onSubmit 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Cliente
+                Cliente *
               </label>
-              <input
-                type="text"
-                value={formData.client}
-                onChange={(e) => setFormData(prev => ({ ...prev, client: e.target.value }))}
+              <select
+                value={formData.clientId}
+                onChange={(e) => setFormData(prev => ({ ...prev, clientId: e.target.value, projectId: '' }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Nome do cliente..."
-              />
+                required
+              >
+                <option value="">Selecione um cliente...</option>
+                {clients.map((client) => (
+                  <option key={client.id} value={client.id}>
+                    {client.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Projeto
               </label>
-              <input
-                type="text"
-                value={formData.project}
-                onChange={(e) => setFormData(prev => ({ ...prev, project: e.target.value }))}
+              <select
+                value={formData.projectId}
+                onChange={(e) => setFormData(prev => ({ ...prev, projectId: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Nome do projeto..."
-              />
+                disabled={!formData.clientId}
+              >
+                <option value="">Selecione um projeto...</option>
+                {projects
+                  .filter(project => project.clientId === formData.clientId)
+                  .map((project) => (
+                    <option key={project.id} value={project.id}>
+                      {project.name}
+                    </option>
+                  ))}
+              </select>
             </div>
           </div>
 
