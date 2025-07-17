@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Globe, Phone, Mail, Facebook, Instagram, Linkedin, MapPin, Calendar, Building2, Users, Star, AlertCircle, FileText, Clock, Target, Edit, ExternalLink, Thermometer, Shield, Video, PenTool, BarChart3, Upload, X, Save, Camera, Plus, Trash2, MessageCircle, FolderOpen } from 'lucide-react';
+import { Globe, Phone, Mail, Facebook, Instagram, Linkedin, MapPin, Calendar, Building2, Users, Star, AlertCircle, FileText, Clock, Target, Edit, ExternalLink, Thermometer, Shield, Video, PenTool, BarChart3, Upload, X, Save, Camera, Plus, Trash2, MessageCircle, FolderOpen, Eye, EyeOff } from 'lucide-react';
 
 interface PageLink {
   id: string;
@@ -23,6 +23,15 @@ interface PageLink {
   status: 'active' | 'inactive';
 }
 
+interface AccessCredential {
+  id: string;
+  platform: string;
+  login: string;
+  password: string;
+  status: 'active' | 'inactive';
+  notes: string;
+}
+
 const ClientProfile = () => {
   const { id } = useParams();
   const [activeTab, setActiveTab] = useState('general');
@@ -30,6 +39,45 @@ const ClientProfile = () => {
   
   // Find the client - in a real app, this would be fetched from an API
   const originalClient = mockClients.find(c => c.id === id) || mockClients[0];
+
+  // Access credentials state
+  const [accessCredentials, setAccessCredentials] = useState<AccessCredential[]>([
+    {
+      id: '1',
+      platform: 'Google Ads',
+      login: `ads@${originalClient.name.toLowerCase().replace(/\s/g, '')}.com`,
+      password: 'senha123',
+      status: 'active',
+      notes: 'Acesso completo'
+    },
+    {
+      id: '2',
+      platform: 'Meta Business',
+      login: 'Business Manager compartilhado',
+      password: 'meta456',
+      status: 'active',
+      notes: 'Administrador'
+    },
+    {
+      id: '3',
+      platform: 'Google Analytics',
+      login: 'Acesso via GTM',
+      password: 'analytics789',
+      status: 'active',
+      notes: 'Visualização'
+    }
+  ]);
+
+  const [isAccessDialogOpen, setIsAccessDialogOpen] = useState(false);
+  const [editingAccess, setEditingAccess] = useState<AccessCredential | null>(null);
+  const [accessForm, setAccessForm] = useState({
+    platform: '',
+    login: '',
+    password: '',
+    status: 'active' as 'active' | 'inactive',
+    notes: ''
+  });
+  const [showPasswords, setShowPasswords] = useState<{[key: string]: boolean}>({});
   
   // Pages and Links state
   const [pagesAndLinks, setPagesAndLinks] = useState<PageLink[]>([
@@ -83,6 +131,63 @@ const ClientProfile = () => {
       linkedin: originalClient.socialMedia?.linkedin || ''
     }
   });
+
+  // Access credential functions
+  const openAccessDialog = (access?: AccessCredential) => {
+    if (access) {
+      setEditingAccess(access);
+      setAccessForm({
+        platform: access.platform,
+        login: access.login,
+        password: access.password,
+        status: access.status,
+        notes: access.notes
+      });
+    } else {
+      setEditingAccess(null);
+      setAccessForm({
+        platform: '',
+        login: '',
+        password: '',
+        status: 'active',
+        notes: ''
+      });
+    }
+    setIsAccessDialogOpen(true);
+  };
+
+  const handleAccessSubmit = () => {
+    if (editingAccess) {
+      // Edit existing access
+      setAccessCredentials(prev => 
+        prev.map(access => 
+          access.id === editingAccess.id 
+            ? { ...access, ...accessForm }
+            : access
+        )
+      );
+    } else {
+      // Add new access
+      const newAccess: AccessCredential = {
+        id: Date.now().toString(),
+        ...accessForm
+      };
+      setAccessCredentials(prev => [...prev, newAccess]);
+    }
+    setIsAccessDialogOpen(false);
+    setEditingAccess(null);
+  };
+
+  const handleDeleteAccess = (accessId: string) => {
+    setAccessCredentials(prev => prev.filter(access => access.id !== accessId));
+  };
+
+  const togglePasswordVisibility = (accessId: string) => {
+    setShowPasswords(prev => ({
+      ...prev,
+      [accessId]: !prev[accessId]
+    }));
+  };
 
   const handleSave = () => {
     // In a real app, this would save to backend
@@ -681,9 +786,85 @@ const ClientProfile = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="w-5 h-5" />
-                Senhas e Acessos
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Shield className="w-5 h-5" />
+                  Senhas e Acessos
+                </div>
+                <Dialog open={isAccessDialogOpen} onOpenChange={setIsAccessDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => openAccessDialog()}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Adicionar Acesso
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingAccess ? 'Editar Acesso' : 'Adicionar Novo Acesso'}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="access-platform">Plataforma</Label>
+                        <Input
+                          id="access-platform"
+                          value={accessForm.platform}
+                          onChange={(e) => setAccessForm(prev => ({ ...prev, platform: e.target.value }))}
+                          placeholder="Nome da plataforma"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="access-login">Login</Label>
+                        <Input
+                          id="access-login"
+                          value={accessForm.login}
+                          onChange={(e) => setAccessForm(prev => ({ ...prev, login: e.target.value }))}
+                          placeholder="Email ou usuário"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="access-password">Senha</Label>
+                        <Input
+                          id="access-password"
+                          type="password"
+                          value={accessForm.password}
+                          onChange={(e) => setAccessForm(prev => ({ ...prev, password: e.target.value }))}
+                          placeholder="Senha"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="access-status">Status</Label>
+                        <Select value={accessForm.status} onValueChange={(value: 'active' | 'inactive') => setAccessForm(prev => ({ ...prev, status: value }))}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="active">Ativo</SelectItem>
+                            <SelectItem value="inactive">Inativo</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="access-notes">Observações</Label>
+                        <Textarea
+                          id="access-notes"
+                          value={accessForm.notes}
+                          onChange={(e) => setAccessForm(prev => ({ ...prev, notes: e.target.value }))}
+                          placeholder="Observações sobre o acesso"
+                        />
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => setIsAccessDialogOpen(false)}>
+                          Cancelar
+                        </Button>
+                        <Button onClick={handleAccessSubmit}>
+                          {editingAccess ? 'Salvar' : 'Adicionar'}
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -692,29 +873,71 @@ const ClientProfile = () => {
                   <TableRow>
                     <TableHead>Plataforma</TableHead>
                     <TableHead>Login</TableHead>
+                    <TableHead>Senha</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Observações</TableHead>
+                    <TableHead>Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
-                    <TableCell>Google Ads</TableCell>
-                    <TableCell>ads@{client.name.toLowerCase().replace(/\s/g, '')}.com</TableCell>
-                    <TableCell><Badge variant="secondary">Ativo</Badge></TableCell>
-                    <TableCell>Acesso completo</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Meta Business</TableCell>
-                    <TableCell>Business Manager compartilhado</TableCell>
-                    <TableCell><Badge variant="secondary">Ativo</Badge></TableCell>
-                    <TableCell>Administrador</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Google Analytics</TableCell>
-                    <TableCell>Acesso via GTM</TableCell>
-                    <TableCell><Badge variant="secondary">Ativo</Badge></TableCell>
-                    <TableCell>Visualização</TableCell>
-                  </TableRow>
+                  {accessCredentials.map((access) => (
+                    <TableRow key={access.id}>
+                      <TableCell className="font-medium">{access.platform}</TableCell>
+                      <TableCell>{access.login}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-sm">
+                            {showPasswords[access.id] ? access.password : '••••••••'}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => togglePasswordVisibility(access.id)}
+                          >
+                            {showPasswords[access.id] ? (
+                              <EyeOff className="w-4 h-4" />
+                            ) : (
+                              <Eye className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={access.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}>
+                          {access.status === 'active' ? 'Ativo' : 'Inativo'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{access.notes}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" size="sm" onClick={() => openAccessDialog(access)}>
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="outline" size="sm">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Excluir Acesso</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Tem certeza que deseja excluir o acesso para "{access.platform}"? Esta ação não pode ser desfeita.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteAccess(access.id)}>
+                                  Excluir
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </CardContent>
