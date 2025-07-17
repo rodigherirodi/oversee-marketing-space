@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { mockClients } from '@/data/mockData';
@@ -7,64 +6,56 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  Globe, 
-  Phone, 
-  Mail, 
-  Facebook, 
-  Instagram, 
-  Linkedin,
-  MapPin,
-  Calendar,
-  Building2,
-  Users,
-  Star,
-  AlertCircle,
-  FileText,
-  Clock,
-  Target
-} from 'lucide-react';
-
+import { Globe, Phone, Mail, Facebook, Instagram, Linkedin, MapPin, Calendar, Building2, Users, Star, AlertCircle, FileText, Clock, Target } from 'lucide-react';
 const ClientProfile = () => {
-  const { id } = useParams();
+  const {
+    id
+  } = useParams();
   const [activeTab, setActiveTab] = useState('general');
-  
+
   // Find the client - in a real app, this would be fetched from an API
   const client = mockClients.find(c => c.id === id) || mockClients[0];
-
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-700';
-      case 'inactive': return 'bg-red-100 text-red-700';
-      case 'onboarding': return 'bg-blue-100 text-blue-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case 'active':
+        return 'bg-green-100 text-green-700';
+      case 'inactive':
+        return 'bg-red-100 text-red-700';
+      case 'onboarding':
+        return 'bg-blue-100 text-blue-700';
+      default:
+        return 'bg-gray-100 text-gray-700';
     }
   };
-
   const getSizeLabel = (size: string) => {
     switch (size) {
-      case 'MEI': return 'Microempreendedor Individual';
-      case 'PME': return 'Pequena e Média Empresa';
-      case 'large': return 'Grande Porte';
-      default: return size;
+      case 'MEI':
+        return 'Microempreendedor Individual';
+      case 'PME':
+        return 'Pequena e Média Empresa';
+      case 'large':
+        return 'Grande Porte';
+      default:
+        return size;
     }
   };
-
   const getTemperatureColor = (temp: string) => {
     switch (temp) {
-      case 'hot': return 'text-red-500';
-      case 'warm': return 'text-yellow-500';
-      case 'cold': return 'text-blue-500';
-      default: return 'text-gray-500';
+      case 'hot':
+        return 'text-red-500';
+      case 'warm':
+        return 'text-yellow-500';
+      case 'cold':
+        return 'text-blue-500';
+      default:
+        return 'text-gray-500';
     }
   };
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       {/* Header Section */}
       <div className="bg-white rounded-lg border shadow-sm">
-        <div className="h-32 bg-gradient-to-br from-green-500 to-blue-600 rounded-t-lg"></div>
-        <div className="p-6 -mt-16 relative">
+        <div className="h-32 bg-gradient-to-br from-green-500 to-blue-600 rounded-t-lg py-0"></div>
+        <div className="p-6 -mt-16 relative py-[39px]">
           <div className="flex items-start gap-6">
             <div className="w-24 h-24 bg-white rounded-lg flex items-center justify-center text-4xl border-4 border-white shadow-lg">
               {client.logo || '🏢'}
@@ -77,8 +68,7 @@ const ClientProfile = () => {
                 </div>
                 <div className="flex items-center gap-3">
                   <Badge className={getStatusColor(client.status)}>
-                    {client.status === 'active' ? 'Ativo' : 
-                     client.status === 'inactive' ? 'Inativo' : 'Onboarding'}
+                    {client.status === 'active' ? 'Ativo' : client.status === 'inactive' ? 'Inativo' : 'Onboarding'}
                   </Badge>
                   <Badge variant="outline">{getSizeLabel(client.size)}</Badge>
                 </div>
@@ -100,35 +90,27 @@ const ClientProfile = () => {
               </div>
 
               <div className="flex items-center gap-3">
-                {client.website && (
-                  <Button variant="outline" size="sm" asChild>
+                {client.website && <Button variant="outline" size="sm" asChild>
                     <a href={client.website} target="_blank" rel="noopener noreferrer">
                       <Globe className="w-4 h-4 mr-2" />
                       Website
                     </a>
-                  </Button>
-                )}
-                {client.socialMedia.linkedin && (
-                  <Button variant="outline" size="sm" asChild>
+                  </Button>}
+                {client.socialMedia.linkedin && <Button variant="outline" size="sm" asChild>
                     <a href={client.socialMedia.linkedin} target="_blank" rel="noopener noreferrer">
                       <Linkedin className="w-4 h-4" />
                     </a>
-                  </Button>
-                )}
-                {client.socialMedia.instagram && (
-                  <Button variant="outline" size="sm" asChild>
+                  </Button>}
+                {client.socialMedia.instagram && <Button variant="outline" size="sm" asChild>
                     <a href={client.socialMedia.instagram} target="_blank" rel="noopener noreferrer">
                       <Instagram className="w-4 h-4" />
                     </a>
-                  </Button>
-                )}
-                {client.socialMedia.facebook && (
-                  <Button variant="outline" size="sm" asChild>
+                  </Button>}
+                {client.socialMedia.facebook && <Button variant="outline" size="sm" asChild>
                     <a href={client.socialMedia.facebook} target="_blank" rel="noopener noreferrer">
                       <Facebook className="w-4 h-4" />
                     </a>
-                  </Button>
-                )}
+                  </Button>}
               </div>
             </div>
           </div>
@@ -206,15 +188,13 @@ const ClientProfile = () => {
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-500">Tipo de Contrato:</span>
                   <Badge variant="outline">
-                    {client.contractType === 'recurring' ? 'Recorrente' :
-                     client.contractType === 'project' ? 'Projeto' : 'Pontual'}
+                    {client.contractType === 'recurring' ? 'Recorrente' : client.contractType === 'project' ? 'Projeto' : 'Pontual'}
                   </Badge>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-500">Temperatura:</span>
                   <span className={`font-medium ${getTemperatureColor(client.temperature)}`}>
-                    {client.temperature === 'hot' ? '🔥 Quente' :
-                     client.temperature === 'warm' ? '🌡️ Morno' : '❄️ Frio'}
+                    {client.temperature === 'hot' ? '🔥 Quente' : client.temperature === 'warm' ? '🌡️ Morno' : '❄️ Frio'}
                   </span>
                 </div>
               </CardContent>
@@ -514,8 +494,6 @@ const ClientProfile = () => {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
-  );
+    </div>;
 };
-
 export default ClientProfile;
