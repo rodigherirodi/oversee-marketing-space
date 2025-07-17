@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Task } from './Dashboard';
+import { Task } from '../types/entities';
 import { TaskCard } from './TaskCard';
 
 interface KanbanBoardProps {

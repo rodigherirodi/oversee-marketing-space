@@ -12,7 +12,9 @@ import {
   Home,
   BarChart3,
   Calendar,
-  Search
+  Search,
+  TrendingUp,
+  DollarSign
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -37,11 +39,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   const navigationItems = [
-    { name: 'Dashboard', icon: Home, path: '/dashboard', active: true },
-    { name: 'Projetos', icon: FolderOpen, path: '/projects' },
+    { name: 'Dashboard', icon: Home, path: '/', active: true },
     { name: 'Tarefas', icon: CheckSquare, path: '/tasks' },
+    { name: 'Projetos', icon: FolderOpen, path: '/projects' },
     { name: 'Clientes', icon: Users, path: '/clients' },
-    { name: 'Equipe', icon: Users, path: '/team' },
+    { name: 'Comercial', icon: DollarSign, path: '/commercial' },
     { name: 'Documentos', icon: FileText, path: '/docs' },
     { name: 'Relatórios', icon: BarChart3, path: '/reports' },
     { name: 'Calendário', icon: Calendar, path: '/calendar' }

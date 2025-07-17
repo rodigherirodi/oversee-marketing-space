@@ -7,9 +7,11 @@ import {
   Clock,
   MessageSquare,
   Paperclip,
-  MoreHorizontal
+  MoreHorizontal,
+  Building,
+  FolderOpen
 } from 'lucide-react';
-import { Task } from './Dashboard';
+import { Task } from '../types/entities';
 
 interface TaskCardProps {
   task: Task;
@@ -91,8 +93,16 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate }) => {
 
       {/* Client and Project */}
       <div className="text-xs text-gray-500 mb-3">
-        <div className="truncate">📁 {task.project}</div>
-        <div className="truncate">🏢 {task.client}</div>
+        <div className="flex items-center space-x-1 mb-1">
+          <Building className="w-3 h-3" />
+          <span className="truncate">{task.client.name}</span>
+        </div>
+        {task.project && (
+          <div className="flex items-center space-x-1">
+            <FolderOpen className="w-3 h-3" />
+            <span className="truncate">{task.project.name}</span>
+          </div>
+        )}
       </div>
 
       {/* Footer */}
