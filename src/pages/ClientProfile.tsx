@@ -32,6 +32,15 @@ interface AccessCredential {
   notes: string;
 }
 
+interface Stakeholder {
+  id: string;
+  name: string;
+  position: string;
+  type: 'decisor' | 'aprovador' | 'operacional' | 'influenciador';
+  email: string;
+  phone: string;
+}
+
 const ClientProfile = () => {
   const { id } = useParams();
   const [activeTab, setActiveTab] = useState('general');
@@ -39,6 +48,52 @@ const ClientProfile = () => {
   
   // Find the client - in a real app, this would be fetched from an API
   const originalClient = mockClients.find(c => c.id === id) || mockClients[0];
+
+  // Stakeholders state
+  const [stakeholders, setStakeholders] = useState<Stakeholder[]>([
+    {
+      id: '1',
+      name: originalClient.primaryContact.name,
+      position: 'Diretor de Marketing',
+      type: 'decisor',
+      email: originalClient.primaryContact.email,
+      phone: originalClient.primaryContact.phone
+    },
+    {
+      id: '2',
+      name: originalClient.financialContact.name,
+      position: 'Gerente Financeiro',
+      type: 'aprovador',
+      email: originalClient.financialContact.email,
+      phone: originalClient.financialContact.phone
+    },
+    {
+      id: '3',
+      name: 'Roberto Oliveira',
+      position: 'Assistente de Marketing',
+      type: 'operacional',
+      email: `roberto.oliveira@${originalClient.name.toLowerCase().replace(/\s/g, '')}.com`,
+      phone: '(11) 98765-4321'
+    },
+    {
+      id: '4',
+      name: 'Ana Santos',
+      position: 'Coordenadora de Comunicação',
+      type: 'influenciador',
+      email: `ana.santos@${originalClient.name.toLowerCase().replace(/\s/g, '')}.com`,
+      phone: '(11) 97654-3210'
+    }
+  ]);
+
+  const [isStakeholderDialogOpen, setIsStakeholderDialogOpen] = useState(false);
+  const [editingStakeholder, setEditingStakeholder] = useState<Stakeholder | null>(null);
+  const [stakeholderForm, setStakeholderForm] = useState({
+    name: '',
+    position: '',
+    type: 'operacional' as 'decisor' | 'aprovador' | 'operacional' | 'influenciador',
+    email: '',
+    phone: ''
+  });
 
   // Access credentials state
   const [accessCredentials, setAccessCredentials] = useState<AccessCredential[]>([
@@ -131,6 +186,86 @@ const ClientProfile = () => {
       linkedin: originalClient.socialMedia?.linkedin || ''
     }
   });
+
+  // Stakeholder functions
+  const openStakeholderDialog = (stakeholder?: Stakeholder) => {
+    if (stakeholder) {
+      setEditingStakeholder(stakeholder);
+      setStakeholderForm({
+        name: stakeholder.name,
+        position: stakeholder.position,
+        type: stakeholder.type,
+        email: stakeholder.email,
+        phone: stakeholder.phone
+      });
+    } else {
+      setEditingStakeholder(null);
+      setStakeholderForm({
+        name: '',
+        position: '',
+        type: 'operacional',
+        email: '',
+        phone: ''
+      });
+    }
+    setIsStakeholderDialogOpen(true);
+  };
+
+  const handleStakeholderSubmit = () => {
+    if (editingStakeholder) {
+      // Edit existing stakeholder
+      setStakeholders(prev => 
+        prev.map(stakeholder => 
+          stakeholder.id === editingStakeholder.id 
+            ? { ...stakeholder, ...stakeholderForm }
+            : stakeholder
+        )
+      );
+    } else {
+      // Add new stakeholder
+      const newStakeholder: Stakeholder = {
+        id: Date.now().toString(),
+        ...stakeholderForm
+      };
+      setStakeholders(prev => [...prev, newStakeholder]);
+    }
+    setIsStakeholderDialogOpen(false);
+    setEditingStakeholder(null);
+  };
+
+  const handleDeleteStakeholder = (stakeholderId: string) => {
+    setStakeholders(prev => prev.filter(stakeholder => stakeholder.id !== stakeholderId));
+  };
+
+  const getStakeholderTypeLabel = (type: string) => {
+    switch (type) {
+      case 'decisor':
+        return 'Decisor';
+      case 'aprovador':
+        return 'Aprovador';
+      case 'operacional':
+        return 'Operacional';
+      case 'influenciador':
+        return 'Influenciador';
+      default:
+        return type;
+    }
+  };
+
+  const getStakeholderTypeBadgeClass = (type: string) => {
+    switch (type) {
+      case 'decisor':
+        return 'bg-purple-100 text-purple-700';
+      case 'aprovador':
+        return 'bg-blue-100 text-blue-700';
+      case 'operacional':
+        return 'bg-green-100 text-green-700';
+      case 'influenciador':
+        return 'bg-yellow-100 text-yellow-700';
+      default:
+        return 'bg-gray-100 text-gray-700';
+    }
+  };
 
   // Access credential functions
   const openAccessDialog = (access?: AccessCredential) => {
@@ -970,9 +1105,87 @@ const ClientProfile = () => {
         <TabsContent value="stakeholders" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="w-5 h-5" />
-                Stakeholders do Cliente
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  Stakeholders do Cliente
+                </div>
+                <Dialog open={isStakeholderDialogOpen} onOpenChange={setIsStakeholderDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => openStakeholderDialog()}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Adicionar Stakeholder
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingStakeholder ? 'Editar Stakeholder' : 'Adicionar Novo Stakeholder'}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="stakeholder-name">Nome</Label>
+                        <Input
+                          id="stakeholder-name"
+                          value={stakeholderForm.name}
+                          onChange={(e) => setStakeholderForm(prev => ({ ...prev, name: e.target.value }))}
+                          placeholder="Nome completo"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="stakeholder-position">Cargo</Label>
+                        <Input
+                          id="stakeholder-position"
+                          value={stakeholderForm.position}
+                          onChange={(e) => setStakeholderForm(prev => ({ ...prev, position: e.target.value }))}
+                          placeholder="Cargo ou função"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="stakeholder-type">Tipo</Label>
+                        <Select value={stakeholderForm.type} onValueChange={(value: 'decisor' | 'aprovador' | 'operacional' | 'influenciador') => setStakeholderForm(prev => ({ ...prev, type: value }))}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="decisor">Decisor</SelectItem>
+                            <SelectItem value="aprovador">Aprovador</SelectItem>
+                            <SelectItem value="operacional">Operacional</SelectItem>
+                            <SelectItem value="influenciador">Influenciador</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="stakeholder-email">Email</Label>
+                        <Input
+                          id="stakeholder-email"
+                          type="email"
+                          value={stakeholderForm.email}
+                          onChange={(e) => setStakeholderForm(prev => ({ ...prev, email: e.target.value }))}
+                          placeholder="email@exemplo.com"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="stakeholder-phone">Telefone</Label>
+                        <Input
+                          id="stakeholder-phone"
+                          value={stakeholderForm.phone}
+                          onChange={(e) => setStakeholderForm(prev => ({ ...prev, phone: e.target.value }))}
+                          placeholder="(11) 99999-9999"
+                        />
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => setIsStakeholderDialogOpen(false)}>
+                          Cancelar
+                        </Button>
+                        <Button onClick={handleStakeholderSubmit}>
+                          {editingStakeholder ? 'Salvar' : 'Adicionar'}
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -982,40 +1195,60 @@ const ClientProfile = () => {
                     <TableHead>Nome</TableHead>
                     <TableHead>Cargo</TableHead>
                     <TableHead>Tipo</TableHead>
-                    <TableHead>Contato</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Telefone</TableHead>
+                    <TableHead>Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
-                    <TableCell className="font-medium">{client.primaryContact.name}</TableCell>
-                    <TableCell>Diretor de Marketing</TableCell>
-                    <TableCell><Badge className="bg-purple-100 text-purple-700">Decisor</Badge></TableCell>
-                    <TableCell>{client.primaryContact.email}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">{client.financialContact.name}</TableCell>
-                    <TableCell>Gerente Financeiro</TableCell>
-                    <TableCell><Badge variant="outline">Aprovador</Badge></TableCell>
-                    <TableCell>{client.financialContact.email}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">Roberto Oliveira</TableCell>
-                    <TableCell>Assistente de Marketing</TableCell>
-                    <TableCell><Badge className="bg-blue-100 text-blue-700">Operacional</Badge></TableCell>
-                    <TableCell>roberto.oliveira@{client.name.toLowerCase().replace(/\s/g, '')}.com</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">Ana Santos</TableCell>
-                    <TableCell>Coordenadora de Comunicação</TableCell>
-                    <TableCell><Badge className="bg-green-100 text-green-700">Influenciador</Badge></TableCell>
-                    <TableCell>ana.santos@{client.name.toLowerCase().replace(/\s/g, '')}.com</TableCell>
-                  </TableRow>
+                  {stakeholders.map((stakeholder) => (
+                    <TableRow key={stakeholder.id}>
+                      <TableCell className="font-medium">{stakeholder.name}</TableCell>
+                      <TableCell>{stakeholder.position}</TableCell>
+                      <TableCell>
+                        <Badge className={getStakeholderTypeBadgeClass(stakeholder.type)}>
+                          {getStakeholderTypeLabel(stakeholder.type)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{stakeholder.email}</TableCell>
+                      <TableCell>{stakeholder.phone}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" size="sm" onClick={() => openStakeholderDialog(stakeholder)}>
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="outline" size="sm">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Excluir Stakeholder</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Tem certeza que deseja excluir o stakeholder "{stakeholder.name}"? Esta ação não pode ser desfeita.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteStakeholder(stakeholder.id)}>
+                                  Excluir
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </CardContent>
           </Card>
         </TabsContent>
 
+        {/* Projects Tab */}
         <TabsContent value="projects" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
@@ -1084,6 +1317,7 @@ const ClientProfile = () => {
           </div>
         </TabsContent>
 
+        {/* Relationship Tab */}
         <TabsContent value="relationship" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Card>
@@ -1274,6 +1508,7 @@ const ClientProfile = () => {
           </Card>
         </TabsContent>
 
+        {/* Team Tab */}
         <TabsContent value="team" className="space-y-6">
           <Card>
             <CardHeader>
@@ -1341,6 +1576,7 @@ const ClientProfile = () => {
           </Card>
         </TabsContent>
 
+        {/* History Tab */}
         <TabsContent value="history" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
@@ -1485,6 +1721,7 @@ const ClientProfile = () => {
           </Card>
         </TabsContent>
 
+        {/* Pages Tab */}
         <TabsContent value="pages" className="space-y-6">
           <Card>
             <CardHeader>
