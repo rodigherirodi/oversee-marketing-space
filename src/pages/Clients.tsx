@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { mockClients } from '@/data/mockData';
 import { Client } from '@/types/entities';
-import { Search, Grid, List, Plus, MapPin, Phone, Mail } from 'lucide-react';
+import { Search, Grid, List, Plus, MapPin, Phone, Mail, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const Clients = () => {
@@ -107,7 +108,7 @@ const Clients = () => {
                   </div>
                 </div>
                 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-4">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                     client.status === 'active' ? 'bg-green-100 text-green-700' :
                     client.status === 'inactive' ? 'bg-red-100 text-red-700' :
@@ -120,6 +121,13 @@ const Clients = () => {
                     Desde {new Date(client.createdAt).toLocaleDateString()}
                   </span>
                 </div>
+
+                <Button asChild variant="outline" size="sm" className="w-full">
+                  <Link to={`/clients/${client.id}`}>
+                    <Eye className="w-4 h-4 mr-2" />
+                    Ver Perfil
+                  </Link>
+                </Button>
               </div>
             </div>
           ))}
@@ -135,6 +143,7 @@ const Clients = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contato</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Desde</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -163,6 +172,14 @@ const Clients = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {new Date(client.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <Button asChild variant="outline" size="sm">
+                        <Link to={`/clients/${client.id}`}>
+                          <Eye className="w-4 h-4 mr-2" />
+                          Ver Perfil
+                        </Link>
+                      </Button>
                     </td>
                   </tr>
                 ))}
