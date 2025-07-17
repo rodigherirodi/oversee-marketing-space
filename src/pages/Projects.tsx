@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { projects } from '@/data/mockData';
+import { mockProjects } from '@/data/mockData';
 import { Project } from '@/types/entities';
 import { Search, Grid, List, Plus, Calendar, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,10 +10,10 @@ const Projects = () => {
   const [selectedClient, setSelectedClient] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
 
-  const [filteredProjects, setFilteredProjects] = useState(projects);
+  const [filteredProjects, setFilteredProjects] = useState(mockProjects);
 
   const filterProjects = () => {
-    let filtered = projects.filter(project =>
+    let filtered = mockProjects.filter(project =>
       project.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -84,8 +84,8 @@ const Projects = () => {
           className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">Todos os clientes</option>
-          <option value="cliente-a">Cliente A</option>
-          <option value="cliente-b">Cliente B</option>
+          <option value="1">TechCorp Solutions</option>
+          <option value="2">E-commerce Plus</option>
         </select>
 
         <select
@@ -95,9 +95,10 @@ const Projects = () => {
         >
           <option value="">Todos os status</option>
           <option value="planning">Planejamento</option>
-          <option value="active">Ativo</option>
-          <option value="on-hold">Em Pausa</option>
+          <option value="in-progress">Em Progresso</option>
+          <option value="review">Em Revisão</option>
           <option value="completed">Concluído</option>
+          <option value="paused">Em Pausa</option>
         </select>
       </div>
 
@@ -124,14 +125,16 @@ const Projects = () => {
                 
                 <div className="flex items-center justify-between">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    project.status === 'active' ? 'bg-green-100 text-green-700' :
+                    project.status === 'in-progress' ? 'bg-green-100 text-green-700' :
                     project.status === 'planning' ? 'bg-blue-100 text-blue-700' :
-                    project.status === 'on-hold' ? 'bg-yellow-100 text-yellow-700' :
+                    project.status === 'review' ? 'bg-yellow-100 text-yellow-700' :
+                    project.status === 'paused' ? 'bg-red-100 text-red-700' :
                     'bg-gray-100 text-gray-700'
                   }`}>
-                    {project.status === 'active' ? 'Ativo' :
+                    {project.status === 'in-progress' ? 'Em Progresso' :
                      project.status === 'planning' ? 'Planejamento' :
-                     project.status === 'on-hold' ? 'Em Pausa' : 'Concluído'}
+                     project.status === 'review' ? 'Em Revisão' :
+                     project.status === 'paused' ? 'Em Pausa' : 'Concluído'}
                   </span>
                   <div className="w-16 bg-gray-200 rounded-full h-2">
                     <div 
@@ -167,17 +170,19 @@ const Projects = () => {
                         <div className="text-sm text-gray-500 truncate max-w-xs">{project.description}</div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{project.clientId}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{project.client.name}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        project.status === 'active' ? 'bg-green-100 text-green-700' :
+                        project.status === 'in-progress' ? 'bg-green-100 text-green-700' :
                         project.status === 'planning' ? 'bg-blue-100 text-blue-700' :
-                        project.status === 'on-hold' ? 'bg-yellow-100 text-yellow-700' :
+                        project.status === 'review' ? 'bg-yellow-100 text-yellow-700' :
+                        project.status === 'paused' ? 'bg-red-100 text-red-700' :
                         'bg-gray-100 text-gray-700'
                       }`}>
-                        {project.status === 'active' ? 'Ativo' :
+                        {project.status === 'in-progress' ? 'Em Progresso' :
                          project.status === 'planning' ? 'Planejamento' :
-                         project.status === 'on-hold' ? 'Em Pausa' : 'Concluído'}
+                         project.status === 'review' ? 'Em Revisão' :
+                         project.status === 'paused' ? 'Em Pausa' : 'Concluído'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

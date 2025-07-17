@@ -1,12 +1,13 @@
+
 import React, { useState } from 'react';
 import { KanbanBoard } from '@/components/KanbanBoard';
-import { tasks } from '@/data/mockData';
+import { mockTasks } from '@/data/mockData';
 import { Task } from '@/types/entities';
 import { Search, Filter, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const Tasks = () => {
-  const [filteredTasks, setFilteredTasks] = useState<Task[]>(tasks);
+  const [filteredTasks, setFilteredTasks] = useState<Task[]>(mockTasks);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClient, setSelectedClient] = useState('');
   const [selectedProject, setSelectedProject] = useState('');
@@ -14,7 +15,7 @@ const Tasks = () => {
   const [selectedPriority, setSelectedPriority] = useState('');
 
   const filterTasks = () => {
-    let results = tasks;
+    let results = mockTasks;
 
     if (searchTerm) {
       results = results.filter(task =>
@@ -24,11 +25,11 @@ const Tasks = () => {
     }
 
     if (selectedClient) {
-      results = results.filter(task => task.client === selectedClient);
+      results = results.filter(task => task.clientId === selectedClient);
     }
 
     if (selectedProject) {
-      results = results.filter(task => task.project === selectedProject);
+      results = results.filter(task => task.projectId === selectedProject);
     }
 
     if (selectedStatus) {
@@ -40,6 +41,14 @@ const Tasks = () => {
     }
 
     setFilteredTasks(results);
+  };
+
+  const handleUpdateTask = (taskId: string, updates: Partial<Task>) => {
+    setFilteredTasks(prevTasks =>
+      prevTasks.map(task =>
+        task.id === taskId ? { ...task, ...updates } : task
+      )
+    );
   };
 
   React.useEffect(() => {
@@ -78,8 +87,8 @@ const Tasks = () => {
           className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">Todos os clientes</option>
-          <option value="cliente-a">Cliente A</option>
-          <option value="cliente-b">Cliente B</option>
+          <option value="1">TechCorp Solutions</option>
+          <option value="2">E-commerce Plus</option>
         </select>
 
         <select
@@ -88,8 +97,8 @@ const Tasks = () => {
           className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">Todos os projetos</option>
-          <option value="projeto-website">Website Institucional</option>
-          <option value="projeto-app">App Mobile</option>
+          <option value="1">Campanha Black Friday</option>
+          <option value="2">Rebranding Completo</option>
         </select>
 
         <select
@@ -99,7 +108,7 @@ const Tasks = () => {
         >
           <option value="">Todos os status</option>
           <option value="todo">A Fazer</option>
-          <option value="in-progress">Em Progresso</option>
+          <option value="doing">Em Progresso</option>
           <option value="review">Em Revisão</option>
           <option value="done">Concluído</option>
         </select>
@@ -116,7 +125,7 @@ const Tasks = () => {
         </select>
       </div>
 
-      <KanbanBoard tasks={filteredTasks} />
+      <KanbanBoard tasks={filteredTasks} onUpdateTask={handleUpdateTask} />
     </div>
   );
 };
