@@ -293,7 +293,7 @@ const ClientProfile = () => {
           </div>
           
           <div className="p-6 -mt-16 relative">
-            <div className="flex items-start gap-4">
+            <div className="flex items-start gap-10">
               {/* Logo */}
               <div className="relative">
                 <div className="w-24 h-24 bg-white rounded-lg flex items-center justify-center text-4xl border-4 border-white shadow-lg overflow-hidden">
