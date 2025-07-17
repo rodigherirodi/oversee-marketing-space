@@ -12,7 +12,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Globe, Phone, Mail, Facebook, Instagram, Linkedin, MapPin, Calendar, Building2, Users, Star, AlertCircle, FileText, Clock, Target, Edit, ExternalLink, Thermometer, Shield, Video, PenTool, BarChart3, Upload, X, Save, Camera } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Globe, Phone, Mail, Facebook, Instagram, Linkedin, MapPin, Calendar, Building2, Users, Star, AlertCircle, FileText, Clock, Target, Edit, ExternalLink, Thermometer, Shield, Video, PenTool, BarChart3, Upload, X, Save, Camera, Plus, Trash2 } from 'lucide-react';
+
+interface PageLink {
+  id: string;
+  name: string;
+  url: string;
+  type: 'landing' | 'institutional' | 'other';
+  status: 'active' | 'inactive';
+}
 
 const ClientProfile = () => {
   const { id } = useParams();
@@ -22,6 +31,47 @@ const ClientProfile = () => {
   // Find the client - in a real app, this would be fetched from an API
   const originalClient = mockClients.find(c => c.id === id) || mockClients[0];
   
+  // Pages and Links state
+  const [pagesAndLinks, setPagesAndLinks] = useState<PageLink[]>([
+    {
+      id: '1',
+      name: 'Black Friday 2024',
+      url: `blackfriday.${originalClient.name.toLowerCase().replace(/\s/g, '')}.com`,
+      type: 'landing',
+      status: 'active'
+    },
+    {
+      id: '2',
+      name: 'Campanha Verão',
+      url: `verao.${originalClient.name.toLowerCase().replace(/\s/g, '')}.com`,
+      type: 'landing',
+      status: 'inactive'
+    },
+    {
+      id: '3',
+      name: 'Site Principal',
+      url: originalClient.website || '',
+      type: 'institutional',
+      status: 'active'
+    },
+    {
+      id: '4',
+      name: 'Blog',
+      url: `blog.${originalClient.name.toLowerCase().replace(/\s/g, '')}.com`,
+      type: 'institutional',
+      status: 'active'
+    }
+  ]);
+
+  const [isPageDialogOpen, setIsPageDialogOpen] = useState(false);
+  const [editingPage, setEditingPage] = useState<PageLink | null>(null);
+  const [pageForm, setPageForm] = useState({
+    name: '',
+    url: '',
+    type: 'landing' as 'landing' | 'institutional' | 'other',
+    status: 'active' as 'active' | 'inactive'
+  });
+
   // Editable client data state
   const [editableClient, setEditableClient] = useState({
     ...originalClient,
@@ -94,6 +144,67 @@ const ClientProfile = () => {
         }));
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  // Pages and Links functions
+  const openPageDialog = (page?: PageLink) => {
+    if (page) {
+      setEditingPage(page);
+      setPageForm({
+        name: page.name,
+        url: page.url,
+        type: page.type,
+        status: page.status
+      });
+    } else {
+      setEditingPage(null);
+      setPageForm({
+        name: '',
+        url: '',
+        type: 'landing',
+        status: 'active'
+      });
+    }
+    setIsPageDialogOpen(true);
+  };
+
+  const handlePageSubmit = () => {
+    if (editingPage) {
+      // Edit existing page
+      setPagesAndLinks(prev => 
+        prev.map(page => 
+          page.id === editingPage.id 
+            ? { ...page, ...pageForm }
+            : page
+        )
+      );
+    } else {
+      // Add new page
+      const newPage: PageLink = {
+        id: Date.now().toString(),
+        ...pageForm
+      };
+      setPagesAndLinks(prev => [...prev, newPage]);
+    }
+    setIsPageDialogOpen(false);
+    setEditingPage(null);
+  };
+
+  const handleDeletePage = (pageId: string) => {
+    setPagesAndLinks(prev => prev.filter(page => page.id !== pageId));
+  };
+
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case 'landing':
+        return 'Landing Page';
+      case 'institutional':
+        return 'Institucional';
+      case 'other':
+        return 'Outro';
+      default:
+        return type;
     }
   };
 
@@ -558,7 +669,6 @@ const ClientProfile = () => {
             </Card>
           </div>
 
-          {/* Rest of the tabs content remains the same */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -1143,115 +1253,148 @@ const ClientProfile = () => {
         </TabsContent>
 
         <TabsContent value="pages" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
                   <Globe className="w-5 h-5" />
-                  Landing Pages
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>URL</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell>Black Friday 2024</TableCell>
-                      <TableCell className="text-blue-600">blackfriday.{client.name.toLowerCase().replace(/\s/g, '')}.com</TableCell>
-                      <TableCell><Badge className="bg-green-100 text-green-700">Ativa</Badge></TableCell>
-                      <TableCell>
-                        <Button variant="outline" size="sm">
-                          <ExternalLink className="w-4 h-4" />
+                  Páginas e Links
+                </div>
+                <Dialog open={isPageDialogOpen} onOpenChange={setIsPageDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => openPageDialog()}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Adicionar Página
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingPage ? 'Editar Página' : 'Adicionar Nova Página'}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="page-name">Nome</Label>
+                        <Input
+                          id="page-name"
+                          value={pageForm.name}
+                          onChange={(e) => setPageForm(prev => ({ ...prev, name: e.target.value }))}
+                          placeholder="Nome da página"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="page-url">URL</Label>
+                        <Input
+                          id="page-url"
+                          value={pageForm.url}
+                          onChange={(e) => setPageForm(prev => ({ ...prev, url: e.target.value }))}
+                          placeholder="https://exemplo.com"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="page-type">Tipo</Label>
+                        <Select value={pageForm.type} onValueChange={(value: 'landing' | 'institutional' | 'other') => setPageForm(prev => ({ ...prev, type: value }))}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="landing">Landing Page</SelectItem>
+                            <SelectItem value="institutional">Institucional</SelectItem>
+                            <SelectItem value="other">Outro</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="page-status">Status</Label>
+                        <Select value={pageForm.status} onValueChange={(value: 'active' | 'inactive') => setPageForm(prev => ({ ...prev, status: value }))}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="active">Ativo</SelectItem>
+                            <SelectItem value="inactive">Inativo</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => setIsPageDialogOpen(false)}>
+                          Cancelar
                         </Button>
+                        <Button onClick={handlePageSubmit}>
+                          {editingPage ? 'Salvar' : 'Adicionar'}
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>URL</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pagesAndLinks.map((page) => (
+                    <TableRow key={page.id}>
+                      <TableCell className="font-medium">{page.name}</TableCell>
+                      <TableCell className="text-blue-600">{page.url}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {getTypeLabel(page.type)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={page.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}>
+                          {page.status === 'active' ? 'Ativo' : 'Inativo'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" size="sm" asChild>
+                            <a href={page.url.startsWith('http') ? page.url : `https://${page.url}`} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="w-4 h-4" />
+                            </a>
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => openPageDialog(page)}>
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="outline" size="sm">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Excluir Página</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Tem certeza que deseja excluir a página "{page.name}"? Esta ação não pode ser desfeita.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeletePage(page.id)}>
+                                  Excluir
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                       </TableCell>
                     </TableRow>
-                    <TableRow>
-                      <TableCell>Campanha Verão</TableCell>
-                      <TableCell className="text-blue-600">verao.{client.name.toLowerCase().replace(/\s/g, '')}.com</TableCell>
-                      <TableCell><Badge variant="outline">Pausada</Badge></TableCell>
-                      <TableCell>
-                        <Button variant="outline" size="sm">
-                          <ExternalLink className="w-4 h-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>Dia das Mães</TableCell>
-                      <TableCell className="text-blue-600">maes.{client.name.toLowerCase().replace(/\s/g, '')}.com</TableCell>
-                      <TableCell><Badge className="bg-gray-100 text-gray-700">Finalizada</Badge></TableCell>
-                      <TableCell>
-                        <Button variant="outline" size="sm">
-                          <ExternalLink className="w-4 h-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="w-5 h-5" />
-                  Sites e Páginas Institucionais
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>URL</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell>Site Principal</TableCell>
-                      <TableCell className="text-blue-600">{client.website}</TableCell>
-                      <TableCell><Badge className="bg-green-100 text-green-700">Ativo</Badge></TableCell>
-                      <TableCell>
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={client.website} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="w-4 h-4" />
-                          </a>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>Blog</TableCell>
-                      <TableCell className="text-blue-600">blog.{client.name.toLowerCase().replace(/\s/g, '')}.com</TableCell>
-                      <TableCell><Badge className="bg-green-100 text-green-700">Ativo</Badge></TableCell>
-                      <TableCell>
-                        <Button variant="outline" size="sm">
-                          <ExternalLink className="w-4 h-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>Loja Online</TableCell>
-                      <TableCell className="text-blue-600">loja.{client.name.toLowerCase().replace(/\s/g, '')}.com</TableCell>
-                      <TableCell><Badge className="bg-blue-100 text-blue-700">Em desenvolvimento</Badge></TableCell>
-                      <TableCell>
-                        <Button variant="outline" size="sm" disabled>
-                          <ExternalLink className="w-4 h-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </div>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>
