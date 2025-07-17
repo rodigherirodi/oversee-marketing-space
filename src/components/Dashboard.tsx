@@ -2,11 +2,8 @@
 import React, { useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
-import Dashboard from '../pages/Dashboard';
-import Tasks from '../pages/Tasks';
-import Projects from '../pages/Projects';
-import Clients from '../pages/Clients';
-import Commercial from '../pages/Commercial';
+import { KanbanBoard } from './KanbanBoard';
+import { TaskModal } from './TaskModal';
 
 export interface Task {
   id: string;
@@ -22,25 +19,65 @@ export interface Task {
   createdAt: string;
 }
 
-const MainLayout = () => {
+const Dashboard = () => {
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [selectedWorkspace, setSelectedWorkspace] = useState('Cliente A');
-  const [currentPage, setCurrentPage] = useState('dashboard');
-
-  const renderCurrentPage = () => {
-    switch (currentPage) {
-      case 'dashboard':
-        return <Dashboard />;
-      case 'tasks':
-        return <Tasks />;
-      case 'projects':
-        return <Projects />;
-      case 'clients':
-        return <Clients />;
-      case 'commercial':
-        return <Commercial />;
-      default:
-        return <Dashboard />;
+  const [tasks, setTasks] = useState<Task[]>([
+    {
+      id: '1',
+      title: 'Criação de landing page',
+      description: 'Desenvolver landing page para campanha de Black Friday',
+      status: 'doing',
+      priority: 'high',
+      assignee: 'Ana Silva',
+      client: 'Cliente A',
+      project: 'Campanha Black Friday',
+      dueDate: '2025-07-20',
+      tags: ['design', 'desenvolvimento', 'urgente'],
+      createdAt: '2025-07-10'
+    },
+    {
+      id: '2',
+      title: 'Análise de métricas',
+      description: 'Relatório mensal de performance das campanhas',
+      status: 'todo',
+      priority: 'medium',
+      assignee: 'Carlos Mendes',
+      client: 'Cliente B',
+      project: 'Relatórios Mensais',
+      dueDate: '2025-07-25',
+      tags: ['análise', 'relatório'],
+      createdAt: '2025-07-12'
+    },
+    {
+      id: '3',
+      title: 'Copy para social media',
+      description: 'Criação de copies para posts da semana',
+      status: 'review',
+      priority: 'medium',
+      assignee: 'Marina Costa',
+      client: 'Cliente A',
+      project: 'Social Media',
+      dueDate: '2025-07-18',
+      tags: ['copywriting', 'social'],
+      createdAt: '2025-07-08'
     }
+  ]);
+
+  const handleCreateTask = (newTask: Omit<Task, 'id' | 'createdAt'>) => {
+    const task: Task = {
+      ...newTask,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString().split('T')[0]
+    };
+    setTasks([...tasks, task]);
+    setIsTaskModalOpen(false);
+  };
+
+  const handleUpdateTask = (taskId: string, updates: Partial<Task>) => {
+    setTasks(tasks.map(task => 
+      task.id === taskId ? { ...task, ...updates } : task
+    ));
   };
 
   return (
@@ -51,14 +88,25 @@ const MainLayout = () => {
       />
       
       <div className="flex-1 flex flex-col">
-        <Header onNewTask={() => {}} />
+        <Header onNewTask={() => setIsTaskModalOpen(true)} />
         
         <main className="flex-1 p-6 overflow-auto">
-          {renderCurrentPage()}
+          <KanbanBoard 
+            tasks={tasks}
+            onUpdateTask={handleUpdateTask}
+          />
         </main>
       </div>
+
+      {isTaskModalOpen && (
+        <TaskModal
+          isOpen={isTaskModalOpen}
+          onClose={() => setIsTaskModalOpen(false)}
+          onSubmit={handleCreateTask}
+        />
+      )}
     </div>
   );
 };
 
-export default MainLayout;
+export default Dashboard;
