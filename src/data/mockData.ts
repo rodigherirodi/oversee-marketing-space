@@ -49,7 +49,7 @@ export const mockClients: Client[] = [
     phone: '+55 11 99999-9999',
     company: 'Empresa A Ltda',
     avatar: undefined,
-    cover: '/lovable-uploads/2855d56f-ae88-43d6-bd66-e0c03e8cbab2.png',
+    cover: undefined,
     color: '#3B82F6',
     status: 'active',
     contractValue: 50000,
@@ -63,107 +63,7 @@ export const mockClients: Client[] = [
       zip: '01234-567'
     },
     createdAt: '2024-01-01',
-    updatedAt: '2024-01-15',
-    
-    // Informações expandidas
-    website: 'https://empresaa.com.br',
-    segment: 'E-commerce',
-    companySize: 'PME',
-    temperature: 'hot',
-    contractType: 'recurring',
-    
-    primaryContact: {
-      name: 'João Silva',
-      phone: '+55 11 99999-9999',
-      email: 'joao@empresaa.com'
-    },
-    
-    financialContact: {
-      name: 'Maria Santos',
-      phone: '+55 11 99999-8888',
-      email: 'financeiro@empresaa.com'
-    },
-    
-    credentials: [
-      {
-        id: '1',
-        platform: 'Google Analytics',
-        username: 'empresaa@gmail.com',
-        password: 'senha123456',
-        category: 'Analytics',
-        tags: ['Google', 'Analytics']
-      },
-      {
-        id: '2',
-        platform: 'Facebook Ads',
-        username: 'empresaa@gmail.com',
-        password: 'senhaFace789',
-        category: 'Publicidade',
-        tags: ['Facebook', 'Ads']
-      }
-    ],
-    
-    stakeholders: [
-      {
-        id: '1',
-        name: 'João Silva',
-        role: 'CEO',
-        relationship: 'decisor',
-        email: 'joao@empresaa.com',
-        phone: '+55 11 99999-9999'
-      },
-      {
-        id: '2',
-        name: 'Ana Costa',
-        role: 'Marketing Manager',
-        relationship: 'operacional',
-        email: 'ana@empresaa.com',
-        phone: '+55 11 99999-7777'
-      }
-    ],
-    
-    team: {
-      account: 'Marina Costa',
-      creative: 'Ana Silva',
-      analyst: 'Carlos Mendes'
-    },
-    
-    nps: [
-      {
-        score: 9,
-        date: '2024-10-01',
-        collectedBy: 'Marina Costa',
-        comments: 'Muito satisfeito com os resultados das campanhas'
-      },
-      {
-        score: 8,
-        date: '2024-09-01',
-        collectedBy: 'Marina Costa',
-        comments: 'Bom trabalho, mas pode melhorar a comunicação'
-      }
-    ],
-    
-    meetings: [
-      {
-        id: '1',
-        title: 'Reunião de Planejamento Q4',
-        date: '2024-10-15',
-        summary: 'Discutimos estratégias para o último trimestre',
-        participants: ['João Silva', 'Marina Costa', 'Ana Silva']
-      }
-    ],
-    
-    notes: 'Cliente muito exigente mas justo. Prefere reuniões presenciais.',
-    
-    alerts: [
-      {
-        id: '1',
-        type: 'warning',
-        message: 'Reunião de renovação de contrato em 30 dias',
-        createdAt: '2024-10-15',
-        resolved: false
-      }
-    ]
+    updatedAt: '2024-01-15'
   },
   {
     id: '2',
@@ -172,7 +72,7 @@ export const mockClients: Client[] = [
     phone: '+55 11 88888-8888',
     company: 'Empresa B S.A.',
     avatar: undefined,
-    cover: '/lovable-uploads/2855d56f-ae88-43d6-bd66-e0c03e8cbab2.png',
+    cover: undefined,
     color: '#8B5CF6',
     status: 'active',
     contractValue: 30000,
@@ -186,19 +86,7 @@ export const mockClients: Client[] = [
       zip: '01234-567'
     },
     createdAt: '2024-01-15',
-    updatedAt: '2024-02-01',
-    
-    segment: 'Tecnologia',
-    companySize: 'Large',
-    temperature: 'warm',
-    contractType: 'project-based',
-    
-    team: {
-      account: 'Marina Costa',
-      analyst: 'Carlos Mendes'
-    },
-    
-    notes: 'Empresa em crescimento, muito potencial para expansion'
+    updatedAt: '2024-02-01'
   },
   {
     id: '3',
@@ -207,7 +95,7 @@ export const mockClients: Client[] = [
     phone: '+55 11 77777-7777',
     company: 'Startup C',
     avatar: undefined,
-    cover: '/lovable-uploads/2855d56f-ae88-43d6-bd66-e0c03e8cbab2.png',
+    cover: undefined,
     color: '#10B981',
     status: 'onboarding',
     contractValue: 25000,
@@ -215,26 +103,7 @@ export const mockClients: Client[] = [
     projects: [],
     tags: ['Startup', 'Fintech'],
     createdAt: '2024-02-15',
-    updatedAt: '2024-03-01',
-    
-    segment: 'Fintech',
-    companySize: 'PME',
-    temperature: 'warm',
-    contractType: 'recurring',
-    
-    team: {
-      account: 'Marina Costa'
-    },
-    
-    alerts: [
-      {
-        id: '1',
-        type: 'info',
-        message: 'Cliente em processo de onboarding',
-        createdAt: '2024-03-01',
-        resolved: false
-      }
-    ]
+    updatedAt: '2024-03-01'
   }
 ];
 
