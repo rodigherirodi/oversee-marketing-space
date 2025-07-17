@@ -12,7 +12,41 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Globe, Phone, Mail, Facebook, Instagram, Linkedin, MapPin, Calendar, Building2, Users, Star, AlertCircle, FileText, Clock, Target, Edit, ExternalLink, Thermometer, Shield, Video, PenTool, BarChart3, Upload, X, Save, Camera } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Globe, Phone, Mail, Facebook, Instagram, Linkedin, MapPin, Calendar, Building2, Users, Star, AlertCircle, FileText, Clock, Target, Edit, ExternalLink, Thermometer, Shield, Video, PenTool, BarChart3, Upload, X, Save, Camera, Plus, Trash2 } from 'lucide-react';
+
+interface PasswordAccess {
+  id: string;
+  platform: string;
+  login: string;
+  status: 'active' | 'inactive';
+  notes: string;
+}
+
+interface Stakeholder {
+  id: string;
+  name: string;
+  position: string;
+  type: 'decisor' | 'aprovador' | 'operacional' | 'influenciador';
+  contact: string;
+}
+
+interface PageLink {
+  id: string;
+  name: string;
+  url: string;
+  type: 'landing' | 'site' | 'blog' | 'loja';
+  status: 'active' | 'inactive' | 'development';
+}
+
+interface MediaCampaign {
+  id: string;
+  name: string;
+  platform: string;
+  status: 'active' | 'inactive' | 'completed';
+  investment: string;
+  result: string;
+}
 
 const ClientProfile = () => {
   const { id } = useParams();
@@ -22,6 +56,45 @@ const ClientProfile = () => {
   // Find the client - in a real app, this would be fetched from an API
   const originalClient = mockClients.find(c => c.id === id) || mockClients[0];
   
+  // State for CRUD operations
+  const [passwords, setPasswords] = useState<PasswordAccess[]>([
+    { id: '1', platform: 'Google Ads', login: 'ads@exemplo.com', status: 'active', notes: 'Acesso completo' },
+    { id: '2', platform: 'Meta Business', login: 'Business Manager compartilhado', status: 'active', notes: 'Administrador' },
+    { id: '3', platform: 'Google Analytics', login: 'Acesso via GTM', status: 'active', notes: 'Visualização' },
+  ]);
+
+  const [stakeholders, setStakeholders] = useState<Stakeholder[]>([
+    { id: '1', name: originalClient.primaryContact.name, position: 'Diretor de Marketing', type: 'decisor', contact: originalClient.primaryContact.email },
+    { id: '2', name: originalClient.financialContact.name, position: 'Gerente Financeiro', type: 'aprovador', contact: originalClient.financialContact.email },
+    { id: '3', name: 'Roberto Oliveira', position: 'Assistente de Marketing', type: 'operacional', contact: 'roberto.oliveira@exemplo.com' },
+    { id: '4', name: 'Ana Santos', position: 'Coordenadora de Comunicação', type: 'influenciador', contact: 'ana.santos@exemplo.com' },
+  ]);
+
+  const [pageLinks, setPageLinks] = useState<PageLink[]>([
+    { id: '1', name: 'Black Friday 2024', url: 'blackfriday.exemplo.com', type: 'landing', status: 'active' },
+    { id: '2', name: 'Site Principal', url: originalClient.website || 'www.exemplo.com', type: 'site', status: 'active' },
+    { id: '3', name: 'Blog', url: 'blog.exemplo.com', type: 'blog', status: 'active' },
+    { id: '4', name: 'Loja Online', url: 'loja.exemplo.com', type: 'loja', status: 'development' },
+  ]);
+
+  const [mediaCampaigns, setMediaCampaigns] = useState<MediaCampaign[]>([
+    { id: '1', name: 'Black Friday - Awareness', platform: 'Meta Ads', status: 'active', investment: 'R$ 15.000', result: 'ROAS: 4.2x' },
+    { id: '2', name: 'Black Friday - Conversão', platform: 'Google Ads', status: 'active', investment: 'R$ 25.000', result: 'ROAS: 5.8x' },
+    { id: '3', name: 'Rebranding - Awareness', platform: 'LinkedIn Ads', status: 'completed', investment: 'R$ 8.000', result: 'ROAS: 3.1x' },
+  ]);
+
+  // Modal states
+  const [passwordModal, setPasswordModal] = useState<{ open: boolean; item?: PasswordAccess }>({ open: false });
+  const [stakeholderModal, setStakeholderModal] = useState<{ open: boolean; item?: Stakeholder }>({ open: false });
+  const [pageLinkModal, setPageLinkModal] = useState<{ open: boolean; item?: PageLink }>({ open: false });
+  const [mediaCampaignModal, setMediaCampaignModal] = useState<{ open: boolean; item?: MediaCampaign }>({ open: false });
+
+  // Form states
+  const [passwordForm, setPasswordForm] = useState<Partial<PasswordAccess>>({});
+  const [stakeholderForm, setStakeholderForm] = useState<Partial<Stakeholder>>({});
+  const [pageLinkForm, setPageLinkForm] = useState<Partial<PageLink>>({});
+  const [mediaCampaignForm, setMediaCampaignForm] = useState<Partial<MediaCampaign>>({});
+
   // Editable client data state
   const [editableClient, setEditableClient] = useState({
     ...originalClient,
@@ -33,6 +106,66 @@ const ClientProfile = () => {
       linkedin: originalClient.socialMedia?.linkedin || ''
     }
   });
+
+  // CRUD Functions for Passwords
+  const handlePasswordSave = () => {
+    if (passwordForm.id) {
+      setPasswords(prev => prev.map(p => p.id === passwordForm.id ? { ...p, ...passwordForm } : p));
+    } else {
+      setPasswords(prev => [...prev, { ...passwordForm, id: Date.now().toString() } as PasswordAccess]);
+    }
+    setPasswordModal({ open: false });
+    setPasswordForm({});
+  };
+
+  const handlePasswordDelete = (id: string) => {
+    setPasswords(prev => prev.filter(p => p.id !== id));
+  };
+
+  // CRUD Functions for Stakeholders
+  const handleStakeholderSave = () => {
+    if (stakeholderForm.id) {
+      setStakeholders(prev => prev.map(s => s.id === stakeholderForm.id ? { ...s, ...stakeholderForm } : s));
+    } else {
+      setStakeholders(prev => [...prev, { ...stakeholderForm, id: Date.now().toString() } as Stakeholder]);
+    }
+    setStakeholderModal({ open: false });
+    setStakeholderForm({});
+  };
+
+  const handleStakeholderDelete = (id: string) => {
+    setStakeholders(prev => prev.filter(s => s.id !== id));
+  };
+
+  // CRUD Functions for Page Links
+  const handlePageLinkSave = () => {
+    if (pageLinkForm.id) {
+      setPageLinks(prev => prev.map(p => p.id === pageLinkForm.id ? { ...p, ...pageLinkForm } : p));
+    } else {
+      setPageLinks(prev => [...prev, { ...pageLinkForm, id: Date.now().toString() } as PageLink]);
+    }
+    setPageLinkModal({ open: false });
+    setPageLinkForm({});
+  };
+
+  const handlePageLinkDelete = (id: string) => {
+    setPageLinks(prev => prev.filter(p => p.id !== id));
+  };
+
+  // CRUD Functions for Media Campaigns
+  const handleMediaCampaignSave = () => {
+    if (mediaCampaignForm.id) {
+      setMediaCampaigns(prev => prev.map(m => m.id === mediaCampaignForm.id ? { ...m, ...mediaCampaignForm } : m));
+    } else {
+      setMediaCampaigns(prev => [...prev, { ...mediaCampaignForm, id: Date.now().toString() } as MediaCampaign]);
+    }
+    setMediaCampaignModal({ open: false });
+    setMediaCampaignForm({});
+  };
+
+  const handleMediaCampaignDelete = (id: string) => {
+    setMediaCampaigns(prev => prev.filter(m => m.id !== id));
+  };
 
   const handleSave = () => {
     // In a real app, this would save to backend
@@ -148,6 +281,36 @@ const ClientProfile = () => {
         return '❄️';
       default:
         return '🌡️';
+    }
+  };
+
+  const getStakeholderTypeColor = (type: string) => {
+    switch (type) {
+      case 'decisor':
+        return 'bg-purple-100 text-purple-700';
+      case 'aprovador':
+        return 'bg-gray-100 text-gray-700';
+      case 'operacional':
+        return 'bg-blue-100 text-blue-700';
+      case 'influenciador':
+        return 'bg-green-100 text-green-700';
+      default:
+        return 'bg-gray-100 text-gray-700';
+    }
+  };
+
+  const getStakeholderTypeLabel = (type: string) => {
+    switch (type) {
+      case 'decisor':
+        return 'Decisor';
+      case 'aprovador':
+        return 'Aprovador';
+      case 'operacional':
+        return 'Operacional';
+      case 'influenciador':
+        return 'Influenciador';
+      default:
+        return type;
     }
   };
 
@@ -407,7 +570,7 @@ const ClientProfile = () => {
           <TabsTrigger value="relationship">Relacionamento</TabsTrigger>
           <TabsTrigger value="team">Equipe</TabsTrigger>
           <TabsTrigger value="history">Histórico</TabsTrigger>
-          <TabsTrigger value="pages">Páginas & Campanhas</TabsTrigger>
+          <TabsTrigger value="pages">Páginas & Links</TabsTrigger>
         </TabsList>
 
         {/* Informações Gerais */}
@@ -558,12 +721,81 @@ const ClientProfile = () => {
             </Card>
           </div>
 
-          {/* Rest of the tabs content remains the same */}
+          {/* Senhas e Acessos */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="w-5 h-5" />
-                Senhas e Acessos
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Shield className="w-5 h-5" />
+                  Senhas e Acessos
+                </div>
+                <Dialog 
+                  open={passwordModal.open} 
+                  onOpenChange={(open) => setPasswordModal({ open, item: open ? passwordModal.item : undefined })}
+                >
+                  <DialogTrigger asChild>
+                    <Button size="sm" onClick={() => setPasswordForm({})}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Adicionar
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>
+                        {passwordForm.id ? 'Editar' : 'Adicionar'} Senha/Acesso
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="platform">Plataforma</Label>
+                        <Input
+                          id="platform"
+                          value={passwordForm.platform || ''}
+                          onChange={(e) => setPasswordForm({...passwordForm, platform: e.target.value})}
+                          placeholder="Ex: Google Ads"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="login">Login</Label>
+                        <Input
+                          id="login"
+                          value={passwordForm.login || ''}
+                          onChange={(e) => setPasswordForm({...passwordForm, login: e.target.value})}
+                          placeholder="Ex: usuario@empresa.com"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="status">Status</Label>
+                        <Select value={passwordForm.status} onValueChange={(value) => setPasswordForm({...passwordForm, status: value as 'active' | 'inactive'})}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="active">Ativo</SelectItem>
+                            <SelectItem value="inactive">Inativo</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="notes">Observações</Label>
+                        <Textarea
+                          id="notes"
+                          value={passwordForm.notes || ''}
+                          onChange={(e) => setPasswordForm({...passwordForm, notes: e.target.value})}
+                          placeholder="Observações sobre o acesso"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <Button onClick={handlePasswordSave} className="flex-1">
+                          Salvar
+                        </Button>
+                        <Button variant="outline" onClick={() => setPasswordModal({ open: false })} className="flex-1">
+                          Cancelar
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -574,27 +806,57 @@ const ClientProfile = () => {
                     <TableHead>Login</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Observações</TableHead>
+                    <TableHead>Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
-                    <TableCell>Google Ads</TableCell>
-                    <TableCell>ads@{client.name.toLowerCase().replace(/\s/g, '')}.com</TableCell>
-                    <TableCell><Badge variant="secondary">Ativo</Badge></TableCell>
-                    <TableCell>Acesso completo</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Meta Business</TableCell>
-                    <TableCell>Business Manager compartilhado</TableCell>
-                    <TableCell><Badge variant="secondary">Ativo</Badge></TableCell>
-                    <TableCell>Administrador</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Google Analytics</TableCell>
-                    <TableCell>Acesso via GTM</TableCell>
-                    <TableCell><Badge variant="secondary">Ativo</Badge></TableCell>
-                    <TableCell>Visualização</TableCell>
-                  </TableRow>
+                  {passwords.map((password) => (
+                    <TableRow key={password.id}>
+                      <TableCell>{password.platform}</TableCell>
+                      <TableCell>{password.login}</TableCell>
+                      <TableCell>
+                        <Badge variant={password.status === 'active' ? 'secondary' : 'outline'}>
+                          {password.status === 'active' ? 'Ativo' : 'Inativo'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{password.notes}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setPasswordForm(password);
+                              setPasswordModal({ open: true, item: password });
+                            }}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button size="sm" variant="outline">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Tem certeza que deseja excluir este acesso? Esta ação não pode ser desfeita.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handlePasswordDelete(password.id)}>
+                                  Excluir
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </CardContent>
@@ -624,12 +886,84 @@ const ClientProfile = () => {
           </Card>
         </TabsContent>
 
+        {/* Stakeholders */}
         <TabsContent value="stakeholders" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="w-5 h-5" />
-                Stakeholders do Cliente
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  Stakeholders do Cliente
+                </div>
+                <Dialog 
+                  open={stakeholderModal.open} 
+                  onOpenChange={(open) => setStakeholderModal({ open, item: open ? stakeholderModal.item : undefined })}
+                >
+                  <DialogTrigger asChild>
+                    <Button size="sm" onClick={() => setStakeholderForm({})}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Adicionar
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>
+                        {stakeholderForm.id ? 'Editar' : 'Adicionar'} Stakeholder
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="name">Nome</Label>
+                        <Input
+                          id="name"
+                          value={stakeholderForm.name || ''}
+                          onChange={(e) => setStakeholderForm({...stakeholderForm, name: e.target.value})}
+                          placeholder="Nome completo"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="position">Cargo</Label>
+                        <Input
+                          id="position"
+                          value={stakeholderForm.position || ''}
+                          onChange={(e) => setStakeholderForm({...stakeholderForm, position: e.target.value})}
+                          placeholder="Ex: Diretor de Marketing"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="type">Tipo</Label>
+                        <Select value={stakeholderForm.type} onValueChange={(value) => setStakeholderForm({...stakeholderForm, type: value as 'decisor' | 'aprovador' | 'operacional' | 'influenciador'})}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o tipo" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="decisor">Decisor</SelectItem>
+                            <SelectItem value="aprovador">Aprovador</SelectItem>
+                            <SelectItem value="operacional">Operacional</SelectItem>
+                            <SelectItem value="influenciador">Influenciador</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="contact">Contato</Label>
+                        <Input
+                          id="contact"
+                          value={stakeholderForm.contact || ''}
+                          onChange={(e) => setStakeholderForm({...stakeholderForm, contact: e.target.value})}
+                          placeholder="Email ou telefone"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <Button onClick={handleStakeholderSave} className="flex-1">
+                          Salvar
+                        </Button>
+                        <Button variant="outline" onClick={() => setStakeholderModal({ open: false })} className="flex-1">
+                          Cancelar
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -640,39 +974,64 @@ const ClientProfile = () => {
                     <TableHead>Cargo</TableHead>
                     <TableHead>Tipo</TableHead>
                     <TableHead>Contato</TableHead>
+                    <TableHead>Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
-                    <TableCell className="font-medium">{client.primaryContact.name}</TableCell>
-                    <TableCell>Diretor de Marketing</TableCell>
-                    <TableCell><Badge className="bg-purple-100 text-purple-700">Decisor</Badge></TableCell>
-                    <TableCell>{client.primaryContact.email}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">{client.financialContact.name}</TableCell>
-                    <TableCell>Gerente Financeiro</TableCell>
-                    <TableCell><Badge variant="outline">Aprovador</Badge></TableCell>
-                    <TableCell>{client.financialContact.email}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">Roberto Oliveira</TableCell>
-                    <TableCell>Assistente de Marketing</TableCell>
-                    <TableCell><Badge className="bg-blue-100 text-blue-700">Operacional</Badge></TableCell>
-                    <TableCell>roberto.oliveira@{client.name.toLowerCase().replace(/\s/g, '')}.com</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">Ana Santos</TableCell>
-                    <TableCell>Coordenadora de Comunicação</TableCell>
-                    <TableCell><Badge className="bg-green-100 text-green-700">Influenciador</Badge></TableCell>
-                    <TableCell>ana.santos@{client.name.toLowerCase().replace(/\s/g, '')}.com</TableCell>
-                  </TableRow>
+                  {stakeholders.map((stakeholder) => (
+                    <TableRow key={stakeholder.id}>
+                      <TableCell className="font-medium">{stakeholder.name}</TableCell>
+                      <TableCell>{stakeholder.position}</TableCell>
+                      <TableCell>
+                        <Badge className={getStakeholderTypeColor(stakeholder.type)}>
+                          {getStakeholderTypeLabel(stakeholder.type)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{stakeholder.contact}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setStakeholderForm(stakeholder);
+                              setStakeholderModal({ open: true, item: stakeholder });
+                            }}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button size="sm" variant="outline">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Tem certeza que deseja excluir este stakeholder? Esta ação não pode ser desfeita.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleStakeholderDelete(stakeholder.id)}>
+                                  Excluir
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </CardContent>
           </Card>
         </TabsContent>
 
+        {/* Projetos */}
         <TabsContent value="projects" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
@@ -741,6 +1100,7 @@ const ClientProfile = () => {
           </div>
         </TabsContent>
 
+        {/* Relacionamento */}
         <TabsContent value="relationship" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Card>
@@ -931,6 +1291,7 @@ const ClientProfile = () => {
           </Card>
         </TabsContent>
 
+        {/* Equipe */}
         <TabsContent value="team" className="space-y-6">
           <Card>
             <CardHeader>
@@ -998,6 +1359,7 @@ const ClientProfile = () => {
           </Card>
         </TabsContent>
 
+        {/* Histórico */}
         <TabsContent value="history" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
@@ -1142,120 +1504,257 @@ const ClientProfile = () => {
           </Card>
         </TabsContent>
 
+        {/* Páginas & Links */}
         <TabsContent value="pages" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
                   <Globe className="w-5 h-5" />
-                  Landing Pages
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>URL</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell>Black Friday 2024</TableCell>
-                      <TableCell className="text-blue-600">blackfriday.{client.name.toLowerCase().replace(/\s/g, '')}.com</TableCell>
-                      <TableCell><Badge className="bg-green-100 text-green-700">Ativa</Badge></TableCell>
-                      <TableCell>
-                        <Button variant="outline" size="sm">
-                          <ExternalLink className="w-4 h-4" />
+                  Páginas e Links
+                </div>
+                <Dialog 
+                  open={pageLinkModal.open} 
+                  onOpenChange={(open) => setPageLinkModal({ open, item: open ? pageLinkModal.item : undefined })}
+                >
+                  <DialogTrigger asChild>
+                    <Button size="sm" onClick={() => setPageLinkForm({})}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Adicionar
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>
+                        {pageLinkForm.id ? 'Editar' : 'Adicionar'} Página/Link
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="page-name">Nome</Label>
+                        <Input
+                          id="page-name"
+                          value={pageLinkForm.name || ''}
+                          onChange={(e) => setPageLinkForm({...pageLinkForm, name: e.target.value})}
+                          placeholder="Ex: Landing Page Black Friday"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="page-url">URL</Label>
+                        <Input
+                          id="page-url"
+                          value={pageLinkForm.url || ''}
+                          onChange={(e) => setPageLinkForm({...pageLinkForm, url: e.target.value})}
+                          placeholder="Ex: https://exemplo.com"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="page-type">Tipo</Label>
+                        <Select value={pageLinkForm.type} onValueChange={(value) => setPageLinkForm({...pageLinkForm, type: value as 'landing' | 'site' | 'blog' | 'loja'})}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o tipo" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="landing">Landing Page</SelectItem>
+                            <SelectItem value="site">Site</SelectItem>
+                            <SelectItem value="blog">Blog</SelectItem>
+                            <SelectItem value="loja">Loja</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="page-status">Status</Label>
+                        <Select value={pageLinkForm.status} onValueChange={(value) => setPageLinkForm({...pageLinkForm, status: value as 'active' | 'inactive' | 'development'})}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="active">Ativo</SelectItem>
+                            <SelectItem value="inactive">Inativo</SelectItem>
+                            <SelectItem value="development">Em desenvolvimento</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button onClick={handlePageLinkSave} className="flex-1">
+                          Salvar
                         </Button>
+                        <Button variant="outline" onClick={() => setPageLinkModal({ open: false })} className="flex-1">
+                          Cancelar
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>URL</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pageLinks.map((page) => (
+                    <TableRow key={page.id}>
+                      <TableCell>{page.name}</TableCell>
+                      <TableCell className="text-blue-600">{page.url}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {page.type === 'landing' ? 'Landing Page' : 
+                           page.type === 'site' ? 'Site' :
+                           page.type === 'blog' ? 'Blog' : 'Loja'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge 
+                          className={
+                            page.status === 'active' ? 'bg-green-100 text-green-700' :
+                            page.status === 'inactive' ? 'bg-gray-100 text-gray-700' :
+                            'bg-blue-100 text-blue-700'
+                          }
+                        >
+                          {page.status === 'active' ? 'Ativo' : 
+                           page.status === 'inactive' ? 'Inativo' : 'Em desenvolvimento'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" asChild>
+                            <a href={page.url.startsWith('http') ? page.url : `https://${page.url}`} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="w-4 h-4" />
+                            </a>
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setPageLinkForm(page);
+                              setPageLinkModal({ open: true, item: page });
+                            }}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button size="sm" variant="outline">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Tem certeza que deseja excluir esta página/link? Esta ação não pode ser desfeita.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handlePageLinkDelete(page.id)}>
+                                  Excluir
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                       </TableCell>
                     </TableRow>
-                    <TableRow>
-                      <TableCell>Campanha Verão</TableCell>
-                      <TableCell className="text-blue-600">verao.{client.name.toLowerCase().replace(/\s/g, '')}.com</TableCell>
-                      <TableCell><Badge variant="outline">Pausada</Badge></TableCell>
-                      <TableCell>
-                        <Button variant="outline" size="sm">
-                          <ExternalLink className="w-4 h-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>Dia das Mães</TableCell>
-                      <TableCell className="text-blue-600">maes.{client.name.toLowerCase().replace(/\s/g, '')}.com</TableCell>
-                      <TableCell><Badge className="bg-gray-100 text-gray-700">Finalizada</Badge></TableCell>
-                      <TableCell>
-                        <Button variant="outline" size="sm">
-                          <ExternalLink className="w-4 h-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="w-5 h-5" />
-                  Sites e Páginas Institucionais
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>URL</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell>Site Principal</TableCell>
-                      <TableCell className="text-blue-600">{client.website}</TableCell>
-                      <TableCell><Badge className="bg-green-100 text-green-700">Ativo</Badge></TableCell>
-                      <TableCell>
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={client.website} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="w-4 h-4" />
-                          </a>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>Blog</TableCell>
-                      <TableCell className="text-blue-600">blog.{client.name.toLowerCase().replace(/\s/g, '')}.com</TableCell>
-                      <TableCell><Badge className="bg-green-100 text-green-700">Ativo</Badge></TableCell>
-                      <TableCell>
-                        <Button variant="outline" size="sm">
-                          <ExternalLink className="w-4 h-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>Loja Online</TableCell>
-                      <TableCell className="text-blue-600">loja.{client.name.toLowerCase().replace(/\s/g, '')}.com</TableCell>
-                      <TableCell><Badge className="bg-blue-100 text-blue-700">Em desenvolvimento</Badge></TableCell>
-                      <TableCell>
-                        <Button variant="outline" size="sm" disabled>
-                          <ExternalLink className="w-4 h-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </div>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Campanhas de Mídia</CardTitle>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5" />
+                  Campanhas de Mídia
+                </div>
+                <Dialog 
+                  open={mediaCampaignModal.open} 
+                  onOpenChange={(open) => setMediaCampaignModal({ open, item: open ? mediaCampaignModal.item : undefined })}
+                >
+                  <DialogTrigger asChild>
+                    <Button size="sm" onClick={() => setMediaCampaignForm({})}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Adicionar
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>
+                        {mediaCampaignForm.id ? 'Editar' : 'Adicionar'} Campanha de Mídia
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="campaign-name">Nome da Campanha</Label>
+                        <Input
+                          id="campaign-name"
+                          value={mediaCampaignForm.name || ''}
+                          onChange={(e) => setMediaCampaignForm({...mediaCampaignForm, name: e.target.value})}
+                          placeholder="Ex: Black Friday - Awareness"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="campaign-platform">Plataforma</Label>
+                        <Input
+                          id="campaign-platform"
+                          value={mediaCampaignForm.platform || ''}
+                          onChange={(e) => setMediaCampaignForm({...mediaCampaignForm, platform: e.target.value})}
+                          placeholder="Ex: Meta Ads, Google Ads"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="campaign-status">Status</Label>
+                        <Select value={mediaCampaignForm.status} onValueChange={(value) => setMediaCampaignForm({...mediaCampaignForm, status: value as 'active' | 'inactive' | 'completed'})}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="active">Ativo</SelectItem>
+                            <SelectItem value="inactive">Inativo</SelectItem>
+                            <SelectItem value="completed">Finalizado</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="campaign-investment">Investimento</Label>
+                        <Input
+                          id="campaign-investment"
+                          value={mediaCampaignForm.investment || ''}
+                          onChange={(e) => setMediaCampaignForm({...mediaCampaignForm, investment: e.target.value})}
+                          placeholder="Ex: R$ 15.000"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="campaign-result">Resultado</Label>
+                        <Input
+                          id="campaign-result"
+                          value={mediaCampaignForm.result || ''}
+                          onChange={(e) => setMediaCampaignForm({...mediaCampaignForm, result: e.target.value})}
+                          placeholder="Ex: ROAS: 4.2x"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <Button onClick={handleMediaCampaignSave} className="flex-1">
+                          Salvar
+                        </Button>
+                        <Button variant="outline" onClick={() => setMediaCampaignModal({ open: false })} className="flex-1">
+                          Cancelar
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <Table>
@@ -1270,42 +1769,61 @@ const ClientProfile = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
-                    <TableCell>Black Friday - Awareness</TableCell>
-                    <TableCell>Meta Ads</TableCell>
-                    <TableCell><Badge className="bg-green-100 text-green-700">Ativa</Badge></TableCell>
-                    <TableCell>R$ 15.000</TableCell>
-                    <TableCell>ROAS: 4.2x</TableCell>
-                    <TableCell>
-                      <Button variant="outline" size="sm">
-                        Ver detalhes
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Black Friday - Conversão</TableCell>
-                    <TableCell>Google Ads</TableCell>
-                    <TableCell><Badge className="bg-green-100 text-green-700">Ativa</Badge></TableCell>
-                    <TableCell>R$ 25.000</TableCell>
-                    <TableCell>ROAS: 5.8x</TableCell>
-                    <TableCell>
-                      <Button variant="outline" size="sm">
-                        Ver detalhes
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Rebranding - Awareness</TableCell>
-                    <TableCell>LinkedIn Ads</TableCell>
-                    <TableCell><Badge className="bg-gray-100 text-gray-700">Finalizada</Badge></TableCell>
-                    <TableCell>R$ 8.000</TableCell>
-                    <TableCell>ROAS: 3.1x</TableCell>
-                    <TableCell>
-                      <Button variant="outline" size="sm">
-                        Ver relatório
-                      </Button>
-                    </TableCell>
-                  </TableRow>
+                  {mediaCampaigns.map((campaign) => (
+                    <TableRow key={campaign.id}>
+                      <TableCell>{campaign.name}</TableCell>
+                      <TableCell>{campaign.platform}</TableCell>
+                      <TableCell>
+                        <Badge 
+                          className={
+                            campaign.status === 'active' ? 'bg-green-100 text-green-700' :
+                            campaign.status === 'inactive' ? 'bg-red-100 text-red-700' :
+                            'bg-gray-100 text-gray-700'
+                          }
+                        >
+                          {campaign.status === 'active' ? 'Ativo' : 
+                           campaign.status === 'inactive' ? 'Inativo' : 'Finalizado'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{campaign.investment}</TableCell>
+                      <TableCell>{campaign.result}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setMediaCampaignForm(campaign);
+                              setMediaCampaignModal({ open: true, item: campaign });
+                            }}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button size="sm" variant="outline">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Tem certeza que deseja excluir esta campanha? Esta ação não pode ser desfeita.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleMediaCampaignDelete(campaign.id)}>
+                                  Excluir
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </CardContent>
