@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { MoreVertical, Edit, Plus, Trash2, ExternalLink } from "lucide-react";
 
@@ -983,7 +982,7 @@ function PageLinkForm({ pageLink, onSave, onCancel }: PageLinkFormProps) {
         <select
           id="type"
           value={type}
-          onChange={(e) => setType(e.target.value)}
+          onChange={(e) => setType(e.target.value as 'landing' | 'institutional' | 'other')}
           className="col-span-3 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <option value="landing">Landing Page</option>
@@ -996,7 +995,7 @@ function PageLinkForm({ pageLink, onSave, onCancel }: PageLinkFormProps) {
         <select
           id="status"
           value={status}
-          onChange={(e) => setStatus(e.target.value)}
+          onChange={(e) => setStatus(e.target.value as 'active' | 'inactive')}
           className="col-span-3 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <option value="active">Ativo</option>
@@ -1063,7 +1062,7 @@ function CampaignForm({ campaign, onSave, onCancel }: CampaignFormProps) {
         <select
           id="status"
           value={status}
-          onChange={(e) => setStatus(e.target.value)}
+          onChange={(e) => setStatus(e.target.value as 'active' | 'paused' | 'completed')}
           className="col-span-3 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <option value="active">Ativo</option>
