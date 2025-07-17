@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { X, Calendar, User, Tag, AlertCircle } from 'lucide-react';
-import { Task } from './Dashboard';
+import { Task } from '../types/entities';
 
 interface TaskModalProps {
   isOpen: boolean;
