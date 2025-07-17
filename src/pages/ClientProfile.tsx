@@ -1,1095 +1,1319 @@
-import { useState } from "react";
-import { MoreVertical, Edit, Plus, Trash2, ExternalLink } from "lucide-react";
+import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { mockClients } from '@/data/mockData';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Globe, Phone, Mail, Facebook, Instagram, Linkedin, MapPin, Calendar, Building2, Users, Star, AlertCircle, FileText, Clock, Target, Edit, ExternalLink, Thermometer, Shield, Video, PenTool, BarChart3, Upload, X, Save, Camera } from 'lucide-react';
 
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-
-// Define the structure for client data
-type Client = {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  website: string;
-  industry: string;
-  address: string;
-  logoUrl?: string;
-  status: "active" | "inactive" | "pending";
-  notes?: string;
-};
-
-type Password = {
-  id: string;
-  title: string;
-  username: string;
-  password: string;
-  url?: string;
-  notes?: string;
-};
-
-type Stakeholder = {
-  id: string;
-  name: string;
-  role: string;
-  email: string;
-  phone: string;
-  department: string;
-};
-
-type PageLink = {
-  id: string;
-  title: string;
-  url: string;
-  type: "landing" | "institutional" | "other";
-  status: "active" | "inactive";
-  description?: string;
-};
-
-type Campaign = {
-  id: string;
-  name: string;
-  type: string;
-  status: "active" | "paused" | "completed";
-  startDate: string;
-  endDate?: string;
-  budget?: number;
-  description?: string;
-};
-
-export default function ClientProfile() {
-  // Mock client data
-  const [client, setClient] = useState<Client>({
-    id: "123",
-    name: "Acme Corp",
-    email: "info@acmecorp.com",
-    phone: "555-123-4567",
-    website: "www.acmecorp.com",
-    industry: "Technology",
-    address: "123 Main St, Anytown USA",
-    logoUrl: "https://ui.shadcn.com/icons/logo.png",
-    status: "active",
-    notes: "Strategic client with high potential.",
+const ClientProfile = () => {
+  const { id } = useParams();
+  const [activeTab, setActiveTab] = useState('general');
+  const [isEditing, setIsEditing] = useState(false);
+  
+  // Find the client - in a real app, this would be fetched from an API
+  const originalClient = mockClients.find(c => c.id === id) || mockClients[0];
+  
+  // Editable client data state
+  const [editableClient, setEditableClient] = useState({
+    ...originalClient,
+    cover: originalClient.cover || '',
+    logo: originalClient.logo || '🏢',
+    socialMedia: {
+      facebook: originalClient.socialMedia?.facebook || '',
+      instagram: originalClient.socialMedia?.instagram || '',
+      linkedin: originalClient.socialMedia?.linkedin || ''
+    }
   });
 
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
-  // Mock data for new sections
-  const [passwords, setPasswords] = useState<Password[]>([
-    { id: "1", title: "Admin Panel", username: "admin", password: "****", url: "https://admin.acmecorp.com" },
-    { id: "2", title: "FTP Access", username: "ftp_user", password: "****", url: "ftp://files.acmecorp.com" },
-  ]);
-
-  const [stakeholders, setStakeholders] = useState<Stakeholder[]>([
-    { id: "1", name: "John Doe", role: "CEO", email: "john@acmecorp.com", phone: "555-0101", department: "Executive" },
-    { id: "2", name: "Jane Smith", role: "Marketing Manager", email: "jane@acmecorp.com", phone: "555-0102", department: "Marketing" },
-  ]);
-
-  const [pageLinks, setPageLinks] = useState<PageLink[]>([
-    { id: "1", title: "Main Website", url: "https://acmecorp.com", type: "institutional", status: "active" },
-    { id: "2", title: "Product Landing", url: "https://acmecorp.com/product", type: "landing", status: "active" },
-  ]);
-
-  const [campaigns, setCampaigns] = useState<Campaign[]>([
-    { id: "1", name: "Q4 Product Launch", type: "Digital", status: "active", startDate: "2024-01-15", budget: 50000 },
-    { id: "2", name: "Brand Awareness", type: "Social Media", status: "paused", startDate: "2024-01-01", budget: 25000 },
-  ]);
-
-  // Modal states
-  const [passwordModal, setPasswordModal] = useState({ open: false, mode: 'add' as 'add' | 'edit', data: null as Password | null });
-  const [stakeholderModal, setStakeholderModal] = useState({ open: false, mode: 'add' as 'add' | 'edit', data: null as Stakeholder | null });
-  const [pageLinkModal, setPageLinkModal] = useState({ open: false, mode: 'add' as 'add' | 'edit', data: null as PageLink | null });
-  const [campaignModal, setCampaignModal] = useState({ open: false, mode: 'add' as 'add' | 'edit', data: null as Campaign | null });
-
-  const handleEditClick = () => {
-    setIsEditModalOpen(true);
+  const handleSave = () => {
+    // In a real app, this would save to backend
+    console.log('Saving client data:', editableClient);
+    setIsEditing(false);
+    // Here you would typically update the mock data or make an API call
   };
 
-  const handleSaveClient = (updatedClient: Client) => {
-    setClient(updatedClient);
-    setIsEditModalOpen(false);
+  const handleCancel = () => {
+    setEditableClient({
+      ...originalClient,
+      cover: originalClient.cover || '',
+      logo: originalClient.logo || '🏢',
+      socialMedia: {
+        facebook: originalClient.socialMedia?.facebook || '',
+        instagram: originalClient.socialMedia?.instagram || '',
+        linkedin: originalClient.socialMedia?.linkedin || ''
+      }
+    });
+    setIsEditing(false);
   };
 
-  // CRUD functions for passwords
-  const handleAddPassword = (password: Omit<Password, 'id'>) => {
-    const newPassword = { ...password, id: Date.now().toString() };
-    setPasswords([...passwords, newPassword]);
-    setPasswordModal({ open: false, mode: 'add', data: null });
+  const handleInputChange = (field: string, value: string) => {
+    setEditableClient(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
-  const handleEditPassword = (password: Password) => {
-    setPasswords(passwords.map(p => p.id === password.id ? password : p));
-    setPasswordModal({ open: false, mode: 'edit', data: null });
+  const handleContactChange = (contactType: 'primaryContact' | 'financialContact', field: string, value: string) => {
+    setEditableClient(prev => ({
+      ...prev,
+      [contactType]: {
+        ...prev[contactType],
+        [field]: value
+      }
+    }));
   };
 
-  const handleDeletePassword = (id: string) => {
-    setPasswords(passwords.filter(p => p.id !== id));
+  const handleSocialMediaChange = (platform: string, value: string) => {
+    setEditableClient(prev => ({
+      ...prev,
+      socialMedia: {
+        ...prev.socialMedia,
+        [platform]: value
+      }
+    }));
   };
 
-  // CRUD functions for stakeholders
-  const handleAddStakeholder = (stakeholder: Omit<Stakeholder, 'id'>) => {
-    const newStakeholder = { ...stakeholder, id: Date.now().toString() };
-    setStakeholders([...stakeholders, newStakeholder]);
-    setStakeholderModal({ open: false, mode: 'add', data: null });
+  const handleFileUpload = (field: 'logo' | 'cover', event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setEditableClient(prev => ({
+          ...prev,
+          [field]: result
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
-  const handleEditStakeholder = (stakeholder: Stakeholder) => {
-    setStakeholders(stakeholders.map(s => s.id === stakeholder.id ? stakeholder : s));
-    setStakeholderModal({ open: false, mode: 'edit', data: null });
+  const client = isEditing ? editableClient : originalClient;
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'bg-green-100 text-green-700';
+      case 'inactive':
+        return 'bg-red-100 text-red-700';
+      case 'onboarding':
+        return 'bg-blue-100 text-blue-700';
+      default:
+        return 'bg-gray-100 text-gray-700';
+    }
   };
 
-  const handleDeleteStakeholder = (id: string) => {
-    setStakeholders(stakeholders.filter(s => s.id !== id));
+  const getSizeLabel = (size: string) => {
+    switch (size) {
+      case 'MEI':
+        return 'Microempreendedor Individual';
+      case 'PME':
+        return 'Pequena e Média Empresa';
+      case 'large':
+        return 'Grande Porte';
+      default:
+        return size;
+    }
   };
 
-  // CRUD functions for page links
-  const handleAddPageLink = (pageLink: Omit<PageLink, 'id'>) => {
-    const newPageLink = { ...pageLink, id: Date.now().toString() };
-    setPageLinks([...pageLinks, newPageLink]);
-    setPageLinkModal({ open: false, mode: 'add', data: null });
+  const getTemperatureColor = (temp: string) => {
+    switch (temp) {
+      case 'hot':
+        return 'text-red-500 bg-red-50';
+      case 'warm':
+        return 'text-yellow-500 bg-yellow-50';
+      case 'cold':
+        return 'text-blue-500 bg-blue-50';
+      default:
+        return 'text-gray-500 bg-gray-50';
+    }
   };
 
-  const handleEditPageLink = (pageLink: PageLink) => {
-    setPageLinks(pageLinks.map(p => p.id === pageLink.id ? pageLink : p));
-    setPageLinkModal({ open: false, mode: 'edit', data: null });
-  };
-
-  const handleDeletePageLink = (id: string) => {
-    setPageLinks(pageLinks.filter(p => p.id !== id));
-  };
-
-  // CRUD functions for campaigns
-  const handleAddCampaign = (campaign: Omit<Campaign, 'id'>) => {
-    const newCampaign = { ...campaign, id: Date.now().toString() };
-    setCampaigns([...campaigns, newCampaign]);
-    setCampaignModal({ open: false, mode: 'add', data: null });
-  };
-
-  const handleEditCampaign = (campaign: Campaign) => {
-    setCampaigns(campaigns.map(c => c.id === campaign.id ? campaign : c));
-    setCampaignModal({ open: false, mode: 'edit', data: null });
-  };
-
-  const handleDeleteCampaign = (id: string) => {
-    setCampaigns(campaigns.filter(c => c.id !== id));
+  const getTemperatureIcon = (temp: string) => {
+    switch (temp) {
+      case 'hot':
+        return '🔥';
+      case 'warm':
+        return '🌡️';
+      case 'cold':
+        return '❄️';
+      default:
+        return '🌡️';
+    }
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header with client info and edit button */}
-      <div className="flex justify-between items-start">
-        <div className="flex items-center space-x-4">
-          <Avatar>
-            <AvatarImage src={client.logoUrl} alt={client.name} />
-            <AvatarFallback>{client.name.substring(0, 2)}</AvatarFallback>
-          </Avatar>
-          <div className="space-y-1">
-            <h2 className="text-2xl font-semibold">{client.name}</h2>
-            <p className="text-sm text-muted-foreground">{client.industry}</p>
-            <Badge variant="outline">{client.status}</Badge>
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="bg-white rounded-lg border shadow-sm">
+        <div className="relative">
+          {/* Cover Photo */}
+          <div className="h-32 bg-gradient-to-br from-green-500 to-blue-600 rounded-t-lg relative overflow-hidden">
+            {client.cover && (
+              <img 
+                src={client.cover} 
+                alt="Cover" 
+                className="w-full h-full object-cover"
+              />
+            )}
+            {isEditing && (
+              <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                <label className="cursor-pointer bg-white/90 hover:bg-white rounded-lg p-2 flex items-center gap-2">
+                  <Camera className="w-4 h-4" />
+                  <span className="text-sm">Alterar Capa</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileUpload('cover', e)}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+            )}
+          </div>
+          
+          <div className="p-6 -mt-16 relative">
+            <div className="flex items-start gap-6">
+              {/* Logo */}
+              <div className="relative">
+                <div className="w-24 h-24 bg-white rounded-lg flex items-center justify-center text-4xl border-4 border-white shadow-lg overflow-hidden">
+                  {typeof client.logo === 'string' && client.logo.startsWith('data:') ? (
+                    <img src={client.logo} alt="Logo" className="w-full h-full object-cover" />
+                  ) : (
+                    client.logo || '🏢'
+                  )}
+                </div>
+                {isEditing && (
+                  <label className="absolute -bottom-2 -right-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-2 cursor-pointer shadow-lg">
+                    <Upload className="w-4 h-4" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileUpload('logo', e)}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+              </div>
+
+              <div className="flex-1 mt-8">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex-1">
+                    {isEditing ? (
+                      <div className="space-y-2">
+                        <Input
+                          value={client.name}
+                          onChange={(e) => handleInputChange('name', e.target.value)}
+                          className="text-3xl font-bold h-12"
+                          placeholder="Nome da empresa"
+                        />
+                        <Input
+                          value={client.segment}
+                          onChange={(e) => handleInputChange('segment', e.target.value)}
+                          className="text-lg"
+                          placeholder="Segmento"
+                        />
+                      </div>
+                    ) : (
+                      <div>
+                        <h1 className="text-3xl font-bold text-gray-900">{client.name}</h1>
+                        <p className="text-lg text-gray-600">{client.segment}</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {isEditing ? (
+                      <>
+                        <Button onClick={handleSave} className="bg-green-600 hover:bg-green-700">
+                          <Save className="w-4 h-4 mr-2" />
+                          Salvar
+                        </Button>
+                        <Button variant="outline" onClick={handleCancel}>
+                          <X className="w-4 h-4 mr-2" />
+                          Cancelar
+                        </Button>
+                      </>
+                    ) : (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setIsEditing(true)}
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        Editar Perfil
+                      </Button>
+                    )}
+                    
+                    {isEditing ? (
+                      <div className="flex items-center gap-2">
+                        <Select value={client.status} onValueChange={(value) => handleInputChange('status', value)}>
+                          <SelectTrigger className="w-32">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="active">Ativo</SelectItem>
+                            <SelectItem value="inactive">Inativo</SelectItem>
+                            <SelectItem value="onboarding">Onboarding</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Select value={client.size} onValueChange={(value) => handleInputChange('size', value)}>
+                          <SelectTrigger className="w-40">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="MEI">MEI</SelectItem>
+                            <SelectItem value="PME">PME</SelectItem>
+                            <SelectItem value="large">Grande Porte</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ) : (
+                      <>
+                        <Badge className={getStatusColor(client.status)}>
+                          {client.status === 'active' ? 'Ativo' : client.status === 'inactive' ? 'Inativo' : 'Onboarding'}
+                        </Badge>
+                        <Badge variant="outline">{getSizeLabel(client.size)}</Badge>
+                      </>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-6 text-sm text-gray-600 mb-4">
+                  <div className="flex items-center gap-1">
+                    <MapPin className="w-4 h-4" />
+                    {isEditing ? (
+                      <Input
+                        value={client.address}
+                        onChange={(e) => handleInputChange('address', e.target.value)}
+                        className="h-8"
+                        placeholder="Endereço"
+                      />
+                    ) : (
+                      <span>{client.address}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Calendar className="w-4 h-4" />
+                    {isEditing ? (
+                      <Input
+                        type="date"
+                        value={client.entryDate}
+                        onChange={(e) => handleInputChange('entryDate', e.target.value)}
+                        className="h-8"
+                      />
+                    ) : (
+                      <span>Cliente desde {new Date(client.entryDate).toLocaleDateString()}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Users className="w-4 h-4" />
+                    {isEditing ? (
+                      <Input
+                        value={client.responsibleManager}
+                        onChange={(e) => handleInputChange('responsibleManager', e.target.value)}
+                        className="h-8"
+                        placeholder="Gestor responsável"
+                      />
+                    ) : (
+                      <span>Gestor: {client.responsibleManager}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  {isEditing ? (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={client.website || ''}
+                        onChange={(e) => handleInputChange('website', e.target.value)}
+                        placeholder="Website"
+                        className="h-8"
+                      />
+                      <Input
+                        value={client.socialMedia.linkedin || ''}
+                        onChange={(e) => handleSocialMediaChange('linkedin', e.target.value)}
+                        placeholder="LinkedIn"
+                        className="h-8"
+                      />
+                      <Input
+                        value={client.socialMedia.instagram || ''}
+                        onChange={(e) => handleSocialMediaChange('instagram', e.target.value)}
+                        placeholder="Instagram"
+                        className="h-8"
+                      />
+                      <Input
+                        value={client.socialMedia.facebook || ''}
+                        onChange={(e) => handleSocialMediaChange('facebook', e.target.value)}
+                        placeholder="Facebook"
+                        className="h-8"
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      {client.website && (
+                        <Button variant="outline" size="sm" asChild>
+                          <a href={client.website} target="_blank" rel="noopener noreferrer">
+                            <Globe className="w-4 h-4 mr-2" />
+                            Website
+                            <ExternalLink className="w-3 h-3 ml-1" />
+                          </a>
+                        </Button>
+                      )}
+                      {client.socialMedia.linkedin && (
+                        <Button variant="outline" size="sm" asChild>
+                          <a href={client.socialMedia.linkedin} target="_blank" rel="noopener noreferrer">
+                            <Linkedin className="w-4 h-4" />
+                          </a>
+                        </Button>
+                      )}
+                      {client.socialMedia.instagram && (
+                        <Button variant="outline" size="sm" asChild>
+                          <a href={client.socialMedia.instagram} target="_blank" rel="noopener noreferrer">
+                            <Instagram className="w-4 h-4" />
+                          </a>
+                        </Button>
+                      )}
+                      {client.socialMedia.facebook && (
+                        <Button variant="outline" size="sm" asChild>
+                          <a href={client.socialMedia.facebook} target="_blank" rel="noopener noreferrer">
+                            <Facebook className="w-4 h-4" />
+                          </a>
+                        </Button>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={handleEditClick}>
-          <Edit className="mr-2 h-4 w-4" />
-          Edit Client
-        </Button>
       </div>
 
-      {/* Client Details Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Contact Information</CardTitle>
-            <CardDescription>Client contact details</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="space-y-1">
-              <Label>Email</Label>
-              <p className="text-sm font-medium">{client.email}</p>
-            </div>
-            <div className="space-y-1">
-              <Label>Phone</Label>
-              <p className="text-sm font-medium">{client.phone}</p>
-            </div>
-            <div className="space-y-1">
-              <Label>Website</Label>
-              <a href={client.website} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-blue-500 hover:underline">
-                {client.website}
-              </a>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Address</CardTitle>
-            <CardDescription>Client location</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm font-medium">{client.address}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Notes</CardTitle>
-            <CardDescription>Additional client information</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm font-medium">{client.notes || "No notes provided."}</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Navigation Tabs */}
-      <Tabs defaultValue="overview" className="w-full">
+      {/* Tabs Section */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-7">
-          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-          <TabsTrigger value="projects">Projetos</TabsTrigger>
-          <TabsTrigger value="pages">Páginas & Links</TabsTrigger>
-          <TabsTrigger value="campaigns">Campanhas</TabsTrigger>
-          <TabsTrigger value="access">Senhas & Acessos</TabsTrigger>
+          <TabsTrigger value="general">Informações Gerais</TabsTrigger>
           <TabsTrigger value="stakeholders">Stakeholders</TabsTrigger>
-          <TabsTrigger value="documents">Documentos</TabsTrigger>
+          <TabsTrigger value="projects">Projetos</TabsTrigger>
+          <TabsTrigger value="relationship">Relacionamento</TabsTrigger>
+          <TabsTrigger value="team">Equipe</TabsTrigger>
+          <TabsTrigger value="history">Histórico</TabsTrigger>
+          <TabsTrigger value="pages">Páginas & Campanhas</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-4">
+        {/* Informações Gerais */}
+        <TabsContent value="general" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Phone className="w-5 h-5" />
+                  Contatos
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <h4 className="font-medium text-sm text-gray-500 mb-2">Contato Principal</h4>
+                  {isEditing ? (
+                    <div className="space-y-2">
+                      <Input
+                        value={client.primaryContact.name}
+                        onChange={(e) => handleContactChange('primaryContact', 'name', e.target.value)}
+                        placeholder="Nome"
+                      />
+                      <Input
+                        value={client.primaryContact.phone}
+                        onChange={(e) => handleContactChange('primaryContact', 'phone', e.target.value)}
+                        placeholder="Telefone"
+                      />
+                      <Input
+                        value={client.primaryContact.email}
+                        onChange={(e) => handleContactChange('primaryContact', 'email', e.target.value)}
+                        placeholder="Email"
+                      />
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      <p className="font-medium">{client.primaryContact.name}</p>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Phone className="w-4 h-4" />
+                        <span>{client.primaryContact.phone}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Mail className="w-4 h-4" />
+                        <span>{client.primaryContact.email}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <h4 className="font-medium text-sm text-gray-500 mb-2">Contato Financeiro</h4>
+                  {isEditing ? (
+                    <div className="space-y-2">
+                      <Input
+                        value={client.financialContact.name}
+                        onChange={(e) => handleContactChange('financialContact', 'name', e.target.value)}
+                        placeholder="Nome"
+                      />
+                      <Input
+                        value={client.financialContact.phone}
+                        onChange={(e) => handleContactChange('financialContact', 'phone', e.target.value)}
+                        placeholder="Telefone"
+                      />
+                      <Input
+                        value={client.financialContact.email}
+                        onChange={(e) => handleContactChange('financialContact', 'email', e.target.value)}
+                        placeholder="Email"
+                      />
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      <p className="font-medium">{client.financialContact.name}</p>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Phone className="w-4 h-4" />
+                        <span>{client.financialContact.phone}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Mail className="w-4 h-4" />
+                        <span>{client.financialContact.email}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="w-5 h-5" />
+                  Informações da Empresa
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-500">Segmento:</span>
+                  {isEditing ? (
+                    <Input
+                      value={client.segment}
+                      onChange={(e) => handleInputChange('segment', e.target.value)}
+                      className="h-8 w-48"
+                    />
+                  ) : (
+                    <span className="font-medium">{client.segment}</span>
+                  )}
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-500">Porte:</span>
+                  {isEditing ? (
+                    <Select value={client.size} onValueChange={(value) => handleInputChange('size', value)}>
+                      <SelectTrigger className="w-48">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="MEI">MEI</SelectItem>
+                        <SelectItem value="PME">PME</SelectItem>
+                        <SelectItem value="large">Grande Porte</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <span className="font-medium">{getSizeLabel(client.size)}</span>
+                  )}
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-500">Endereço:</span>
+                  {isEditing ? (
+                    <Textarea
+                      value={client.address}
+                      onChange={(e) => handleInputChange('address', e.target.value)}
+                      className="w-48 h-20"
+                    />
+                  ) : (
+                    <span className="font-medium text-right">{client.address}</span>
+                  )}
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-500">Data de Entrada:</span>
+                  {isEditing ? (
+                    <Input
+                      type="date"
+                      value={client.entryDate}
+                      onChange={(e) => handleInputChange('entryDate', e.target.value)}
+                      className="h-8 w-48"
+                    />
+                  ) : (
+                    <span className="font-medium">{new Date(client.entryDate).toLocaleDateString()}</span>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Rest of the tabs content remains the same */}
           <Card>
             <CardHeader>
-              <CardTitle>Visão Geral</CardTitle>
-              <CardDescription>Resumo das informações do cliente</CardDescription>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="w-5 h-5" />
+                Senhas e Acessos
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <p>Visão geral do cliente {client.name}</p>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Plataforma</TableHead>
+                    <TableHead>Login</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Observações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>Google Ads</TableCell>
+                    <TableCell>ads@{client.name.toLowerCase().replace(/\s/g, '')}.com</TableCell>
+                    <TableCell><Badge variant="secondary">Ativo</Badge></TableCell>
+                    <TableCell>Acesso completo</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Meta Business</TableCell>
+                    <TableCell>Business Manager compartilhado</TableCell>
+                    <TableCell><Badge variant="secondary">Ativo</Badge></TableCell>
+                    <TableCell>Administrador</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Google Analytics</TableCell>
+                    <TableCell>Acesso via GTM</TableCell>
+                    <TableCell><Badge variant="secondary">Ativo</Badge></TableCell>
+                    <TableCell>Visualização</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
-        </TabsContent>
 
-        <TabsContent value="projects" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Projetos</CardTitle>
-              <CardDescription>Projetos em andamento e concluídos</CardDescription>
+              <CardTitle>Observações Gerais</CardTitle>
             </CardHeader>
             <CardContent>
-              <p>Projetos do cliente {client.name}</p>
+              {isEditing ? (
+                <Textarea
+                  placeholder="Adicione observações sobre o cliente..."
+                  className="min-h-[100px]"
+                  defaultValue="• Cliente prefere reuniões às sextas-feiras&#10;• Evitar campanhas em dezembro devido ao fechamento&#10;• Aprovações podem levar até 48h&#10;• Gosta de relatórios detalhados com métricas específicas&#10;• Disponibilidade limitada entre 12h-14h"
+                />
+              ) : (
+                <div className="space-y-2 text-sm">
+                  <p>• Cliente prefere reuniões às sextas-feiras</p>
+                  <p>• Evitar campanhas em dezembro devido ao fechamento</p>
+                  <p>• Aprovações podem levar até 48h</p>
+                  <p>• Gosta de relatórios detalhados com métricas específicas</p>
+                  <p>• Disponibilidade limitada entre 12h-14h</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="pages" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h3 className="text-lg font-semibold">Páginas & Links</h3>
-              <p className="text-sm text-muted-foreground">Gerencie landing pages, sites e páginas institucionais</p>
-            </div>
-            <Button onClick={() => setPageLinkModal({ open: true, mode: 'add', data: null })}>
-              <Plus className="mr-2 h-4 w-4" />
-              Adicionar Página
-            </Button>
-          </div>
+        <TabsContent value="stakeholders" className="space-y-6">
           <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Título</TableHead>
-                    <TableHead>URL</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pageLinks.map((page) => (
-                    <TableRow key={page.id}>
-                      <TableCell className="font-medium">{page.title}</TableCell>
-                      <TableCell>
-                        <a href={page.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline flex items-center">
-                          {page.url}
-                          <ExternalLink className="ml-1 h-3 w-3" />
-                        </a>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={page.type === 'landing' ? 'default' : 'secondary'}>
-                          {page.type}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={page.status === 'active' ? 'default' : 'secondary'}>
-                          {page.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setPageLinkModal({ open: true, mode: 'edit', data: page })}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Tem certeza de que deseja excluir esta página? Esta ação não pode ser desfeita.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeletePageLink(page.id)}>
-                                  Excluir
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="campaigns" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h3 className="text-lg font-semibold">Campanhas</h3>
-              <p className="text-sm text-muted-foreground">Gerencie campanhas de mídia e marketing</p>
-            </div>
-            <Button onClick={() => setCampaignModal({ open: true, mode: 'add', data: null })}>
-              <Plus className="mr-2 h-4 w-4" />
-              Adicionar Campanha
-            </Button>
-          </div>
-          <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Data Início</TableHead>
-                    <TableHead>Orçamento</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {campaigns.map((campaign) => (
-                    <TableRow key={campaign.id}>
-                      <TableCell className="font-medium">{campaign.name}</TableCell>
-                      <TableCell>{campaign.type}</TableCell>
-                      <TableCell>
-                        <Badge variant={campaign.status === 'active' ? 'default' : campaign.status === 'paused' ? 'secondary' : 'outline'}>
-                          {campaign.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{campaign.startDate}</TableCell>
-                      <TableCell>{campaign.budget ? `$${campaign.budget.toLocaleString()}` : '-'}</TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setCampaignModal({ open: true, mode: 'edit', data: campaign })}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Tem certeza de que deseja excluir esta campanha? Esta ação não pode ser desfeita.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteCampaign(campaign.id)}>
-                                  Excluir
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="access" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h3 className="text-lg font-semibold">Senhas & Acessos</h3>
-              <p className="text-sm text-muted-foreground">Gerencie credenciais e acessos do cliente</p>
-            </div>
-            <Button onClick={() => setPasswordModal({ open: true, mode: 'add', data: null })}>
-              <Plus className="mr-2 h-4 w-4" />
-              Adicionar Senha
-            </Button>
-          </div>
-          <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Título</TableHead>
-                    <TableHead>Usuário</TableHead>
-                    <TableHead>URL</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {passwords.map((password) => (
-                    <TableRow key={password.id}>
-                      <TableCell className="font-medium">{password.title}</TableCell>
-                      <TableCell>{password.username}</TableCell>
-                      <TableCell>
-                        {password.url && (
-                          <a href={password.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline flex items-center">
-                            {password.url}
-                            <ExternalLink className="ml-1 h-3 w-3" />
-                          </a>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setPasswordModal({ open: true, mode: 'edit', data: password })}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Tem certeza de que deseja excluir esta senha? Esta ação não pode ser desfeita.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeletePassword(password.id)}>
-                                  Excluir
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="stakeholders" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h3 className="text-lg font-semibold">Stakeholders</h3>
-              <p className="text-sm text-muted-foreground">Gerencie contatos e stakeholders do cliente</p>
-            </div>
-            <Button onClick={() => setStakeholderModal({ open: true, mode: 'add', data: null })}>
-              <Plus className="mr-2 h-4 w-4" />
-              Adicionar Stakeholder
-            </Button>
-          </div>
-          <Card>
-            <CardContent className="p-0">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Stakeholders do Cliente
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Nome</TableHead>
                     <TableHead>Cargo</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Telefone</TableHead>
-                    <TableHead>Departamento</TableHead>
-                    <TableHead>Ações</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Contato</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {stakeholders.map((stakeholder) => (
-                    <TableRow key={stakeholder.id}>
-                      <TableCell className="font-medium">{stakeholder.name}</TableCell>
-                      <TableCell>{stakeholder.role}</TableCell>
-                      <TableCell>{stakeholder.email}</TableCell>
-                      <TableCell>{stakeholder.phone}</TableCell>
-                      <TableCell>{stakeholder.department}</TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setStakeholderModal({ open: true, mode: 'edit', data: stakeholder })}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Tem certeza de que deseja excluir este stakeholder? Esta ação não pode ser desfeita.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteStakeholder(stakeholder.id)}>
-                                  Excluir
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  <TableRow>
+                    <TableCell className="font-medium">{client.primaryContact.name}</TableCell>
+                    <TableCell>Diretor de Marketing</TableCell>
+                    <TableCell><Badge className="bg-purple-100 text-purple-700">Decisor</Badge></TableCell>
+                    <TableCell>{client.primaryContact.email}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">{client.financialContact.name}</TableCell>
+                    <TableCell>Gerente Financeiro</TableCell>
+                    <TableCell><Badge variant="outline">Aprovador</Badge></TableCell>
+                    <TableCell>{client.financialContact.email}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">Roberto Oliveira</TableCell>
+                    <TableCell>Assistente de Marketing</TableCell>
+                    <TableCell><Badge className="bg-blue-100 text-blue-700">Operacional</Badge></TableCell>
+                    <TableCell>roberto.oliveira@{client.name.toLowerCase().replace(/\s/g, '')}.com</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">Ana Santos</TableCell>
+                    <TableCell>Coordenadora de Comunicação</TableCell>
+                    <TableCell><Badge className="bg-green-100 text-green-700">Influenciador</Badge></TableCell>
+                    <TableCell>ana.santos@{client.name.toLowerCase().replace(/\s/g, '')}.com</TableCell>
+                  </TableRow>
                 </TableBody>
               </Table>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="documents" className="space-y-4">
+        <TabsContent value="projects" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Projetos Ativos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="p-4 border border-green-200 rounded-lg bg-green-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium">Campanha Black Friday 2024</h4>
+                      <Badge className="bg-green-100 text-green-700">Em Andamento</Badge>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-2">Campanha completa para Black Friday com landing page e criativos</p>
+                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <span>Responsável: Lucas Pereira</span>
+                      <span>Progresso: 65%</span>
+                    </div>
+                  </div>
+                  <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium">Renovação Website</h4>
+                      <Badge className="bg-blue-100 text-blue-700">Planejamento</Badge>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-2">Redesign completo do site institucional</p>
+                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <span>Responsável: Fernanda Silva</span>
+                      <span>Progresso: 20%</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Projetos Concluídos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="p-4 border rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium">Rebranding Completo</h4>
+                      <Badge variant="outline">Concluído</Badge>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-2">Renovação da identidade visual e materiais</p>
+                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <span>Concluído em: 15/09/2024</span>
+                      <span>⭐ Avaliação: 5/5</span>
+                    </div>
+                  </div>
+                  <div className="p-4 border rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium">Campanha Dia das Mães</h4>
+                      <Badge variant="outline">Concluído</Badge>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-2">Campanha sazonal com excelentes resultados</p>
+                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <span>Concluído em: 30/05/2024</span>
+                      <span>⭐ Avaliação: 4/5</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="relationship" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Thermometer className="w-5 h-5" />
+                  Temperatura
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center">
+                  {isEditing ? (
+                    <Select value={client.temperature} onValueChange={(value) => handleInputChange('temperature', value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="hot">🔥 Quente</SelectItem>
+                        <SelectItem value="warm">🌡️ Morno</SelectItem>
+                        <SelectItem value="cold">❄️ Frio</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg ${getTemperatureColor(client.temperature)}`}>
+                      <span className="text-2xl">{getTemperatureIcon(client.temperature)}</span>
+                      <span className="font-medium">
+                        {client.temperature === 'hot' ? 'Quente' : client.temperature === 'warm' ? 'Morno' : 'Frio'}
+                      </span>
+                    </div>
+                  )}
+                  <p className="text-sm text-gray-600 mt-2">Última atualização: 15/11/2024</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="w-5 h-5" />
+                  NPS Atual
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center">
+                  {isEditing ? (
+                    <Input
+                      type="number"
+                      min="0"
+                      max="10"
+                      value={client.nps}
+                      onChange={(e) => handleInputChange('nps', e.target.value)}
+                      className="text-center text-3xl font-bold"
+                    />
+                  ) : (
+                    <div className="text-3xl font-bold text-green-600 mb-2">{client.nps}/10</div>
+                  )}
+                  <p className="text-sm text-gray-600">Última coleta: 15/10/2024</p>
+                  <Badge className="mt-2 bg-green-100 text-green-700">Promotor</Badge>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Tipo de Contrato
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center">
+                  {isEditing ? (
+                    <Select value={client.contractType} onValueChange={(value) => handleInputChange('contractType', value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="recurring">Recorrente</SelectItem>
+                        <SelectItem value="project">Projeto</SelectItem>
+                        <SelectItem value="one-time">Pontual</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Badge variant="outline" className="text-lg px-4 py-2">
+                      {client.contractType === 'recurring' ? 'Recorrente' : client.contractType === 'project' ? 'Projeto' : 'Pontual'}
+                    </Badge>
+                  )}
+                  <p className="text-sm text-gray-600 mt-2">Renovação: Jan/2025</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Histórico de NPS</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Nota</TableHead>
+                      <TableHead>Responsável</TableHead>
+                      <TableHead>Comentário</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>15/10/2024</TableCell>
+                      <TableCell><span className="font-bold text-green-600">9/10</span></TableCell>
+                      <TableCell>Maria Costa</TableCell>
+                      <TableCell>Excelente atendimento</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>15/07/2024</TableCell>
+                      <TableCell><span className="font-bold text-green-600">8/10</span></TableCell>
+                      <TableCell>Maria Costa</TableCell>
+                      <TableCell>Bons resultados</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>15/04/2024</TableCell>
+                      <TableCell><span className="font-bold text-yellow-600">7/10</span></TableCell>
+                      <TableCell>Maria Costa</TableCell>
+                      <TableCell>Melhorou comunicação</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Datas Importantes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Evento</TableHead>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>Renovação de Contrato</TableCell>
+                      <TableCell>15/01/2025</TableCell>
+                      <TableCell><Badge className="bg-yellow-100 text-yellow-700">Pendente</Badge></TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Reunião Mensal</TableCell>
+                      <TableCell>22/11/2024</TableCell>
+                      <TableCell><Badge className="bg-blue-100 text-blue-700">Agendada</Badge></TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Entrega Black Friday</TableCell>
+                      <TableCell>25/11/2024</TableCell>
+                      <TableCell><Badge className="bg-green-100 text-green-700">No prazo</Badge></TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
+
           <Card>
             <CardHeader>
-              <CardTitle>Documentos</CardTitle>
-              <CardDescription>Documentos e arquivos relacionados ao cliente</CardDescription>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="w-5 h-5" />
+                SLA/Escopo Contratado
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <p>Documentos do cliente {client.name}</p>
+              <div className="space-y-2">
+                <p className="text-sm">✅ 3 posts por semana nas redes sociais</p>
+                <p className="text-sm">✅ 2 stories diários no Instagram</p>
+                <p className="text-sm">✅ Relatório mensal de performance</p>
+                <p className="text-sm">✅ Reunião quinzenal de alinhamento</p>
+                <p className="text-sm">✅ Suporte técnico em horário comercial</p>
+                <Button variant="outline" size="sm" className="mt-3">
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Ver contrato completo
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="team" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Equipe da Agência</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="flex items-center gap-3 p-4 border rounded-lg">
+                  <Avatar>
+                    <AvatarFallback>MC</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium">{client.responsibleManager}</p>
+                    <p className="text-sm text-gray-600">Gestor de Conta</p>
+                    <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+                      <Mail className="w-3 h-3" />
+                      <span>maria.costa@agencia.com</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-4 border rounded-lg">
+                  <Avatar>
+                    <AvatarFallback><PenTool className="w-4 h-4" /></AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium">Lucas Pereira</p>
+                    <p className="text-sm text-gray-600">Designer Criativo</p>
+                    <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+                      <Mail className="w-3 h-3" />
+                      <span>lucas.pereira@agencia.com</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-4 border rounded-lg">
+                  <Avatar>
+                    <AvatarFallback><BarChart3 className="w-4 h-4" /></AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium">Fernanda Silva</p>
+                    <p className="text-sm text-gray-600">Analista de Performance</p>
+                    <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+                      <Mail className="w-3 h-3" />
+                      <span>fernanda.silva@agencia.com</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-4 border rounded-lg">
+                  <Avatar>
+                    <AvatarFallback><Video className="w-4 h-4" /></AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium">Carlos Santos</p>
+                    <p className="text-sm text-gray-600">Editor de Vídeo</p>
+                    <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+                      <Mail className="w-3 h-3" />
+                      <span>carlos.santos@agencia.com</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="history" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="w-5 h-5" />
+                  Histórico de Reuniões
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Resumo</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>15/11/2024</TableCell>
+                      <TableCell>Alinhamento</TableCell>
+                      <TableCell>Discussão sobre nova campanha</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>08/11/2024</TableCell>
+                      <TableCell>Aprovação</TableCell>
+                      <TableCell>Aprovação materiais Black Friday</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>01/11/2024</TableCell>
+                      <TableCell>Planejamento</TableCell>
+                      <TableCell>Estratégia fim de ano</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5" />
+                  Alertas Ativos
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="flex items-center gap-2 text-yellow-800">
+                      <AlertCircle className="w-4 h-4" />
+                      <span className="text-sm font-medium">Reunião agendada para amanhã</span>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center gap-2 text-blue-800">
+                      <FileText className="w-4 h-4" />
+                      <span className="text-sm font-medium">Relatório mensal pendente</span>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="flex items-center gap-2 text-red-800">
+                      <Clock className="w-4 h-4" />
+                      <span className="text-sm font-medium">Prazo de entrega em 3 dias</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Tarefas Críticas Pendentes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tarefa</TableHead>
+                    <TableHead>Responsável</TableHead>
+                    <TableHead>Prazo</TableHead>
+                    <TableHead>Prioridade</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>Finalizar criativos Black Friday</TableCell>
+                    <TableCell>Lucas Pereira</TableCell>
+                    <TableCell>20/11/2024</TableCell>
+                    <TableCell><Badge className="bg-red-100 text-red-700">Alta</Badge></TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Relatório de performance outubro</TableCell>
+                    <TableCell>Fernanda Silva</TableCell>
+                    <TableCell>18/11/2024</TableCell>
+                    <TableCell><Badge className="bg-yellow-100 text-yellow-700">Média</Badge></TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Aprovação de budget Q1 2025</TableCell>
+                    <TableCell>Maria Costa</TableCell>
+                    <TableCell>25/11/2024</TableCell>
+                    <TableCell><Badge className="bg-red-100 text-red-700">Alta</Badge></TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Últimos Feedbacks</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="flex text-yellow-400">
+                        {'★'.repeat(5)}
+                      </div>
+                      <span className="text-sm text-gray-600">15/10/2024</span>
+                    </div>
+                    <span className="text-sm text-gray-500">{client.primaryContact.name}</span>
+                  </div>
+                  <p className="text-sm">"Excelente trabalho na campanha! Os resultados superaram nossas expectativas."</p>
+                </div>
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="flex text-yellow-400">
+                        {'★'.repeat(4)}
+                      </div>
+                      <span className="text-sm text-gray-600">01/10/2024</span>
+                    </div>
+                    <span className="text-sm text-gray-500">{client.financialContact.name}</span>
+                  </div>
+                  <p className="text-sm">"Comunicação melhorou muito. Gostamos dos relatórios detalhados."</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="pages" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Globe className="w-5 h-5" />
+                  Landing Pages
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>URL</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>Black Friday 2024</TableCell>
+                      <TableCell className="text-blue-600">blackfriday.{client.name.toLowerCase().replace(/\s/g, '')}.com</TableCell>
+                      <TableCell><Badge className="bg-green-100 text-green-700">Ativa</Badge></TableCell>
+                      <TableCell>
+                        <Button variant="outline" size="sm">
+                          <ExternalLink className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Campanha Verão</TableCell>
+                      <TableCell className="text-blue-600">verao.{client.name.toLowerCase().replace(/\s/g, '')}.com</TableCell>
+                      <TableCell><Badge variant="outline">Pausada</Badge></TableCell>
+                      <TableCell>
+                        <Button variant="outline" size="sm">
+                          <ExternalLink className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Dia das Mães</TableCell>
+                      <TableCell className="text-blue-600">maes.{client.name.toLowerCase().replace(/\s/g, '')}.com</TableCell>
+                      <TableCell><Badge className="bg-gray-100 text-gray-700">Finalizada</Badge></TableCell>
+                      <TableCell>
+                        <Button variant="outline" size="sm">
+                          <ExternalLink className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Sites e Páginas Institucionais
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>URL</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>Site Principal</TableCell>
+                      <TableCell className="text-blue-600">{client.website}</TableCell>
+                      <TableCell><Badge className="bg-green-100 text-green-700">Ativo</Badge></TableCell>
+                      <TableCell>
+                        <Button variant="outline" size="sm" asChild>
+                          <a href={client.website} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Blog</TableCell>
+                      <TableCell className="text-blue-600">blog.{client.name.toLowerCase().replace(/\s/g, '')}.com</TableCell>
+                      <TableCell><Badge className="bg-green-100 text-green-700">Ativo</Badge></TableCell>
+                      <TableCell>
+                        <Button variant="outline" size="sm">
+                          <ExternalLink className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Loja Online</TableCell>
+                      <TableCell className="text-blue-600">loja.{client.name.toLowerCase().replace(/\s/g, '')}.com</TableCell>
+                      <TableCell><Badge className="bg-blue-100 text-blue-700">Em desenvolvimento</Badge></TableCell>
+                      <TableCell>
+                        <Button variant="outline" size="sm" disabled>
+                          <ExternalLink className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Campanhas de Mídia</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Campanha</TableHead>
+                    <TableHead>Plataforma</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Investimento</TableHead>
+                    <TableHead>Resultado</TableHead>
+                    <TableHead>Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>Black Friday - Awareness</TableCell>
+                    <TableCell>Meta Ads</TableCell>
+                    <TableCell><Badge className="bg-green-100 text-green-700">Ativa</Badge></TableCell>
+                    <TableCell>R$ 15.000</TableCell>
+                    <TableCell>ROAS: 4.2x</TableCell>
+                    <TableCell>
+                      <Button variant="outline" size="sm">
+                        Ver detalhes
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Black Friday - Conversão</TableCell>
+                    <TableCell>Google Ads</TableCell>
+                    <TableCell><Badge className="bg-green-100 text-green-700">Ativa</Badge></TableCell>
+                    <TableCell>R$ 25.000</TableCell>
+                    <TableCell>ROAS: 5.8x</TableCell>
+                    <TableCell>
+                      <Button variant="outline" size="sm">
+                        Ver detalhes
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Rebranding - Awareness</TableCell>
+                    <TableCell>LinkedIn Ads</TableCell>
+                    <TableCell><Badge className="bg-gray-100 text-gray-700">Finalizada</Badge></TableCell>
+                    <TableCell>R$ 8.000</TableCell>
+                    <TableCell>ROAS: 3.1x</TableCell>
+                    <TableCell>
+                      <Button variant="outline" size="sm">
+                        Ver relatório
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
-
-      {/* Edit Client Modal */}
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Edit Client</DialogTitle>
-            <DialogDescription>Make changes to the client's profile here. Click save when you're done.</DialogDescription>
-          </DialogHeader>
-          <EditClientForm client={client} onSave={handleSaveClient} onCancel={() => setIsEditModalOpen(false)} />
-        </DialogContent>
-      </Dialog>
-
-      {/* Password Modal */}
-      <Dialog open={passwordModal.open} onOpenChange={(open) => setPasswordModal({ ...passwordModal, open })}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>{passwordModal.mode === 'add' ? 'Adicionar' : 'Editar'} Senha</DialogTitle>
-          </DialogHeader>
-          <PasswordForm
-            password={passwordModal.data}
-            onSave={passwordModal.mode === 'add' ? handleAddPassword : handleEditPassword}
-            onCancel={() => setPasswordModal({ open: false, mode: 'add', data: null })}
-          />
-        </DialogContent>
-      </Dialog>
-
-      {/* Stakeholder Modal */}
-      <Dialog open={stakeholderModal.open} onOpenChange={(open) => setStakeholderModal({ ...stakeholderModal, open })}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>{stakeholderModal.mode === 'add' ? 'Adicionar' : 'Editar'} Stakeholder</DialogTitle>
-          </DialogHeader>
-          <StakeholderForm
-            stakeholder={stakeholderModal.data}
-            onSave={stakeholderModal.mode === 'add' ? handleAddStakeholder : handleEditStakeholder}
-            onCancel={() => setStakeholderModal({ open: false, mode: 'add', data: null })}
-          />
-        </DialogContent>
-      </Dialog>
-
-      {/* Page Link Modal */}
-      <Dialog open={pageLinkModal.open} onOpenChange={(open) => setPageLinkModal({ ...pageLinkModal, open })}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>{pageLinkModal.mode === 'add' ? 'Adicionar' : 'Editar'} Página</DialogTitle>
-          </DialogHeader>
-          <PageLinkForm
-            pageLink={pageLinkModal.data}
-            onSave={pageLinkModal.mode === 'add' ? handleAddPageLink : handleEditPageLink}
-            onCancel={() => setPageLinkModal({ open: false, mode: 'add', data: null })}
-          />
-        </DialogContent>
-      </Dialog>
-
-      {/* Campaign Modal */}
-      <Dialog open={campaignModal.open} onOpenChange={(open) => setCampaignModal({ ...campaignModal, open })}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>{campaignModal.mode === 'add' ? 'Adicionar' : 'Editar'} Campanha</DialogTitle>
-          </DialogHeader>
-          <CampaignForm
-            campaign={campaignModal.data}
-            onSave={campaignModal.mode === 'add' ? handleAddCampaign : handleEditCampaign}
-            onCancel={() => setCampaignModal({ open: false, mode: 'add', data: null })}
-          />
-        </DialogContent>
-      </Dialog>
     </div>
   );
-}
-
-type EditClientFormProps = {
-  client: Client;
-  onSave: (updatedClient: Client) => void;
-  onCancel: () => void;
 };
 
-function EditClientForm({ client, onSave, onCancel }: EditClientFormProps) {
-  const [name, setName] = useState(client.name);
-  const [email, setEmail] = useState(client.email);
-  const [phone, setPhone] = useState(client.phone);
-  const [website, setWebsite] = useState(client.website);
-  const [industry, setIndustry] = useState(client.industry);
-  const [address, setAddress] = useState(client.address);
-  const [notes, setNotes] = useState(client.notes || "");
-  const [status, setStatus] = useState(client.status);
-
-  const handleSave = () => {
-    const updatedClient: Client = {
-      ...client,
-      name,
-      email,
-      phone,
-      website,
-      industry,
-      address,
-      notes,
-      status,
-    };
-    onSave(updatedClient);
-  };
-
-  return (
-    <div className="grid gap-4 py-4">
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="name" className="text-right">
-          Name
-        </Label>
-        <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-3" />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="email" className="text-right">
-          Email
-        </Label>
-        <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="col-span-3" />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="phone" className="text-right">
-          Phone
-        </Label>
-        <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="col-span-3" />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="website" className="text-right">
-          Website
-        </Label>
-        <Input id="website" value={website} onChange={(e) => setWebsite(e.target.value)} className="col-span-3" />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="industry" className="text-right">
-          Industry
-        </Label>
-        <Input id="industry" value={industry} onChange={(e) => setIndustry(e.target.value)} className="col-span-3" />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="address" className="text-right">
-          Address
-        </Label>
-        <Input id="address" value={address} onChange={(e) => setAddress(e.target.value)} className="col-span-3" />
-      </div>
-      <div className="grid grid-cols-4 items-start gap-4">
-        <Label htmlFor="notes" className="text-right mt-2">
-          Notes
-        </Label>
-        <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} className="col-span-3" />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="status" className="text-right">
-          Status
-        </Label>
-        <select
-          id="status"
-          value={status}
-          onChange={(e) => setStatus(e.target.value as "active" | "inactive" | "pending")}
-          className="col-span-3 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-          <option value="pending">Pending</option>
-        </select>
-      </div>
-      <div className="flex justify-end space-x-2">
-        <Button type="button" variant="secondary" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button type="button" onClick={handleSave}>
-          Save
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-type PasswordFormProps = {
-  password: Password | null;
-  onSave: (password: Password | Omit<Password, 'id'>) => void;
-  onCancel: () => void;
-};
-
-function PasswordForm({ password, onSave, onCancel }: PasswordFormProps) {
-  const [title, setTitle] = useState(password?.title || '');
-  const [username, setUsername] = useState(password?.username || '');
-  const [passwordValue, setPasswordValue] = useState(password?.password || '');
-  const [url, setUrl] = useState(password?.url || '');
-  const [notes, setNotes] = useState(password?.notes || '');
-
-  const handleSave = () => {
-    const passwordData = {
-      title,
-      username,
-      password: passwordValue,
-      url,
-      notes,
-    };
-    
-    if (password) {
-      onSave({ ...passwordData, id: password.id });
-    } else {
-      onSave(passwordData);
-    }
-  };
-
-  return (
-    <div className="grid gap-4 py-4">
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="title" className="text-right">Título</Label>
-        <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} className="col-span-3" />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="username" className="text-right">Usuário</Label>
-        <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} className="col-span-3" />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="password" className="text-right">Senha</Label>
-        <Input id="password" type="password" value={passwordValue} onChange={(e) => setPasswordValue(e.target.value)} className="col-span-3" />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="url" className="text-right">URL</Label>
-        <Input id="url" value={url} onChange={(e) => setUrl(e.target.value)} className="col-span-3" />
-      </div>
-      <div className="grid grid-cols-4 items-start gap-4">
-        <Label htmlFor="notes" className="text-right mt-2">Notas</Label>
-        <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} className="col-span-3" />
-      </div>
-      <div className="flex justify-end space-x-2">
-        <Button type="button" variant="secondary" onClick={onCancel}>Cancelar</Button>
-        <Button type="button" onClick={handleSave}>Salvar</Button>
-      </div>
-    </div>
-  );
-}
-
-type StakeholderFormProps = {
-  stakeholder: Stakeholder | null;
-  onSave: (stakeholder: Stakeholder | Omit<Stakeholder, 'id'>) => void;
-  onCancel: () => void;
-};
-
-function StakeholderForm({ stakeholder, onSave, onCancel }: StakeholderFormProps) {
-  const [name, setName] = useState(stakeholder?.name || '');
-  const [role, setRole] = useState(stakeholder?.role || '');
-  const [email, setEmail] = useState(stakeholder?.email || '');
-  const [phone, setPhone] = useState(stakeholder?.phone || '');
-  const [department, setDepartment] = useState(stakeholder?.department || '');
-
-  const handleSave = () => {
-    const stakeholderData = {
-      name,
-      role,
-      email,
-      phone,
-      department,
-    };
-    
-    if (stakeholder) {
-      onSave({ ...stakeholderData, id: stakeholder.id });
-    } else {
-      onSave(stakeholderData);
-    }
-  };
-
-  return (
-    <div className="grid gap-4 py-4">
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="name" className="text-right">Nome</Label>
-        <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-3" />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="role" className="text-right">Cargo</Label>
-        <Input id="role" value={role} onChange={(e) => setRole(e.target.value)} className="col-span-3" />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="email" className="text-right">Email</Label>
-        <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="col-span-3" />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="phone" className="text-right">Telefone</Label>
-        <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="col-span-3" />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="department" className="text-right">Departamento</Label>
-        <Input id="department" value={department} onChange={(e) => setDepartment(e.target.value)} className="col-span-3" />
-      </div>
-      <div className="flex justify-end space-x-2">
-        <Button type="button" variant="secondary" onClick={onCancel}>Cancelar</Button>
-        <Button type="button" onClick={handleSave}>Salvar</Button>
-      </div>
-    </div>
-  );
-}
-
-type PageLinkFormProps = {
-  pageLink: PageLink | null;
-  onSave: (pageLink: PageLink | Omit<PageLink, 'id'>) => void;
-  onCancel: () => void;
-};
-
-function PageLinkForm({ pageLink, onSave, onCancel }: PageLinkFormProps) {
-  const [title, setTitle] = useState(pageLink?.title || '');
-  const [url, setUrl] = useState(pageLink?.url || '');
-  const [type, setType] = useState(pageLink?.type || 'institutional');
-  const [status, setStatus] = useState(pageLink?.status || 'active');
-  const [description, setDescription] = useState(pageLink?.description || '');
-
-  const handleSave = () => {
-    const pageLinkData = {
-      title,
-      url,
-      type: type as 'landing' | 'institutional' | 'other',
-      status: status as 'active' | 'inactive',
-      description,
-    };
-    
-    if (pageLink) {
-      onSave({ ...pageLinkData, id: pageLink.id });
-    } else {
-      onSave(pageLinkData);
-    }
-  };
-
-  return (
-    <div className="grid gap-4 py-4">
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="title" className="text-right">Título</Label>
-        <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} className="col-span-3" />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="url" className="text-right">URL</Label>
-        <Input id="url" value={url} onChange={(e) => setUrl(e.target.value)} className="col-span-3" />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="type" className="text-right">Tipo</Label>
-        <select
-          id="type"
-          value={type}
-          onChange={(e) => setType(e.target.value as 'landing' | 'institutional' | 'other')}
-          className="col-span-3 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <option value="landing">Landing Page</option>
-          <option value="institutional">Institucional</option>
-          <option value="other">Outro</option>
-        </select>
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="status" className="text-right">Status</Label>
-        <select
-          id="status"
-          value={status}
-          onChange={(e) => setStatus(e.target.value as 'active' | 'inactive')}
-          className="col-span-3 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <option value="active">Ativo</option>
-          <option value="inactive">Inativo</option>
-        </select>
-      </div>
-      <div className="grid grid-cols-4 items-start gap-4">
-        <Label htmlFor="description" className="text-right mt-2">Descrição</Label>
-        <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} className="col-span-3" />
-      </div>
-      <div className="flex justify-end space-x-2">
-        <Button type="button" variant="secondary" onClick={onCancel}>Cancelar</Button>
-        <Button type="button" onClick={handleSave}>Salvar</Button>
-      </div>
-    </div>
-  );
-}
-
-type CampaignFormProps = {
-  campaign: Campaign | null;
-  onSave: (campaign: Campaign | Omit<Campaign, 'id'>) => void;
-  onCancel: () => void;
-};
-
-function CampaignForm({ campaign, onSave, onCancel }: CampaignFormProps) {
-  const [name, setName] = useState(campaign?.name || '');
-  const [type, setType] = useState(campaign?.type || '');
-  const [status, setStatus] = useState(campaign?.status || 'active');
-  const [startDate, setStartDate] = useState(campaign?.startDate || '');
-  const [endDate, setEndDate] = useState(campaign?.endDate || '');
-  const [budget, setBudget] = useState(campaign?.budget?.toString() || '');
-  const [description, setDescription] = useState(campaign?.description || '');
-
-  const handleSave = () => {
-    const campaignData = {
-      name,
-      type,
-      status: status as 'active' | 'paused' | 'completed',
-      startDate,
-      endDate,
-      budget: budget ? parseInt(budget) : undefined,
-      description,
-    };
-    
-    if (campaign) {
-      onSave({ ...campaignData, id: campaign.id });
-    } else {
-      onSave(campaignData);
-    }
-  };
-
-  return (
-    <div className="grid gap-4 py-4">
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="name" className="text-right">Nome</Label>
-        <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-3" />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="type" className="text-right">Tipo</Label>
-        <Input id="type" value={type} onChange={(e) => setType(e.target.value)} className="col-span-3" />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="status" className="text-right">Status</Label>
-        <select
-          id="status"
-          value={status}
-          onChange={(e) => setStatus(e.target.value as 'active' | 'paused' | 'completed')}
-          className="col-span-3 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <option value="active">Ativo</option>
-          <option value="paused">Pausado</option>
-          <option value="completed">Concluído</option>
-        </select>
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="startDate" className="text-right">Data Início</Label>
-        <Input id="startDate" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="col-span-3" />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="endDate" className="text-right">Data Fim</Label>
-        <Input id="endDate" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="col-span-3" />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="budget" className="text-right">Orçamento</Label>
-        <Input id="budget" type="number" value={budget} onChange={(e) => setBudget(e.target.value)} className="col-span-3" />
-      </div>
-      <div className="grid grid-cols-4 items-start gap-4">
-        <Label htmlFor="description" className="text-right mt-2">Descrição</Label>
-        <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} className="col-span-3" />
-      </div>
-      <div className="flex justify-end space-x-2">
-        <Button type="button" variant="secondary" onClick={onCancel}>Cancelar</Button>
-        <Button type="button" onClick={handleSave}>Salvar</Button>
-      </div>
-    </div>
-  );
-}
+export default ClientProfile;
