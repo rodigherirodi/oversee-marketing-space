@@ -87,7 +87,11 @@ const Clients = () => {
       {viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredClients.map((client) => (
-            <div key={client.id} className="bg-white rounded-lg border shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+            <Link 
+              key={client.id} 
+              to={`/clients/${client.id}`}
+              className="bg-white rounded-lg border shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+            >
               <div className="h-24 bg-gradient-to-br from-green-500 to-blue-600"></div>
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">{client.name}</h3>
@@ -108,7 +112,7 @@ const Clients = () => {
                   </div>
                 </div>
                 
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                     client.status === 'active' ? 'bg-green-100 text-green-700' :
                     client.status === 'inactive' ? 'bg-red-100 text-red-700' :
@@ -121,15 +125,8 @@ const Clients = () => {
                     Desde {new Date(client.createdAt).toLocaleDateString()}
                   </span>
                 </div>
-
-                <Button asChild variant="outline" size="sm" className="w-full">
-                  <Link to={`/clients/${client.id}`}>
-                    <Eye className="w-4 h-4 mr-2" />
-                    Ver Perfil
-                  </Link>
-                </Button>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       ) : (
