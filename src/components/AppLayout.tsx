@@ -21,11 +21,16 @@ import {
   FolderOpen, 
   Users, 
   UserCheck,
-  DollarSign,
   Search,
-  Plus
+  Plus,
+  Factory,
+  GraduationCap,
+  Heart,
+  DollarSign,
+  BarChart3
 } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
+import ToolbarShortcuts from './ToolbarShortcuts';
 
 const AppLayout = () => {
   const location = useLocation();
@@ -36,15 +41,15 @@ const AppLayout = () => {
     { name: 'Tarefas', icon: CheckSquare, path: '/tasks' },
     { name: 'Projetos', icon: FolderOpen, path: '/projects' },
     { name: 'Clientes', icon: Users, path: '/clients' },
-    { name: 'Time', icon: UserCheck, path: '/team' },
-    { name: 'Comercial', icon: DollarSign, path: '/commercial' }
+    { name: 'Time', icon: UserCheck, path: '/team' }
   ];
 
   const workspaces = [
-    { name: 'Cliente A', icon: '🏢', color: 'bg-blue-100 text-blue-700' },
-    { name: 'Cliente B', icon: '🚀', color: 'bg-purple-100 text-purple-700' },
-    { name: 'Projetos Internos', icon: '⚡', color: 'bg-green-100 text-green-700' },
-    { name: 'Templates', icon: '📋', color: 'bg-orange-100 text-orange-700' }
+    { name: 'Operação', icon: Factory, color: 'bg-blue-100 text-blue-700' },
+    { name: 'Academy', icon: GraduationCap, color: 'bg-purple-100 text-purple-700' },
+    { name: 'Cultura', icon: Heart, color: 'bg-pink-100 text-pink-700' },
+    { name: 'Comercial', icon: DollarSign, color: 'bg-green-100 text-green-700' },
+    { name: 'Gestão', icon: BarChart3, color: 'bg-orange-100 text-orange-700' }
   ];
 
   const isActive = (path: string) => currentPath === path;
@@ -81,9 +86,9 @@ const AppLayout = () => {
                   {workspaces.map((workspace) => (
                     <SidebarMenuItem key={workspace.name}>
                       <SidebarMenuButton>
-                        <span className={`w-6 h-6 rounded-md flex items-center justify-center text-xs ${workspace.color}`}>
-                          {workspace.icon}
-                        </span>
+                        <div className={`w-6 h-6 rounded-md flex items-center justify-center ${workspace.color}`}>
+                          <workspace.icon className="w-4 h-4" />
+                        </div>
                         <span className="truncate">{workspace.name}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -120,8 +125,9 @@ const AppLayout = () => {
         </Sidebar>
 
         <SidebarInset className="flex-1">
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4">
             <SidebarTrigger className="-ml-1" />
+            <ToolbarShortcuts />
           </header>
           <main className="flex-1 p-6 overflow-auto">
             <Outlet />
