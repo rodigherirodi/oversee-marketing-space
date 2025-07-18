@@ -10,7 +10,7 @@ interface BadgeDisplayProps {
 
 const BadgeDisplay: React.FC<BadgeDisplayProps> = ({ 
   badges, 
-  maxVisible = 4, 
+  maxVisible = 3, 
   className 
 }) => {
   const visibleBadges = badges.slice(0, maxVisible);
@@ -21,7 +21,7 @@ const BadgeDisplay: React.FC<BadgeDisplayProps> = ({
       {visibleBadges.map((badge, index) => (
         <span
           key={index}
-          className="w-6 h-6 text-sm flex items-center justify-center bg-muted rounded-full hover:scale-110 transition-transform cursor-help"
+          className="w-5 h-5 text-xs flex items-center justify-center bg-background/90 backdrop-blur-sm rounded-full border border-border hover:scale-110 transition-transform cursor-help shadow-sm"
           title={`Badge ${index + 1}`}
         >
           {badge}
@@ -29,7 +29,7 @@ const BadgeDisplay: React.FC<BadgeDisplayProps> = ({
       ))}
       
       {remainingCount > 0 && (
-        <span className="w-6 h-6 text-xs flex items-center justify-center bg-muted text-muted-foreground rounded-full">
+        <span className="w-5 h-5 text-xs flex items-center justify-center bg-background/90 backdrop-blur-sm text-muted-foreground rounded-full border border-border shadow-sm">
           +{remainingCount}
         </span>
       )}

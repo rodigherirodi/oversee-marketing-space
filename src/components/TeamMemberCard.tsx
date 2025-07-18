@@ -2,11 +2,12 @@
 import React from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { FolderOpen, Mail, Calendar } from 'lucide-react';
+import { FolderOpen, Mail, Calendar, CheckCircle } from 'lucide-react';
 import { TeamMember } from '@/types/entities';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import BorderPattern from './BorderPattern';
 import BadgeDisplay from './BadgeDisplay';
 import { cn } from '@/lib/utils';
@@ -45,7 +46,7 @@ const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
   return (
     <Card 
       className={cn(
-        "group cursor-pointer hover:shadow-lg transition-all duration-200 hover:-translate-y-1 w-56 h-80 bg-card",
+        "group cursor-pointer hover:shadow-lg transition-all duration-200 hover:-translate-y-1 w-48 h-80 bg-card relative",
         className
       )}
       onClick={onClick}
@@ -56,9 +57,14 @@ const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
         color={member.borderColor}
       />
       
+      {/* Badges Gamificadas no Topo */}
+      <div className="absolute top-1 right-2 z-10">
+        <BadgeDisplay badges={member.badges} maxVisible={3} />
+      </div>
+      
       <CardContent className="p-4 h-full flex flex-col">
         {/* Status Badge */}
-        <div className="flex justify-between items-start mb-3">
+        <div className="flex justify-between items-start mb-3 mt-1">
           <Badge 
             variant="secondary" 
             className={cn("text-xs", getStatusColor(member.status))}
@@ -73,8 +79,8 @@ const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
         </div>
 
         {/* Avatar e Info Principal */}
-        <div className="flex flex-col items-center text-center mb-4 flex-1">
-          <Avatar className="w-16 h-16 mb-3 border-2 border-border">
+        <div className="flex flex-col items-center text-center mb-3 flex-1">
+          <Avatar className="w-14 h-14 mb-2 border-2 border-border">
             <AvatarImage src={member.avatar} alt={member.name} />
             <AvatarFallback className="text-lg font-semibold">
               {member.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
@@ -85,17 +91,17 @@ const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
             {member.name}
           </h3>
           
-          <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+          <p className="text-xs text-muted-foreground mb-1 line-clamp-2">
             {member.position}
           </p>
           
-          <div className="text-xs text-muted-foreground mb-1">
+          <div className="text-xs text-muted-foreground">
             {member.department}
           </div>
         </div>
 
         {/* Informações de Contato */}
-        <div className="space-y-2 mb-4 text-xs">
+        <div className="space-y-1 mb-3 text-xs">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Mail className="w-3 h-3 flex-shrink-0" />
             <span className="truncate">{member.email}</span>
@@ -109,20 +115,35 @@ const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
           </div>
         </div>
 
-        {/* Footer com Projetos e Badges */}
-        <div className="mt-auto space-y-3">
-          {/* Projetos Ativos */}
-          <div className="flex items-center justify-center gap-2 text-xs bg-muted rounded-md p-2">
-            <FolderOpen className="w-4 h-4 text-primary" />
-            <span className="font-medium">
-              {member.activeProjectsCount} projeto{member.activeProjectsCount !== 1 ? 's' : ''} ativo{member.activeProjectsCount !== 1 ? 's' : ''}
-            </span>
-          </div>
+        {/* Footer com Projetos (Ícones com Tooltips) */}
+        <div className="mt-auto flex items-center justify-center gap-4">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-1 cursor-help hover:text-primary transition-colors">
+                <FolderOpen className="w-4 h-4 text-primary" />
+                <span className="font-medium text-sm">
+                  {member.activeProjectsCount}
+                </span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{member.activeProjectsCount} projeto{member.activeProjectsCount !== 1 ? 's' : ''} ativo{member.activeProjectsCount !== 1 ? 's' : ''}</p>
+            </TooltipContent>
+          </Tooltip>
 
-          {/* Badges Gamificadas */}
-          <div className="flex justify-center">
-            <BadgeDisplay badges={member.badges} maxVisible={4} />
-          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-1 cursor-help hover:text-green-600 transition-colors">
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                <span className="font-medium text-sm">
+                  {member.completedProjectsCount}
+                </span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{member.completedProjectsCount} projeto{member.completedProjectsCount !== 1 ? 's' : ''} concluído{member.completedProjectsCount !== 1 ? 's' : ''}</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </CardContent>
     </Card>

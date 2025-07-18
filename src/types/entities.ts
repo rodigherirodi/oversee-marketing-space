@@ -75,6 +75,7 @@ export interface TeamMember {
   hireDate: string;
   avatar?: string;
   activeProjectsCount: number;
+  completedProjectsCount: number;
   level: number;
   badges: string[];
   borderColor: string;
