@@ -113,7 +113,7 @@ const ProjectDetail = () => {
             <div className="flex items-center gap-2 text-gray-600">
               <User className="w-4 h-4" />
               <span className="font-medium">Responsável:</span>
-              <span>{project.responsibleManager}</span>
+              <span>{project.client.responsibleManager}</span>
             </div>
             
             <div className="flex items-center gap-2 text-gray-600">
@@ -131,7 +131,7 @@ const ProjectDetail = () => {
             <div className="flex items-center gap-2 text-gray-600">
               <Users className="w-4 h-4" />
               <span className="font-medium">Equipe:</span>
-              <span>Marina, Ana, João</span>
+              <span>{project.teamMembers.join(', ')}</span>
             </div>
             
             <div className="flex items-center gap-2 text-gray-600">
