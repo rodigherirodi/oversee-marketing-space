@@ -1,9 +1,9 @@
 
 import React from 'react';
-import AnalyticalDashboard from './AnalyticalDashboard';
+import Productivity from './Productivity';
 
 const Index = () => {
-  return <AnalyticalDashboard />;
+  return <Productivity />;
 };
 
 export default Index;

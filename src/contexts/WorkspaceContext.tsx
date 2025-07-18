@@ -1,7 +1,6 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { 
-  Home,
+  Target,
   CheckSquare, 
   FolderOpen, 
   Users, 
@@ -11,6 +10,9 @@ import {
   Heart,
   DollarSign,
   BarChart3,
+  FileText,
+  Award,
+  Key,
   LucideIcon
 } from 'lucide-react';
 
@@ -35,11 +37,14 @@ const workspaces: Workspace[] = [
     icon: Factory,
     color: 'bg-blue-100 text-blue-700',
     pages: [
-      { name: 'Dashboard', path: '/', icon: Home },
+      { name: 'Produtividade', path: '/', icon: Target },
       { name: 'Tarefas', path: '/tasks', icon: CheckSquare },
       { name: 'Projetos', path: '/projects', icon: FolderOpen },
       { name: 'Clientes', path: '/clients', icon: Users },
-      { name: 'Time', path: '/team', icon: UserCheck }
+      { name: 'Time', path: '/team', icon: UserCheck },
+      { name: 'Briefings', path: '/briefings', icon: FileText },
+      { name: 'Cases', path: '/cases', icon: Award },
+      { name: 'Acessos', path: '/access', icon: Key }
     ]
   },
   {

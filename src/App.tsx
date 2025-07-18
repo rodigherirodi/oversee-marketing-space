@@ -7,13 +7,16 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { WorkspaceProvider } from "@/contexts/WorkspaceContext";
 import AppLayout from "./components/AppLayout";
-import Index from "./pages/Index";
+import Productivity from "./pages/Productivity";
 import Tasks from "./pages/Tasks";
 import Projects from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
 import Clients from "./pages/Clients";
 import ClientProfile from "./pages/ClientProfile";
 import Team from "./pages/Team";
+import Briefings from "./pages/Briefings";
+import Cases from "./pages/Cases";
+import Access from "./pages/Access";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,13 +30,16 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<AppLayout />}>
-              <Route index element={<Index />} />
+              <Route index element={<Productivity />} />
               <Route path="tasks" element={<Tasks />} />
               <Route path="projects" element={<Projects />} />
               <Route path="projects/:id" element={<ProjectDetail />} />
               <Route path="clients" element={<Clients />} />
               <Route path="clients/:id" element={<ClientProfile />} />
               <Route path="team" element={<Team />} />
+              <Route path="briefings" element={<Briefings />} />
+              <Route path="cases" element={<Cases />} />
+              <Route path="access" element={<Access />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
