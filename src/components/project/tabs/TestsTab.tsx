@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { Project } from '@/types/entities';
 import { 
-  Flask, 
+  TestTube, 
   Plus, 
   Play, 
   Pause, 
@@ -80,7 +79,7 @@ const TestsTab: React.FC<TestsTabProps> = ({ project }) => {
       case 'paused':
         return <Pause className="w-4 h-4 text-yellow-600" />;
       default:
-        return <Flask className="w-4 h-4 text-gray-600" />;
+        return <TestTube className="w-4 h-4 text-gray-600" />;
     }
   };
 
@@ -116,7 +115,7 @@ const TestsTab: React.FC<TestsTabProps> = ({ project }) => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              <Flask className="w-5 h-5" />
+              <TestTube className="w-5 h-5" />
               Testes A/B e Experimentos
             </CardTitle>
             <Button className="flex items-center gap-2">
