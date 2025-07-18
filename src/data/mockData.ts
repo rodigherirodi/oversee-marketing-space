@@ -164,7 +164,8 @@ export const mockTeamMembers: TeamMember[] = [
     borderColor: 'hsl(217, 91%, 60%)',
     borderPattern: 'gradient',
     department: 'Gestão',
-    status: 'active'
+    status: 'active',
+    createdAt: '2022-01-15'
   },
   {
     id: '2',
@@ -179,7 +180,8 @@ export const mockTeamMembers: TeamMember[] = [
     borderColor: 'hsl(142, 76%, 36%)',
     borderPattern: 'stripes',
     department: 'Tecnologia',
-    status: 'active'
+    status: 'active',
+    createdAt: '2021-05-20'
   },
   {
     id: '3',
@@ -194,7 +196,8 @@ export const mockTeamMembers: TeamMember[] = [
     borderColor: 'hsl(280, 100%, 70%)',
     borderPattern: 'dots',
     department: 'Design',
-    status: 'active'
+    status: 'active',
+    createdAt: '2023-03-10'
   },
   {
     id: '4',
@@ -209,7 +212,8 @@ export const mockTeamMembers: TeamMember[] = [
     borderColor: 'hsl(25, 95%, 53%)',
     borderPattern: 'solid',
     department: 'Análise',
-    status: 'active'
+    status: 'active',
+    createdAt: '2022-08-05'
   },
   {
     id: '5',
@@ -224,7 +228,8 @@ export const mockTeamMembers: TeamMember[] = [
     borderColor: 'hsl(340, 82%, 52%)',
     borderPattern: 'gradient',
     department: 'Conteúdo',
-    status: 'active'
+    status: 'active',
+    createdAt: '2023-01-12'
   },
   {
     id: '6',
@@ -239,7 +244,8 @@ export const mockTeamMembers: TeamMember[] = [
     borderColor: 'hsl(197, 37%, 24%)',
     borderPattern: 'stripes',
     department: 'Design',
-    status: 'vacation'
+    status: 'vacation',
+    createdAt: '2023-06-18'
   },
   {
     id: '7',
@@ -254,7 +260,8 @@ export const mockTeamMembers: TeamMember[] = [
     borderColor: 'hsl(262, 83%, 58%)',
     borderPattern: 'dots',
     department: 'Marketing',
-    status: 'active'
+    status: 'active',
+    createdAt: '2022-11-30'
   },
   {
     id: '8',
@@ -269,6 +276,7 @@ export const mockTeamMembers: TeamMember[] = [
     borderColor: 'hsl(43, 96%, 56%)',
     borderPattern: 'solid',
     department: 'Tecnologia',
-    status: 'active'
+    status: 'active',
+    createdAt: '2023-09-01'
   }
 ];
