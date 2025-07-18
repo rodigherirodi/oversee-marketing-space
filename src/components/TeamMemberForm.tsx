@@ -73,7 +73,15 @@ const TeamMemberForm: React.FC<TeamMemberFormProps> = ({
   const onSubmit = (data: TeamMemberFormData) => {
     try {
       const newMember = {
-        ...data,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        position: data.position,
+        department: data.department,
+        hireDate: data.hireDate,
+        birthDate: data.birthDate,
+        address: data.address,
+        supervisor: data.supervisor,
         salary: data.salary || 0,
         activeProjectsCount: 0,
         completedProjectsCount: 0,
