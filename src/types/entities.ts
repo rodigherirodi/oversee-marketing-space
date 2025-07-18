@@ -1,3 +1,4 @@
+
 export interface Client {
   id: string;
   name: string;
@@ -46,7 +47,6 @@ export interface Project {
   tags: string[];
   teamMembers: string[];
   progress: number;
-  responsibleManager: string;
   createdAt: string;
 }
 
