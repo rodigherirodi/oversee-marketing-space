@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { mockClients } from '@/data/mockData';
 import { Client } from '@/types/entities';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,14 +10,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Search, Filter, Grid, List, Plus, MapPin, Calendar, Users, User } from 'lucide-react';
+import { useClients } from '@/hooks/useClients';
+import ClientFormDialog from '@/components/ClientFormDialog';
 
 const Clients = () => {
   const navigate = useNavigate();
+  const { clients, addClient } = useClients();
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const filteredClients = mockClients.filter(client => {
+  const filteredClients = clients.filter(client => {
     const matchesSearch = client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          client.segment.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || client.status === statusFilter;
@@ -55,6 +58,10 @@ const Clients = () => {
     navigate(`/clients/${clientId}`);
   };
 
+  const handleNewClient = () => {
+    setIsDialogOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -62,7 +69,7 @@ const Clients = () => {
           <h1 className="text-3xl font-bold text-gray-900">Clientes</h1>
           <p className="text-gray-600">Gerencie seus clientes e relacionamentos</p>
         </div>
-        <Button>
+        <Button onClick={handleNewClient}>
           <Plus className="w-4 h-4 mr-2" />
           Novo Cliente
         </Button>
@@ -226,6 +233,12 @@ const Clients = () => {
           </CardContent>
         </Card>
       )}
+
+      <ClientFormDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        onClientAdded={addClient}
+      />
     </div>
   );
 };
