@@ -20,6 +20,7 @@ import {
   CheckSquare, 
   FolderOpen, 
   Users, 
+  UserCheck,
   DollarSign,
   Search,
   Plus
@@ -35,6 +36,7 @@ const AppLayout = () => {
     { name: 'Tarefas', icon: CheckSquare, path: '/tasks' },
     { name: 'Projetos', icon: FolderOpen, path: '/projects' },
     { name: 'Clientes', icon: Users, path: '/clients' },
+    { name: 'Time', icon: UserCheck, path: '/team' },
     { name: 'Comercial', icon: DollarSign, path: '/commercial' }
   ];
 

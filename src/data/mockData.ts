@@ -1,5 +1,4 @@
-
-import { Client, Project, Task } from '../types/entities';
+import { Client, Project, Task, TeamMember } from '../types/entities';
 
 export const mockClients: Client[] = [
   {
@@ -148,5 +147,128 @@ export const mockTasks: Task[] = [
     dueDate: '2024-11-18',
     tags: ['copywriting', 'social'],
     createdAt: '2024-11-08'
+  }
+];
+
+export const mockTeamMembers: TeamMember[] = [
+  {
+    id: '1',
+    name: 'Marina Costa',
+    email: 'marina@agencia.com',
+    position: 'Gerente de Projetos',
+    hireDate: '2022-01-15',
+    avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b766?w=200&h=200&fit=crop&crop=face',
+    activeProjectsCount: 8,
+    level: 9,
+    badges: ['🏆', '⭐', '💎', '🚀'],
+    borderColor: 'hsl(217, 91%, 60%)',
+    borderPattern: 'gradient',
+    department: 'Gestão',
+    status: 'active'
+  },
+  {
+    id: '2',
+    name: 'Pedro Lima',
+    email: 'pedro@agencia.com',
+    position: 'Desenvolvedor Sênior',
+    hireDate: '2021-05-20',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face',
+    activeProjectsCount: 5,
+    level: 8,
+    badges: ['💻', '⚡', '🔥'],
+    borderColor: 'hsl(142, 76%, 36%)',
+    borderPattern: 'stripes',
+    department: 'Tecnologia',
+    status: 'active'
+  },
+  {
+    id: '3',
+    name: 'Ana Silva',
+    email: 'ana@agencia.com',
+    position: 'UX/UI Designer',
+    hireDate: '2023-03-10',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=face',
+    activeProjectsCount: 6,
+    level: 7,
+    badges: ['🎨', '✨', '🏅'],
+    borderColor: 'hsl(280, 100%, 70%)',
+    borderPattern: 'dots',
+    department: 'Design',
+    status: 'active'
+  },
+  {
+    id: '4',
+    name: 'Carlos Mendes',
+    email: 'carlos@agencia.com',
+    position: 'Analista de Dados',
+    hireDate: '2022-08-05',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face',
+    activeProjectsCount: 3,
+    level: 6,
+    badges: ['📊', '🧮', '📈'],
+    borderColor: 'hsl(25, 95%, 53%)',
+    borderPattern: 'solid',
+    department: 'Análise',
+    status: 'active'
+  },
+  {
+    id: '5',
+    name: 'Sofia Rodrigues',
+    email: 'sofia@agencia.com',
+    position: 'Copywriter',
+    hireDate: '2023-01-12',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop&crop=face',
+    activeProjectsCount: 4,
+    level: 5,
+    badges: ['✍️', '📝', '💡'],
+    borderColor: 'hsl(340, 82%, 52%)',
+    borderPattern: 'gradient',
+    department: 'Conteúdo',
+    status: 'active'
+  },
+  {
+    id: '6',
+    name: 'João Santos',
+    email: 'joao@agencia.com',
+    position: 'Designer Gráfico',
+    hireDate: '2023-06-18',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face',
+    activeProjectsCount: 7,
+    level: 6,
+    badges: ['🖌️', '🎨', '⭐'],
+    borderColor: 'hsl(197, 37%, 24%)',
+    borderPattern: 'stripes',
+    department: 'Design',
+    status: 'vacation'
+  },
+  {
+    id: '7',
+    name: 'Maria Oliveira',
+    email: 'maria@agencia.com',
+    position: 'Social Media Manager',
+    hireDate: '2022-11-30',
+    avatar: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=200&h=200&fit=crop&crop=face',
+    activeProjectsCount: 9,
+    level: 8,
+    badges: ['📱', '📈', '💫', '🌟'],
+    borderColor: 'hsl(262, 83%, 58%)',
+    borderPattern: 'dots',
+    department: 'Marketing',
+    status: 'active'
+  },
+  {
+    id: '8',
+    name: 'Roberto Silva',
+    email: 'roberto@agencia.com',
+    position: 'Desenvolvedor Frontend',
+    hireDate: '2023-09-01',
+    avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&h=200&fit=crop&crop=face',
+    activeProjectsCount: 2,
+    level: 4,
+    badges: ['⚛️', '🌐'],
+    borderColor: 'hsl(43, 96%, 56%)',
+    borderPattern: 'solid',
+    department: 'Tecnologia',
+    status: 'active'
   }
 ];

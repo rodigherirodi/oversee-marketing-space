@@ -67,6 +67,22 @@ export interface Task {
   completedAt?: string;
 }
 
+export interface TeamMember {
+  id: string;
+  name: string;
+  email: string;
+  position: string;
+  hireDate: string;
+  avatar?: string;
+  activeProjectsCount: number;
+  level: number;
+  badges: string[];
+  borderColor: string;
+  borderPattern: 'solid' | 'stripes' | 'dots' | 'gradient';
+  department: string;
+  status: 'active' | 'vacation' | 'inactive';
+}
+
 export interface DashboardMetrics {
   totalTasks: number;
   tasksByStatus: {
