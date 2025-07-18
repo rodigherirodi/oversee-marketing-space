@@ -46,7 +46,7 @@ const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
   return (
     <Card 
       className={cn(
-        "group cursor-pointer hover:shadow-lg transition-all duration-200 hover:-translate-y-1 w-48 h-80 bg-card relative",
+        "group cursor-pointer hover:shadow-lg transition-all duration-200 hover:-translate-y-1 w-48 h-64 bg-card relative",
         className
       )}
       onClick={onClick}
@@ -62,9 +62,9 @@ const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
         <BadgeDisplay badges={member.badges} maxVisible={3} />
       </div>
       
-      <CardContent className="p-4 h-full flex flex-col">
+      <CardContent className="p-3 h-full flex flex-col">
         {/* Status Badge */}
-        <div className="flex justify-between items-start mb-3 mt-1">
+        <div className="flex justify-between items-start mb-2 mt-1">
           <Badge 
             variant="secondary" 
             className={cn("text-xs", getStatusColor(member.status))}
@@ -79,10 +79,10 @@ const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
         </div>
 
         {/* Avatar e Info Principal */}
-        <div className="flex flex-col items-center text-center mb-3 flex-1">
-          <Avatar className="w-14 h-14 mb-2 border-2 border-border">
+        <div className="flex flex-col items-center text-center mb-2">
+          <Avatar className="w-12 h-12 mb-2 border-2 border-border">
             <AvatarImage src={member.avatar} alt={member.name} />
-            <AvatarFallback className="text-lg font-semibold">
+            <AvatarFallback className="text-sm font-semibold">
               {member.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
             </AvatarFallback>
           </Avatar>
@@ -91,7 +91,7 @@ const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
             {member.name}
           </h3>
           
-          <p className="text-xs text-muted-foreground mb-1 line-clamp-2">
+          <p className="text-xs text-muted-foreground mb-1 line-clamp-1">
             {member.position}
           </p>
           
@@ -101,7 +101,7 @@ const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
         </div>
 
         {/* Informações de Contato */}
-        <div className="space-y-1 mb-3 text-xs">
+        <div className="space-y-1 mb-2 text-xs">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Mail className="w-3 h-3 flex-shrink-0" />
             <span className="truncate">{member.email}</span>

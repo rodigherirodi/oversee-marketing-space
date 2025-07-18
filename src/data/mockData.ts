@@ -166,7 +166,17 @@ export const mockTeamMembers: TeamMember[] = [
     borderPattern: 'gradient',
     department: 'Gestão',
     status: 'active',
-    createdAt: '2022-01-15'
+    createdAt: '2022-01-15',
+    phone: '(11) 99999-1234',
+    birthDate: '1990-05-15',
+    address: 'São Paulo, SP',
+    supervisor: 'CEO',
+    salary: 8500,
+    skills: ['Gestão de Projetos', 'Liderança', 'Scrum', 'Kanban'],
+    taskCompletionRate: 95,
+    hoursWorkedWeek: 40,
+    goals: ['Certificação PMP', 'Aumentar eficiência da equipe em 20%'],
+    points: 2400
   },
   {
     id: '2',
@@ -183,7 +193,17 @@ export const mockTeamMembers: TeamMember[] = [
     borderPattern: 'stripes',
     department: 'Tecnologia',
     status: 'active',
-    createdAt: '2021-05-20'
+    createdAt: '2021-05-20',
+    phone: '(11) 99999-5678',
+    birthDate: '1988-03-22',
+    address: 'São Paulo, SP',
+    supervisor: 'Marina Costa',
+    salary: 7200,
+    skills: ['React', 'TypeScript', 'Node.js', 'AWS'],
+    taskCompletionRate: 92,
+    hoursWorkedWeek: 44,
+    goals: ['Aprender GraphQL', 'Liderar projeto de arquitetura'],
+    points: 1950
   },
   {
     id: '3',
@@ -200,7 +220,17 @@ export const mockTeamMembers: TeamMember[] = [
     borderPattern: 'dots',
     department: 'Design',
     status: 'active',
-    createdAt: '2023-03-10'
+    createdAt: '2023-03-10',
+    phone: '(11) 99999-9012',
+    birthDate: '1995-08-30',
+    address: 'São Paulo, SP',
+    supervisor: 'Marina Costa',
+    salary: 5800,
+    skills: ['Figma', 'Adobe Creative Suite', 'Design Systems', 'Prototipagem'],
+    taskCompletionRate: 88,
+    hoursWorkedWeek: 40,
+    goals: ['Criar design system completo', 'Curso de UX Research'],
+    points: 1420
   },
   {
     id: '4',
@@ -217,7 +247,17 @@ export const mockTeamMembers: TeamMember[] = [
     borderPattern: 'solid',
     department: 'Análise',
     status: 'active',
-    createdAt: '2022-08-05'
+    createdAt: '2022-08-05',
+    phone: '(11) 99999-3456',
+    birthDate: '1992-12-10',
+    address: 'São Paulo, SP',
+    supervisor: 'Marina Costa',
+    salary: 6200,
+    skills: ['Python', 'SQL', 'Power BI', 'Machine Learning'],
+    taskCompletionRate: 90,
+    hoursWorkedWeek: 42,
+    goals: ['Certificação em Data Science', 'Automatizar relatórios'],
+    points: 1280
   },
   {
     id: '5',
@@ -234,7 +274,17 @@ export const mockTeamMembers: TeamMember[] = [
     borderPattern: 'gradient',
     department: 'Conteúdo',
     status: 'active',
-    createdAt: '2023-01-12'
+    createdAt: '2023-01-12',
+    phone: '(11) 99999-7890',
+    birthDate: '1993-07-18',
+    address: 'São Paulo, SP',
+    supervisor: 'Marina Costa',
+    salary: 4800,
+    skills: ['Copywriting', 'SEO', 'Marketing de Conteúdo', 'Storytelling'],
+    taskCompletionRate: 87,
+    hoursWorkedWeek: 40,
+    goals: ['Aumentar conversão em 15%', 'Curso de Growth Hacking'],
+    points: 950
   },
   {
     id: '6',
@@ -251,7 +301,17 @@ export const mockTeamMembers: TeamMember[] = [
     borderPattern: 'stripes',
     department: 'Design',
     status: 'vacation',
-    createdAt: '2023-06-18'
+    createdAt: '2023-06-18',
+    phone: '(11) 99999-2468',
+    birthDate: '1991-11-25',
+    address: 'São Paulo, SP',
+    supervisor: 'Ana Silva',
+    salary: 5200,
+    skills: ['Illustrator', 'Photoshop', 'InDesign', 'Branding'],
+    taskCompletionRate: 85,
+    hoursWorkedWeek: 40,
+    goals: ['Especialização em motion graphics', 'Criar identidade visual própria'],
+    points: 1180
   },
   {
     id: '7',
@@ -268,7 +328,17 @@ export const mockTeamMembers: TeamMember[] = [
     borderPattern: 'dots',
     department: 'Marketing',
     status: 'active',
-    createdAt: '2022-11-30'
+    createdAt: '2022-11-30',
+    phone: '(11) 99999-1357',
+    birthDate: '1989-04-12',
+    address: 'São Paulo, SP',
+    supervisor: 'Marina Costa',
+    salary: 5500,
+    skills: ['Social Media', 'Canva', 'Analytics', 'Influencer Marketing'],
+    taskCompletionRate: 93,
+    hoursWorkedWeek: 38,
+    goals: ['Aumentar engagement em 25%', 'Criar campanha viral'],
+    points: 1850
   },
   {
     id: '8',
@@ -285,6 +355,16 @@ export const mockTeamMembers: TeamMember[] = [
     borderPattern: 'solid',
     department: 'Tecnologia',
     status: 'active',
-    createdAt: '2023-09-01'
+    createdAt: '2023-09-01',
+    phone: '(11) 99999-8024',
+    birthDate: '1996-01-14',
+    address: 'São Paulo, SP',
+    supervisor: 'Pedro Lima',
+    salary: 4200,
+    skills: ['React', 'JavaScript', 'CSS', 'HTML'],
+    taskCompletionRate: 82,
+    hoursWorkedWeek: 40,
+    goals: ['Aprender TypeScript', 'Contribuir em projeto open source'],
+    points: 650
   }
 ];

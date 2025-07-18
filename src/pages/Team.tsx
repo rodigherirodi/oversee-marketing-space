@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Search, Plus, Users, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -5,13 +6,19 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import TeamMemberCard from '@/components/TeamMemberCard';
+import TeamMemberDialog from '@/components/TeamMemberDialog';
+import TeamMemberForm from '@/components/TeamMemberForm';
 import { useTeamMembers } from '@/hooks/useTeamMembers';
+import { TeamMember } from '@/types/entities';
 
 const Team = () => {
   const { teamMembers, searchMembers } = useTeamMembers();
   const [searchQuery, setSearchQuery] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isCreateFormOpen, setIsCreateFormOpen] = useState(false);
 
   // Get filtered members
   const getFilteredMembers = () => {
@@ -32,12 +39,15 @@ const Team = () => {
   
   // Get unique departments for filter
   const departments = Array.from(new Set(teamMembers.map(member => member.department)));
-  
-  // Stats
-  const activeMembers = teamMembers.filter(m => m.status === 'active').length;
-  const totalActiveProjects = teamMembers.reduce((sum, member) => sum + member.activeProjectsCount, 0);
-  const totalCompletedProjects = teamMembers.reduce((sum, member) => sum + member.completedProjectsCount, 0);
-  const averageLevel = Math.round(teamMembers.reduce((sum, member) => sum + member.level, 0) / teamMembers.length);
+
+  const handleMemberClick = (member: TeamMember) => {
+    setSelectedMember(member);
+    setIsProfileOpen(true);
+  };
+
+  const handleNewMember = () => {
+    setIsCreateFormOpen(true);
+  };
 
   return (
     <TooltipProvider>
@@ -51,53 +61,10 @@ const Team = () => {
             </p>
           </div>
           
-          <Button>
+          <Button onClick={handleNewMember}>
             <Plus className="w-4 h-4 mr-2" />
             Novo Membro
           </Button>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-card p-4 rounded-lg border">
-            <div className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-primary" />
-              <span className="text-sm text-muted-foreground">Total de Membros</span>
-            </div>
-            <div className="text-2xl font-bold text-foreground mt-1">
-              {teamMembers.length}
-            </div>
-          </div>
-          
-          <div className="bg-card p-4 rounded-lg border">
-            <div className="flex items-center gap-2">
-              <div className="w-5 h-5 bg-green-500 rounded-full"></div>
-              <span className="text-sm text-muted-foreground">Membros Ativos</span>
-            </div>
-            <div className="text-2xl font-bold text-foreground mt-1">
-              {activeMembers}
-            </div>
-          </div>
-          
-          <div className="bg-card p-4 rounded-lg border">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">📊</span>
-              <span className="text-sm text-muted-foreground">Projetos Ativos</span>
-            </div>
-            <div className="text-2xl font-bold text-foreground mt-1">
-              {totalActiveProjects}
-            </div>
-          </div>
-          
-          <div className="bg-card p-4 rounded-lg border">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">⭐</span>
-              <span className="text-sm text-muted-foreground">Nível Médio</span>
-            </div>
-            <div className="text-2xl font-bold text-foreground mt-1">
-              {averageLevel}
-            </div>
-          </div>
         </div>
 
         {/* Filters */}
@@ -146,7 +113,7 @@ const Team = () => {
             <TeamMemberCard
               key={member.id}
               member={member}
-              onClick={() => console.log('Edit member:', member.id)}
+              onClick={() => handleMemberClick(member)}
             />
           ))}
         </div>
@@ -165,13 +132,28 @@ const Team = () => {
               }
             </p>
             {(!searchQuery && departmentFilter === 'all' && statusFilter === 'all') && (
-              <Button>
+              <Button onClick={handleNewMember}>
                 <Plus className="w-4 h-4 mr-2" />
                 Adicionar Primeiro Membro
               </Button>
             )}
           </div>
         )}
+
+        {/* Team Member Profile Dialog */}
+        {selectedMember && (
+          <TeamMemberDialog
+            member={selectedMember}
+            open={isProfileOpen}
+            onOpenChange={setIsProfileOpen}
+          />
+        )}
+
+        {/* Team Member Creation Form */}
+        <TeamMemberForm
+          open={isCreateFormOpen}
+          onOpenChange={setIsCreateFormOpen}
+        />
       </div>
     </TooltipProvider>
   );

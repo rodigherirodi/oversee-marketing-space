@@ -1,4 +1,3 @@
-
 export interface Client {
   id: string;
   name: string;
@@ -83,6 +82,22 @@ export interface TeamMember {
   department: string;
   status: 'active' | 'vacation' | 'inactive';
   createdAt: string;
+  
+  // Novas informações pessoais
+  phone?: string;
+  birthDate?: string;
+  address?: string;
+  
+  // Novas informações profissionais
+  supervisor?: string;
+  salary?: number;
+  skills: string[];
+  
+  // Novas informações de produtividade
+  taskCompletionRate: number;
+  hoursWorkedWeek: number;
+  goals: string[];
+  points: number;
 }
 
 export interface DashboardMetrics {
