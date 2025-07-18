@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { format } from 'date-fns';
-import { Calendar, CalendarIcon, X } from 'lucide-react';
+import { CalendarIcon, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 import { useClients } from '@/hooks/useClients';
 import { useProjects } from '@/hooks/useProjects';
 import { useToast } from '@/hooks/use-toast';
@@ -67,9 +68,16 @@ const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({ children }) => {
     const selectedClient = clients.find(c => c.id === data.clientId) as Client;
     
     const newProject = {
-      ...data,
+      name: data.name,
+      description: data.description,
+      clientId: data.clientId,
       client: selectedClient,
+      status: data.status,
+      priority: data.priority,
+      startDate: data.startDate.toISOString(),
+      endDate: data.endDate.toISOString(),
       budget: data.budget ? parseFloat(data.budget) : undefined,
+      cover: data.cover,
       tags: data.tags ? data.tags.split(',').map(tag => tag.trim()).filter(Boolean) : [],
       teamMembers: data.teamMembers ? data.teamMembers.split(',').map(member => member.trim()).filter(Boolean) : [],
       progress: 0,
