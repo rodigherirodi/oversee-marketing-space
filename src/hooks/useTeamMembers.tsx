@@ -25,9 +25,22 @@ export const useTeamMembers = () => {
     );
   };
 
+  const searchMembers = (query: string) => {
+    if (!query.trim()) return teamMembers;
+    
+    const lowercaseQuery = query.toLowerCase();
+    return teamMembers.filter(member =>
+      member.name.toLowerCase().includes(lowercaseQuery) ||
+      member.email.toLowerCase().includes(lowercaseQuery) ||
+      member.position.toLowerCase().includes(lowercaseQuery) ||
+      member.department.toLowerCase().includes(lowercaseQuery)
+    );
+  };
+
   return {
     teamMembers,
     addTeamMember,
     updateTeamMember,
+    searchMembers,
   };
 };

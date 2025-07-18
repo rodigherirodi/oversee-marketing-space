@@ -81,6 +81,7 @@ export interface TeamMember {
   borderPattern: 'solid' | 'stripes' | 'dots' | 'gradient';
   department: string;
   status: 'active' | 'vacation' | 'inactive';
+  createdAt: string;
 }
 
 export interface DashboardMetrics {
