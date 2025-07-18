@@ -1,11 +1,12 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { mockProjects } from '@/data/mockData';
 import { Project } from '@/types/entities';
 import { Search, Grid, List, Plus, Calendar, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { useProjects } from '@/hooks/useProjects';
+import { useClients } from '@/hooks/useClients';
+import ProjectFormDialog from '@/components/ProjectFormDialog';
 
 const Projects = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -14,11 +15,13 @@ const Projects = () => {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedResponsible, setSelectedResponsible] = useState('');
 
-  const [filteredProjects, setFilteredProjects] = useState(mockProjects);
+  const { projects } = useProjects();
+  const { clients } = useClients();
+  const [filteredProjects, setFilteredProjects] = useState(projects);
 
   // Função para extrair responsáveis únicos
   const getUniqueResponsibles = () => {
-    const responsibles = mockProjects.map(project => project.client.responsibleManager);
+    const responsibles = projects.map(project => project.client.responsibleManager);
     return [...new Set(responsibles)];
   };
 
@@ -51,7 +54,7 @@ const Projects = () => {
   };
 
   const filterProjects = () => {
-    let filtered = mockProjects.filter(project =>
+    let filtered = projects.filter(project =>
       project.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -72,7 +75,7 @@ const Projects = () => {
 
   React.useEffect(() => {
     filterProjects();
-  }, [searchTerm, selectedClient, selectedStatus, selectedResponsible]);
+  }, [searchTerm, selectedClient, selectedStatus, selectedResponsible, projects]);
 
   return (
     <div className="space-y-6">
@@ -100,10 +103,12 @@ const Projects = () => {
               <List className="w-4 h-4" />
             </Button>
           </div>
-          <Button className="flex items-center gap-2">
-            <Plus className="w-4 h-4" />
-            Novo Projeto
-          </Button>
+          <ProjectFormDialog>
+            <Button className="flex items-center gap-2">
+              <Plus className="w-4 h-4" />
+              Novo Projeto
+            </Button>
+          </ProjectFormDialog>
         </div>
       </div>
 
@@ -126,8 +131,11 @@ const Projects = () => {
           className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">Todos os clientes</option>
-          <option value="1">TechCorp Solutions</option>
-          <option value="2">E-commerce Plus</option>
+          {clients.map((client) => (
+            <option key={client.id} value={client.id}>
+              {client.name}
+            </option>
+          ))}
         </select>
 
         <select
