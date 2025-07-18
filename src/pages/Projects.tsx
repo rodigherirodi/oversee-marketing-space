@@ -1,4 +1,6 @@
+
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { mockProjects } from '@/data/mockData';
 import { Project } from '@/types/entities';
 import { Search, Grid, List, Plus, Calendar, Users } from 'lucide-react';
@@ -106,7 +108,11 @@ const Projects = () => {
       {viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProjects.map((project) => (
-            <div key={project.id} className="bg-white rounded-lg border shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+            <Link
+              key={project.id}
+              to={`/projects/${project.id}`}
+              className="bg-white rounded-lg border shadow-sm overflow-hidden hover:shadow-md transition-shadow block"
+            >
               <div className="h-32 bg-gradient-to-br from-blue-500 to-purple-600"></div>
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">{project.name}</h3>
@@ -144,7 +150,7 @@ const Projects = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       ) : (
@@ -165,10 +171,10 @@ const Projects = () => {
                 {filteredProjects.map((project) => (
                   <tr key={project.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
+                      <Link to={`/projects/${project.id}`} className="block hover:text-blue-600">
                         <div className="text-sm font-medium text-gray-900">{project.name}</div>
                         <div className="text-sm text-gray-500 truncate max-w-xs">{project.description}</div>
-                      </div>
+                      </Link>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{project.client.name}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
