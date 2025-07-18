@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Calendar, User, Users, Tag, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -50,7 +49,7 @@ const ProjectMetaInfo = ({ project, isEditing, onUpdate }: ProjectMetaInfoProps)
     }
   };
 
-  const handleStatusChange = (status: string) => {
+  const handleStatusChange = (status: 'planning' | 'in-progress' | 'review' | 'completed' | 'paused') => {
     const updates = { status };
     setEditedProject(prev => ({ ...prev, ...updates }));
     onUpdate(updates);
