@@ -1,76 +1,33 @@
 
-import { useState } from 'react';
-import { TeamMember } from '../types/entities';
-import { mockTeamMembers } from '../data/mockData';
+import React, { useState } from 'react';
+import { TeamMember } from '@/types/entities';
+import { mockTeamMembers } from '@/data/mockData';
 
 export const useTeamMembers = () => {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>(mockTeamMembers);
-  const [isLoading, setIsLoading] = useState(false);
 
-  const addTeamMember = (newMember: Omit<TeamMember, 'id'>) => {
-    setIsLoading(true);
+  const addTeamMember = (newMember: Omit<TeamMember, 'id' | 'createdAt'>) => {
+    const member: TeamMember = {
+      ...newMember,
+      id: `member-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      createdAt: new Date().toISOString(),
+    };
     
-    // Simulate API call
-    setTimeout(() => {
-      const member: TeamMember = {
-        ...newMember,
-        id: Date.now().toString(),
-      };
-      
-      setTeamMembers(prev => [...prev, member]);
-      setIsLoading(false);
-    }, 500);
+    setTeamMembers(prevMembers => [member, ...prevMembers]);
+    return member;
   };
 
-  const updateTeamMember = (id: string, updatedMember: Partial<TeamMember>) => {
-    setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setTeamMembers(prev => 
-        prev.map(member => 
-          member.id === id ? { ...member, ...updatedMember } : member
-        )
-      );
-      setIsLoading(false);
-    }, 500);
-  };
-
-  const deleteTeamMember = (id: string) => {
-    setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setTeamMembers(prev => prev.filter(member => member.id !== id));
-      setIsLoading(false);
-    }, 500);
-  };
-
-  const getActiveMembers = () => teamMembers.filter(member => member.status === 'active');
-  
-  const getMembersByDepartment = (department: string) => 
-    teamMembers.filter(member => member.department === department);
-
-  const searchMembers = (query: string) => {
-    if (!query.trim()) return teamMembers;
-    
-    const lowercaseQuery = query.toLowerCase();
-    return teamMembers.filter(member =>
-      member.name.toLowerCase().includes(lowercaseQuery) ||
-      member.email.toLowerCase().includes(lowercaseQuery) ||
-      member.position.toLowerCase().includes(lowercaseQuery) ||
-      member.department.toLowerCase().includes(lowercaseQuery)
+  const updateTeamMember = (id: string, updates: Partial<TeamMember>) => {
+    setTeamMembers(prevMembers =>
+      prevMembers.map(member =>
+        member.id === id ? { ...member, ...updates } : member
+      )
     );
   };
 
   return {
     teamMembers,
-    isLoading,
     addTeamMember,
     updateTeamMember,
-    deleteTeamMember,
-    getActiveMembers,
-    getMembersByDepartment,
-    searchMembers,
   };
 };
