@@ -16,41 +16,18 @@ import {
   SidebarInset,
 } from '@/components/ui/sidebar';
 import { 
-  Home,
-  CheckSquare, 
-  FolderOpen, 
-  Users, 
-  UserCheck,
   Search,
-  Plus,
-  Factory,
-  GraduationCap,
-  Heart,
-  DollarSign,
-  BarChart3
+  Plus
 } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { useWorkspace } from '@/contexts/WorkspaceContext';
 import ToolbarShortcuts from './ToolbarShortcuts';
+import WorkspaceBreadcrumb from './WorkspaceBreadcrumb';
 
 const AppLayout = () => {
   const location = useLocation();
   const currentPath = location.pathname;
-
-  const navigationItems = [
-    { name: 'Dashboard', icon: Home, path: '/' },
-    { name: 'Tarefas', icon: CheckSquare, path: '/tasks' },
-    { name: 'Projetos', icon: FolderOpen, path: '/projects' },
-    { name: 'Clientes', icon: Users, path: '/clients' },
-    { name: 'Time', icon: UserCheck, path: '/team' }
-  ];
-
-  const workspaces = [
-    { name: 'Operação', icon: Factory, color: 'bg-blue-100 text-blue-700' },
-    { name: 'Academy', icon: GraduationCap, color: 'bg-purple-100 text-purple-700' },
-    { name: 'Cultura', icon: Heart, color: 'bg-pink-100 text-pink-700' },
-    { name: 'Comercial', icon: DollarSign, color: 'bg-green-100 text-green-700' },
-    { name: 'Gestão', icon: BarChart3, color: 'bg-orange-100 text-orange-700' }
-  ];
+  const { activeWorkspace, workspaces, setActiveWorkspace } = useWorkspace();
 
   const isActive = (path: string) => currentPath === path;
 
@@ -84,8 +61,11 @@ const AppLayout = () => {
               <SidebarGroupContent>
                 <SidebarMenu>
                   {workspaces.map((workspace) => (
-                    <SidebarMenuItem key={workspace.name}>
-                      <SidebarMenuButton>
+                    <SidebarMenuItem key={workspace.id}>
+                      <SidebarMenuButton 
+                        onClick={() => setActiveWorkspace(workspace)}
+                        isActive={activeWorkspace.id === workspace.id}
+                      >
                         <div className={`w-6 h-6 rounded-md flex items-center justify-center ${workspace.color}`}>
                           <workspace.icon className="w-4 h-4" />
                         </div>
@@ -103,30 +83,47 @@ const AppLayout = () => {
               </SidebarGroupContent>
             </SidebarGroup>
 
-            {/* Navigation Section */}
-            <SidebarGroup>
-              <SidebarGroupLabel>Navegação</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {navigationItems.map((item) => (
-                    <SidebarMenuItem key={item.name}>
-                      <SidebarMenuButton asChild isActive={isActive(item.path)}>
-                        <NavLink to={item.path}>
-                          <item.icon className="w-4 h-4" />
-                          <span>{item.name}</span>
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+            {/* Navigation Section - Conditional based on active workspace */}
+            {activeWorkspace.pages.length > 0 && (
+              <SidebarGroup>
+                <SidebarGroupLabel>Navegação</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {activeWorkspace.pages.map((page) => (
+                      <SidebarMenuItem key={page.name}>
+                        <SidebarMenuButton asChild isActive={isActive(page.path)}>
+                          <NavLink to={page.path}>
+                            <page.icon className="w-4 h-4" />
+                            <span>{page.name}</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
+
+            {/* Empty state for workspaces without pages */}
+            {activeWorkspace.pages.length === 0 && (
+              <SidebarGroup>
+                <SidebarGroupLabel>Navegação</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <div className="px-3 py-6 text-center text-sm text-gray-500">
+                    <p>Este workspace ainda não possui páginas configuradas.</p>
+                  </div>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
           </SidebarContent>
         </Sidebar>
 
         <SidebarInset className="flex-1">
           <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4">
-            <SidebarTrigger className="-ml-1" />
+            <div className="flex items-center gap-4">
+              <SidebarTrigger className="-ml-1" />
+              <WorkspaceBreadcrumb />
+            </div>
             <ToolbarShortcuts />
           </header>
           <main className="flex-1 p-6 overflow-auto">
