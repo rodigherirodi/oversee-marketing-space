@@ -17,6 +17,9 @@ import Team from "./pages/Team";
 import Briefings from "./pages/Briefings";
 import Cases from "./pages/Cases";
 import Access from "./pages/Access";
+import Trilhas from "./pages/Trilhas";
+import Cursos from "./pages/Cursos";
+import Guias from "./pages/Guias";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +43,9 @@ const App = () => (
               <Route path="briefings" element={<Briefings />} />
               <Route path="cases" element={<Cases />} />
               <Route path="access" element={<Access />} />
+              <Route path="trilhas" element={<Trilhas />} />
+              <Route path="cursos" element={<Cursos />} />
+              <Route path="guias" element={<Guias />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

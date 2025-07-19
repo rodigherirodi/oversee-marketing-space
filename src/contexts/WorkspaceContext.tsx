@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { 
   Target,
@@ -13,7 +14,10 @@ import {
   FileText,
   Award,
   Key,
-  LucideIcon
+  LucideIcon,
+  Map,
+  BookOpen,
+  FileQuestion
 } from 'lucide-react';
 
 export interface WorkspacePage {
@@ -52,7 +56,11 @@ const workspaces: Workspace[] = [
     name: 'Academy',
     icon: GraduationCap,
     color: 'bg-purple-100 text-purple-700',
-    pages: []
+    pages: [
+      { name: 'Trilhas', path: '/trilhas', icon: Map },
+      { name: 'Cursos', path: '/cursos', icon: BookOpen },
+      { name: 'Guias', path: '/guias', icon: FileQuestion }
+    ]
   },
   {
     id: 'cultura',
