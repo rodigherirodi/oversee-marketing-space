@@ -133,15 +133,105 @@ export const mockCurrentUser: UserProductivity = {
   department: 'Marketing Digital',
   level: 8,
   badges: ['🏆', '⭐', '💎', '🚀', '🎯', '⚡', '🔥', '💪'],
+  
+  // Border customization (like team members)
+  borderPattern: 'gradient',
+  borderColor: '#3b82f6',
+  
+  // Personal/Professional Info
+  hireDate: '2022-03-15',
+  timeInCompany: '2 anos e 4 meses',
+  lastPromotion: {
+    date: '2023-08-01',
+    previousRole: 'Analista Sênior'
+  },
+  timezone: 'GMT-3 (São Paulo)',
+  certifications: [
+    { name: 'PMP', validUntil: '2025-12-31', issuer: 'PMI' },
+    { name: 'Scrum Master', validUntil: '2024-08-15', issuer: 'Scrum Alliance' },
+    { name: 'Google Analytics', validUntil: '2024-10-20', issuer: 'Google' }
+  ],
+  keyProjects: ['Campanha Black Friday 2023', 'Rebranding Cliente X', 'Plataforma E-commerce'],
+  
+  // Engagement Metrics
+  activeStreak: 23,
+  punctualityIndex: 94,
+  collaborationIndex: 78,
+  innovationScore: 85,
+  clientSatisfaction: 4.7,
+  
+  // Task metrics
   tasksCompleted: 47,
   tasksOpen: 12,
   tasksInProgress: 8,
   overdueTasks: 3,
   overdueTasksList: [
-    { id: '1', title: 'Revisão do material publicitário', dueDate: '2024-01-18', priority: 'high' },
-    { id: '2', title: 'Aprovação do briefing Cliente X', dueDate: '2024-01-19', priority: 'medium' },
-    { id: '3', title: 'Entrega do relatório mensal', dueDate: '2024-01-20', priority: 'high' }
+    { 
+      id: '1', 
+      title: 'Revisão do material publicitário', 
+      client: 'Tech Solutions',
+      dueDate: '2024-01-18', 
+      priority: 'high',
+      daysOverdue: 2
+    },
+    { 
+      id: '2', 
+      title: 'Aprovação do briefing', 
+      client: 'Green Energy',
+      dueDate: '2024-01-19', 
+      priority: 'medium',
+      daysOverdue: 1
+    },
+    { 
+      id: '3', 
+      title: 'Entrega do relatório mensal', 
+      client: 'StartupTech',
+      dueDate: '2024-01-20', 
+      priority: 'high',
+      daysOverdue: 0
+    }
   ],
+  
+  // Today's priorities
+  todaysPriorities: [
+    {
+      id: '1',
+      title: 'Reunião de alinhamento estratégico',
+      type: 'meeting',
+      time: '14:00',
+      client: 'Tech Solutions',
+      status: 'pending',
+      estimatedTime: '1h'
+    },
+    {
+      id: '2',
+      title: 'Entrega do layout final',
+      type: 'delivery',
+      time: '17:00',
+      client: 'Design Corp',
+      status: 'in-progress',
+      estimatedTime: '2h'
+    },
+    {
+      id: '3',
+      title: 'Review do código front-end',
+      type: 'task',
+      time: '16:30',
+      status: 'pending',
+      estimatedTime: '45min'
+    },
+    {
+      id: '4',
+      title: 'Call com cliente internacional',
+      type: 'meeting',
+      time: '10:00',
+      client: 'Global Inc',
+      status: 'completed',
+      estimatedTime: '30min'
+    }
+  ],
+  
+  // Project metrics
   activeProjects: 5,
   completedProjects: 23,
   hoursWorkedWeek: 42,
@@ -150,6 +240,7 @@ export const mockCurrentUser: UserProductivity = {
   avgCompletionTime: 2.3,
   collaborativeProjects: 3,
   individualProjects: 2,
+  
   skills: [
     { name: 'Gestão de Projetos', level: 95 },
     { name: 'Marketing Digital', level: 88 },

@@ -76,6 +76,34 @@ export interface UserProductivity {
   department: string;
   level: number;
   badges: string[];
+  
+  // Border customization (like team members)
+  borderPattern: 'solid' | 'stripes' | 'dots' | 'gradient';
+  borderColor: string;
+  
+  // Personal/Professional Info
+  hireDate: string;
+  timeInCompany: string;
+  lastPromotion?: {
+    date: string;
+    previousRole: string;
+  };
+  timezone: string;
+  certifications: {
+    name: string;
+    validUntil: string;
+    issuer?: string;
+  }[];
+  keyProjects: string[];
+  
+  // Engagement Metrics
+  activeStreak: number;
+  punctualityIndex: number;
+  collaborationIndex: number;
+  innovationScore: number;
+  clientSatisfaction: number;
+  
+  // Task metrics
   tasksCompleted: number;
   tasksOpen: number;
   tasksInProgress: number;
@@ -83,9 +111,24 @@ export interface UserProductivity {
   overdueTasksList: {
     id: string;
     title: string;
+    client?: string;
     dueDate: string;
     priority: 'low' | 'medium' | 'high';
+    daysOverdue: number;
   }[];
+  
+  // Today's priorities
+  todaysPriorities: {
+    id: string;
+    title: string;
+    type: 'task' | 'meeting' | 'delivery';
+    time?: string;
+    client?: string;
+    status: 'pending' | 'in-progress' | 'completed';
+    estimatedTime?: string;
+  }[];
+  
+  // Project metrics
   activeProjects: number;
   completedProjects: number;
   hoursWorkedWeek: number;
@@ -94,6 +137,7 @@ export interface UserProductivity {
   avgCompletionTime: number;
   collaborativeProjects: number;
   individualProjects: number;
+  
   skills: {
     name: string;
     level: number;

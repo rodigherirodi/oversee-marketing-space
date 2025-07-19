@@ -4,9 +4,8 @@ import {
   Target, 
   CheckCircle, 
   Clock, 
-  AlertTriangle, 
-  Trophy, 
   TrendingUp, 
+  Trophy, 
   Users, 
   User,
   BarChart3,
@@ -18,6 +17,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { mockCurrentUser } from '../data/newMockData';
+import BorderPattern from '@/components/BorderPattern';
+import PersonalInfoSection from '@/components/PersonalInfoSection';
+import EngagementMetrics from '@/components/EngagementMetrics';
+import CompactOverdueTasks from '@/components/CompactOverdueTasks';
+import TodaysPriorities from '@/components/TodaysPriorities';
 
 const Productivity = () => {
   const user = mockCurrentUser;
@@ -32,9 +36,29 @@ const Productivity = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Produtividade</h1>
         </div>
 
-        {/* User Profile Card */}
-        <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-l-4 border-l-blue-500">
-          <CardHeader>
+        {/* Enhanced User Profile Card with Border Pattern */}
+        <Card className="bg-gradient-to-r from-blue-50 to-purple-50 overflow-hidden">
+          {/* Custom Border Pattern */}
+          <BorderPattern 
+            pattern={user.borderPattern} 
+            color={user.borderColor}
+          />
+          
+          {/* Badges no topo direito */}
+          <div className="absolute top-3 right-4 z-10">
+            <div className="flex gap-1">
+              {user.badges.slice(0, 6).map((badge, index) => (
+                <span key={index} className="text-lg" title={`Badge ${index + 1}`}>
+                  {badge}
+                </span>
+              ))}
+              {user.badges.length > 6 && (
+                <span className="text-sm text-gray-500 ml-1">+{user.badges.length - 6}</span>
+              )}
+            </div>
+          </div>
+          
+          <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-6">
                 <img 
@@ -50,16 +74,9 @@ const Productivity = () => {
                       <Target className="w-3 h-3" />
                       Nível {user.level}
                     </Badge>
-                    <div className="flex gap-1">
-                      {user.badges.slice(0, 6).map((badge, index) => (
-                        <span key={index} className="text-lg" title={`Badge ${index + 1}`}>
-                          {badge}
-                        </span>
-                      ))}
-                      {user.badges.length > 6 && (
-                        <span className="text-sm text-gray-500">+{user.badges.length - 6}</span>
-                      )}
-                    </div>
+                    <Badge variant="outline" className="text-xs">
+                      Streak: {user.activeStreak} dias 🔥
+                    </Badge>
                   </div>
                 </div>
               </div>
@@ -69,6 +86,8 @@ const Productivity = () => {
                 <Progress value={user.productivityScore} className="w-32 mt-2" />
               </div>
             </div>
+            
+            {/* Métricas de Tempo */}
             <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
               <div className="text-center">
                 <div className="text-xl font-bold text-gray-900">{user.hoursWorkedWeek}h</div>
@@ -82,9 +101,24 @@ const Productivity = () => {
                 <div className="text-xl font-bold text-green-600">{completionRate}%</div>
                 <div className="text-sm text-gray-500">Taxa de conclusão</div>
               </div>
+              <div className="text-center">
+                <div className="text-xl font-bold text-purple-600">{user.clientSatisfaction}</div>
+                <div className="text-sm text-gray-500">Satisfação Cliente</div>
+              </div>
+            </div>
+            
+            {/* Personal Information Section */}
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <PersonalInfoSection user={user} />
             </div>
           </CardHeader>
         </Card>
+
+        {/* Engagement Metrics */}
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Métricas de Engajamento</h3>
+          <EngagementMetrics user={user} />
+        </div>
 
         {/* Task Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -137,32 +171,11 @@ const Productivity = () => {
           </Card>
         </div>
 
-        {/* Overdue Tasks */}
-        {user.overdueTasks > 0 && (
-          <Card className="border-l-4 border-l-red-500 bg-red-50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-red-700">
-                <AlertTriangle className="w-5 h-5" />
-                Tarefas Atrasadas ({user.overdueTasks})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {user.overdueTasksList.map((task) => (
-                  <div key={task.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-red-200">
-                    <div>
-                      <p className="font-medium text-gray-900">{task.title}</p>
-                      <p className="text-sm text-gray-500">Vencimento: {new Date(task.dueDate).toLocaleDateString('pt-BR')}</p>
-                    </div>
-                    <Badge variant={task.priority === 'high' ? 'destructive' : 'secondary'}>
-                      {task.priority === 'high' ? 'Alta' : task.priority === 'medium' ? 'Média' : 'Baixa'}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Compact Overdue Tasks + Today's Priorities */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <CompactOverdueTasks user={user} />
+          <TodaysPriorities user={user} />
+        </div>
 
         {/* Performance and Projects */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
