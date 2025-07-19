@@ -145,6 +145,7 @@ export const mockCurrentUser: UserProductivity = {
     date: '2023-08-01',
     previousRole: 'Analista Sênior'
   },
+  nextReview: '2024-03-15',
   timezone: 'GMT-3 (São Paulo)',
   certifications: [
     { name: 'PMP', validUntil: '2025-12-31', issuer: 'PMI' },
@@ -254,6 +255,7 @@ export const mockCurrentUser: UserProductivity = {
     low: 24
   },
   monthlyEvolution: [
+    { month: 'Ago', score: 81 },
     { month: 'Set', score: 82 },
     { month: 'Out', score: 85 },
     { month: 'Nov', score: 84 },

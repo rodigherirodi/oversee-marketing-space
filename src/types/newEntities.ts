@@ -88,6 +88,7 @@ export interface UserProductivity {
     date: string;
     previousRole: string;
   };
+  nextReview: string;
   timezone: string;
   certifications: {
     name: string;

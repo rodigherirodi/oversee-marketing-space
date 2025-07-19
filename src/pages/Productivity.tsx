@@ -22,10 +22,11 @@ import PersonalInfoSection from '@/components/PersonalInfoSection';
 import EngagementMetrics from '@/components/EngagementMetrics';
 import CompactOverdueTasks from '@/components/CompactOverdueTasks';
 import TodaysPriorities from '@/components/TodaysPriorities';
+import MonthlyEvolutionChart from '@/components/MonthlyEvolutionChart';
 
 const Productivity = () => {
   const user = mockCurrentUser;
-  const totalTasks = user.tasksCompleted + user.tasksOpen + user.tasksInProgress;
+  const totalTasks = user.tasksCompleted + user.tasksOpen + user.tasInProgress;
   const completionRate = Math.round((user.tasksCompleted / totalTasks) * 100);
 
   return (
@@ -101,10 +102,6 @@ const Productivity = () => {
                 <div className="text-xl font-bold text-green-600">{completionRate}%</div>
                 <div className="text-sm text-gray-500">Taxa de conclusão</div>
               </div>
-              <div className="text-center">
-                <div className="text-xl font-bold text-purple-600">{user.clientSatisfaction}</div>
-                <div className="text-sm text-gray-500">Satisfação Cliente</div>
-              </div>
             </div>
             
             {/* Personal Information Section */}
@@ -176,6 +173,9 @@ const Productivity = () => {
           <CompactOverdueTasks user={user} />
           <TodaysPriorities user={user} />
         </div>
+
+        {/* Monthly Evolution Chart */}
+        <MonthlyEvolutionChart user={user} />
 
         {/* Performance and Projects */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -371,31 +371,6 @@ const Productivity = () => {
             </CardContent>
           </Card>
         </div>
-
-        {/* Monthly Evolution Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5" />
-              Evolução Mensal
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-end justify-between h-32 gap-4">
-              {user.monthlyEvolution.map((month, index) => (
-                <div key={index} className="flex flex-col items-center gap-2">
-                  <div 
-                    className="bg-blue-500 rounded-t w-12 transition-all duration-300 hover:bg-blue-600"
-                    style={{ height: `${(month.score / 100) * 80}px` }}
-                    title={`${month.month}: ${month.score}%`}
-                  ></div>
-                  <span className="text-xs text-gray-600">{month.month}</span>
-                  <span className="text-xs font-bold">{month.score}%</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
