@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { 
-  Notepad, 
+  NotebookPen, 
   Save,
   Edit3
 } from 'lucide-react';
@@ -50,7 +50,7 @@ const NotesSection: React.FC<NotesSectionProps> = ({ trilhaId }) => {
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Notepad className="w-5 h-5" />
+            <NotebookPen className="w-5 h-5" />
             Minhas Anotações
           </div>
           
@@ -106,7 +106,7 @@ const NotesSection: React.FC<NotesSectionProps> = ({ trilhaId }) => {
               </div>
             ) : (
               <div className="text-center py-8 text-gray-500">
-                <Notepad className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                <NotebookPen className="w-8 h-8 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">
                   Nenhuma anotação ainda.
                 </p>
