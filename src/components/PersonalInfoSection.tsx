@@ -1,8 +1,7 @@
 
 import React from 'react';
-import { Award, TrendingUp, Star, Clock } from 'lucide-react';
+import { TrendingUp, Star, Clock, Award } from 'lucide-react';
 import { UserProductivity } from '@/types/newEntities';
-import { Badge } from '@/components/ui/badge';
 
 interface PersonalInfoSectionProps {
   user: UserProductivity;
@@ -11,21 +10,6 @@ interface PersonalInfoSectionProps {
 const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({ user }) => {
   return (
     <div className="space-y-4">
-      {/* Certificações */}
-      <div>
-        <h4 className="text-sm font-medium text-gray-900 mb-2 flex items-center gap-2">
-          <Award className="w-4 h-4" />
-          Certificações Ativas
-        </h4>
-        <div className="flex flex-wrap gap-2">
-          {user.certifications.map((cert, index) => (
-            <Badge key={index} variant="secondary" className="text-xs">
-              {cert.name} - {cert.issuer}
-            </Badge>
-          ))}
-        </div>
-      </div>
-      
       {/* Métricas reorganizadas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
         <div className="flex items-center gap-2">

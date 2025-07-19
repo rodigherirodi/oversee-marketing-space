@@ -22,6 +22,7 @@ import EngagementMetrics from '@/components/EngagementMetrics';
 import CompactOverdueTasks from '@/components/CompactOverdueTasks';
 import TodaysPriorities from '@/components/TodaysPriorities';
 import MonthlyEvolutionChart from '@/components/MonthlyEvolutionChart';
+import BadgeDisplay from '@/components/BadgeDisplay';
 
 const Productivity = () => {
   const user = mockCurrentUser;
@@ -37,25 +38,16 @@ const Productivity = () => {
         </div>
 
         {/* Enhanced User Profile Card with Border Pattern */}
-        <Card className="bg-gradient-to-r from-blue-50 to-purple-50 overflow-hidden">
+        <Card className="bg-gradient-to-r from-blue-50 to-purple-50 overflow-hidden relative">
           {/* Custom Border Pattern */}
           <BorderPattern 
             pattern={user.borderPattern} 
             color={user.borderColor}
           />
           
-          {/* Badges no topo direito */}
-          <div className="absolute top-3 right-4 z-10">
-            <div className="flex gap-1">
-              {user.badges.slice(0, 6).map((badge, index) => (
-                <span key={index} className="text-lg" title={`Badge ${index + 1}`}>
-                  {badge}
-                </span>
-              ))}
-              {user.badges.length > 6 && (
-                <span className="text-sm text-gray-500 ml-1">+{user.badges.length - 6}</span>
-              )}
-            </div>
+          {/* Badges gamificadas no topo direito */}
+          <div className="absolute top-1 right-2 z-10">
+            <BadgeDisplay badges={user.badges} maxVisible={6} />
           </div>
           
           <CardHeader className="pb-4">
