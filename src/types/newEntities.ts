@@ -73,13 +73,50 @@ export interface UserProductivity {
     avatar?: string;
     position: string;
   };
+  department: string;
+  level: number;
+  badges: string[];
   tasksCompleted: number;
+  tasksOpen: number;
   tasksInProgress: number;
   overdueTasks: number;
+  overdueTasksList: {
+    id: string;
+    title: string;
+    dueDate: string;
+    priority: 'low' | 'medium' | 'high';
+  }[];
   activeProjects: number;
   completedProjects: number;
-  hoursWorked: number;
+  hoursWorkedWeek: number;
+  hoursWorkedMonth: number;
   productivityScore: number;
+  avgCompletionTime: number;
+  collaborativeProjects: number;
+  individualProjects: number;
+  skills: {
+    name: string;
+    level: number;
+  }[];
+  tasksByPriority: {
+    high: number;
+    medium: number;
+    low: number;
+  };
+  monthlyEvolution: {
+    month: string;
+    score: number;
+  }[];
+  recentAchievements: {
+    badge: string;
+    name: string;
+    date: string;
+  }[];
+  pointsHistory: {
+    date: string;
+    points: number;
+    activity: string;
+  }[];
   goals: {
     id: string;
     title: string;

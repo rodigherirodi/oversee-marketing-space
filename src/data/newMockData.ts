@@ -121,62 +121,87 @@ export const mockAccess: Access[] = [
   }
 ];
 
-export const mockUserProductivity: UserProductivity[] = [
-  {
-    userId: '1',
-    user: {
-      id: '1',
-      name: 'Ana Silva',
-      avatar: '/placeholder.svg',
-      position: 'Gerente de Projetos'
-    },
-    tasksCompleted: 24,
-    tasksInProgress: 8,
-    overdueTasks: 2,
-    activeProjects: 3,
-    completedProjects: 12,
-    hoursWorked: 42,
-    productivityScore: 87,
-    goals: [
-      {
-        id: '1',
-        title: 'Completar 30 tarefas este mês',
-        target: 30,
-        current: 24,
-        deadline: '2024-01-31'
-      },
-      {
-        id: '2',
-        title: 'Finalizar 2 projetos',
-        target: 2,
-        current: 1,
-        deadline: '2024-01-31'
-      }
-    ]
+// Dados expandidos para o usuário atual
+export const mockCurrentUser: UserProductivity = {
+  userId: '1',
+  user: {
+    id: '1',
+    name: 'Ana Silva',
+    avatar: '/placeholder.svg',
+    position: 'Gerente de Projetos'
   },
-  {
-    userId: '2',
-    user: {
-      id: '2',
-      name: 'Carlos Santos',
-      avatar: '/placeholder.svg',
-      position: 'Designer'
+  department: 'Marketing Digital',
+  level: 8,
+  badges: ['🏆', '⭐', '💎', '🚀', '🎯', '⚡', '🔥', '💪'],
+  tasksCompleted: 47,
+  tasksOpen: 12,
+  tasksInProgress: 8,
+  overdueTasks: 3,
+  overdueTasksList: [
+    { id: '1', title: 'Revisão do material publicitário', dueDate: '2024-01-18', priority: 'high' },
+    { id: '2', title: 'Aprovação do briefing Cliente X', dueDate: '2024-01-19', priority: 'medium' },
+    { id: '3', title: 'Entrega do relatório mensal', dueDate: '2024-01-20', priority: 'high' }
+  ],
+  activeProjects: 5,
+  completedProjects: 23,
+  hoursWorkedWeek: 42,
+  hoursWorkedMonth: 168,
+  productivityScore: 87,
+  avgCompletionTime: 2.3,
+  collaborativeProjects: 3,
+  individualProjects: 2,
+  skills: [
+    { name: 'Gestão de Projetos', level: 95 },
+    { name: 'Marketing Digital', level: 88 },
+    { name: 'Análise de Dados', level: 76 },
+    { name: 'Liderança', level: 84 },
+    { name: 'Comunicação', level: 91 }
+  ],
+  tasksByPriority: {
+    high: 8,
+    medium: 15,
+    low: 24
+  },
+  monthlyEvolution: [
+    { month: 'Set', score: 82 },
+    { month: 'Out', score: 85 },
+    { month: 'Nov', score: 84 },
+    { month: 'Dez', score: 89 },
+    { month: 'Jan', score: 87 }
+  ],
+  recentAchievements: [
+    { badge: '🏆', name: 'Top Performer', date: '2024-01-15' },
+    { badge: '⚡', name: 'Fast Delivery', date: '2024-01-10' },
+    { badge: '🎯', name: 'Goal Crusher', date: '2024-01-05' }
+  ],
+  pointsHistory: [
+    { date: '2024-01-20', points: 150, activity: 'Projeto concluído' },
+    { date: '2024-01-18', points: 50, activity: 'Tarefa urgente finalizada' },
+    { date: '2024-01-15', points: 100, activity: 'Meta mensal atingida' }
+  ],
+  goals: [
+    {
+      id: '1',
+      title: 'Completar 50 tarefas este mês',
+      target: 50,
+      current: 47,
+      deadline: '2024-01-31'
     },
-    tasksCompleted: 18,
-    tasksInProgress: 6,
-    overdueTasks: 1,
-    activeProjects: 2,
-    completedProjects: 8,
-    hoursWorked: 38,
-    productivityScore: 79,
-    goals: [
-      {
-        id: '3',
-        title: 'Criar 20 artes este mês',
-        target: 20,
-        current: 16,
-        deadline: '2024-01-31'
-      }
-    ]
-  }
-];
+    {
+      id: '2',
+      title: 'Finalizar 3 projetos grandes',
+      target: 3,
+      current: 2,
+      deadline: '2024-01-31'
+    },
+    {
+      id: '3',
+      title: 'Atingir 90% de produtividade',
+      target: 90,
+      current: 87,
+      deadline: '2024-01-31'
+    }
+  ]
+};
+
+export const mockUserProductivity: UserProductivity[] = [mockCurrentUser];
