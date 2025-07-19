@@ -4,12 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   FileQuestion, 
   Clock, 
-  Eye, 
-  Heart, 
   Search,
   BookOpen,
   Download,
@@ -30,8 +27,6 @@ const Guias = () => {
       author: "Equipe Academy",
       category: "Desenvolvimento",
       readTime: "15 min",
-      views: 2840,
-      likes: 342,
       publishDate: "2024-02-15",
       tags: ["React", "Hooks", "JavaScript", "Frontend"],
       type: "Tutorial",
@@ -47,8 +42,6 @@ const Guias = () => {
       author: "Maria Silva",
       category: "Design",
       readTime: "20 min",
-      views: 1950,
-      likes: 287,
       publishDate: "2024-02-10",
       tags: ["Design System", "UI/UX", "Figma", "Componentes"],
       type: "Guia Prático",
@@ -64,8 +57,6 @@ const Guias = () => {
       author: "João Santos",
       category: "Marketing",
       readTime: "12 min",
-      views: 3200,
-      likes: 456,
       publishDate: "2024-02-08",
       tags: ["SEO", "Marketing Digital", "Google", "Conteúdo"],
       type: "Introdução",
@@ -81,8 +72,6 @@ const Guias = () => {
       author: "Ana Costa",
       category: "Gestão",
       readTime: "18 min",
-      views: 1680,
-      likes: 198,
       publishDate: "2024-02-05",
       tags: ["Scrum", "Kanban", "Agile", "Gestão de Projetos"],
       type: "Caso de Estudo",
@@ -98,8 +87,6 @@ const Guias = () => {
       author: "Pedro Lima",
       category: "Desenvolvimento",
       readTime: "25 min",
-      views: 2150,
-      likes: 312,
       publishDate: "2024-02-01",
       tags: ["TypeScript", "JavaScript", "Configuração", "Boas Práticas"],
       type: "Tutorial",
@@ -115,8 +102,6 @@ const Guias = () => {
       author: "Carla Mendes",
       category: "Design",
       readTime: "10 min",
-      views: 1420,
-      likes: 189,
       publishDate: "2024-01-28",
       tags: ["Cores", "Psicologia", "Design", "UX"],
       type: "Teoria",
@@ -162,10 +147,6 @@ const Guias = () => {
     }
   };
 
-  const guiasFavoritos = guias.filter((_, index) => index % 3 === 0); // Simulando favoritos
-  const guiasPopulares = [...guias].sort((a, b) => b.views - a.views);
-  const guiasRecentes = [...guias].sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime());
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -176,276 +157,126 @@ const Guias = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="todos" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="todos">Todos os Guias</TabsTrigger>
-          <TabsTrigger value="populares">Mais Populares</TabsTrigger>
-          <TabsTrigger value="recentes">Mais Recentes</TabsTrigger>
-          <TabsTrigger value="favoritos">Favoritos</TabsTrigger>
-        </TabsList>
-
-        {/* Search and Filters */}
-        <div className="flex flex-col space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
-              placeholder="Buscar guias por título, descrição ou tags..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          
-          <div className="flex flex-wrap gap-2">
-            <div className="flex gap-2">
-              <span className="text-sm font-medium text-gray-700 self-center">Categoria:</span>
-              {categories.map((category) => (
-                <Button
-                  key={category}
-                  variant={activeCategory === category ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setActiveCategory(category)}
-                >
-                  {category}
-                </Button>
-              ))}
-            </div>
-          </div>
-          
-          <div className="flex flex-wrap gap-2">
-            <div className="flex gap-2">
-              <span className="text-sm font-medium text-gray-700 self-center">Tipo:</span>
-              {types.map((type) => (
-                <Button
-                  key={type}
-                  variant={activeType === type ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setActiveType(type)}
-                >
-                  {type}
-                </Button>
-              ))}
-            </div>
+      {/* Search and Filters */}
+      <div className="flex flex-col space-y-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input
+            placeholder="Buscar guias por título, descrição ou tags..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        
+        <div className="flex flex-wrap gap-2">
+          <div className="flex gap-2">
+            <span className="text-sm font-medium text-gray-700 self-center">Categoria:</span>
+            {categories.map((category) => (
+              <Button
+                key={category}
+                variant={activeCategory === category ? "default" : "outline"}
+                size="sm"
+                onClick={() => setActiveCategory(category)}
+              >
+                {category}
+              </Button>
+            ))}
           </div>
         </div>
-
-        <TabsContent value="todos" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {filteredGuias.map((guia) => (
-              <Card key={guia.id} className={`hover:shadow-md transition-shadow ${guia.featured ? 'ring-2 ring-purple-200' : ''}`}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className="text-2xl">{guia.image}</div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <CardTitle className="text-lg line-clamp-2">{guia.title}</CardTitle>
-                          {guia.featured && <Badge variant="outline" className="text-xs">Em Destaque</Badge>}
-                        </div>
-                        <CardDescription className="line-clamp-2">
-                          {guia.description}
-                        </CardDescription>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex gap-2">
-                      <Badge className={getDifficultyColor(guia.difficulty)}>
-                        {guia.difficulty}
-                      </Badge>
-                      <Badge className={getTypeColor(guia.type)}>
-                        {guia.type}
-                      </Badge>
-                    </div>
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="space-y-4">
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <User className="w-4 h-4" />
-                      {guia.author}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      {new Date(guia.publishDate).toLocaleDateString('pt-BR')}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      {guia.readTime}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Eye className="w-4 h-4" />
-                      {guia.views.toLocaleString()} visualizações
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Heart className="w-4 h-4" />
-                      {guia.likes}
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-1">
-                    {guia.tags.slice(0, 4).map((tag, index) => (
-                      <Badge key={index} variant="outline" className="text-xs">
-                        <Tag className="w-3 h-3 mr-1" />
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button className="flex-1">
-                      <BookOpen className="w-4 h-4 mr-2" />
-                      Ler Guia
-                    </Button>
-                    {guia.downloadable && (
-                      <Button variant="outline" size="sm">
-                        <Download className="w-4 h-4" />
-                      </Button>
-                    )}
-                    <Button variant="outline" size="sm">
-                      <ExternalLink className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+        
+        <div className="flex flex-wrap gap-2">
+          <div className="flex gap-2">
+            <span className="text-sm font-medium text-gray-700 self-center">Tipo:</span>
+            {types.map((type) => (
+              <Button
+                key={type}
+                variant={activeType === type ? "default" : "outline"}
+                size="sm"
+                onClick={() => setActiveType(type)}
+              >
+                {type}
+              </Button>
             ))}
           </div>
-        </TabsContent>
+        </div>
+      </div>
 
-        <TabsContent value="populares" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {guiasPopulares.slice(0, 6).map((guia, index) => (
-              <Card key={guia.id} className="hover:shadow-md transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start gap-3">
-                    <div className="flex items-center justify-center w-8 h-8 bg-purple-100 text-purple-700 rounded-full font-bold text-sm">
-                      #{index + 1}
+      {/* Guides Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {filteredGuias.map((guia) => (
+          <Card key={guia.id} className={`hover:shadow-md transition-shadow ${guia.featured ? 'ring-2 ring-purple-200' : ''}`}>
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="text-2xl">{guia.image}</div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <CardTitle className="text-lg line-clamp-2">{guia.title}</CardTitle>
+                      {guia.featured && <Badge variant="outline" className="text-xs">Em Destaque</Badge>}
                     </div>
-                    <div className="flex-1">
-                      <CardTitle className="text-lg">{guia.title}</CardTitle>
-                      <CardDescription className="mt-1">
-                        {guia.description}
-                      </CardDescription>
-                    </div>
-                    <div className="text-xl">{guia.image}</div>
+                    <CardDescription className="line-clamp-2">
+                      {guia.description}
+                    </CardDescription>
                   </div>
-                </CardHeader>
-                
-                <CardContent className="space-y-4">
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <Eye className="w-4 h-4" />
-                      {guia.views.toLocaleString()}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Heart className="w-4 h-4" />
-                      {guia.likes}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      {guia.readTime}
-                    </div>
-                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="flex gap-2">
+                  <Badge className={getDifficultyColor(guia.difficulty)}>
+                    {guia.difficulty}
+                  </Badge>
+                  <Badge className={getTypeColor(guia.type)}>
+                    {guia.type}
+                  </Badge>
+                </div>
+              </div>
+            </CardHeader>
+            
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-4 text-sm text-gray-600">
+                <div className="flex items-center gap-1">
+                  <User className="w-4 h-4" />
+                  {guia.author}
+                </div>
+                <div className="flex items-center gap-1">
+                  <Calendar className="w-4 h-4" />
+                  {new Date(guia.publishDate).toLocaleDateString('pt-BR')}
+                </div>
+                <div className="flex items-center gap-1">
+                  <Clock className="w-4 h-4" />
+                  {guia.readTime}
+                </div>
+              </div>
 
-                  <Button className="w-full">
-                    <BookOpen className="w-4 h-4 mr-2" />
-                    Ler Guia
+              <div className="flex flex-wrap gap-1">
+                {guia.tags.slice(0, 4).map((tag, index) => (
+                  <Badge key={index} variant="outline" className="text-xs">
+                    <Tag className="w-3 h-3 mr-1" />
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+
+              <div className="flex gap-2">
+                <Button className="flex-1">
+                  <BookOpen className="w-4 h-4 mr-2" />
+                  Ler Guia
+                </Button>
+                {guia.downloadable && (
+                  <Button variant="outline" size="sm">
+                    <Download className="w-4 h-4" />
                   </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="recentes" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {guiasRecentes.slice(0, 6).map((guia) => (
-              <Card key={guia.id} className="hover:shadow-md transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className="text-2xl">{guia.image}</div>
-                      <div className="flex-1">
-                        <CardTitle className="text-lg">{guia.title}</CardTitle>
-                        <CardDescription className="mt-1">
-                          {guia.description}
-                        </CardDescription>
-                      </div>
-                    </div>
-                    <Badge variant="outline" className="text-xs">
-                      Novo
-                    </Badge>
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="space-y-4">
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      {new Date(guia.publishDate).toLocaleDateString('pt-BR')}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <User className="w-4 h-4" />
-                      {guia.author}
-                    </div>
-                  </div>
-
-                  <Button className="w-full">
-                    <BookOpen className="w-4 h-4 mr-2" />
-                    Ler Guia
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="favoritos" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {guiasFavoritos.map((guia) => (
-              <Card key={guia.id} className="hover:shadow-md transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className="text-2xl">{guia.image}</div>
-                      <div className="flex-1">
-                        <CardTitle className="text-lg">{guia.title}</CardTitle>
-                        <CardDescription className="mt-1">
-                          {guia.description}
-                        </CardDescription>
-                      </div>
-                    </div>
-                    <Heart className="w-5 h-5 text-red-500 fill-red-500" />
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="space-y-4">
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      {guia.readTime}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Eye className="w-4 h-4" />
-                      {guia.views.toLocaleString()}
-                    </div>
-                  </div>
-
-                  <Button className="w-full">
-                    <BookOpen className="w-4 h-4 mr-2" />
-                    Ler Guia
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-      </Tabs>
+                )}
+                <Button variant="outline" size="sm">
+                  <ExternalLink className="w-4 h-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 };
