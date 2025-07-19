@@ -27,7 +27,7 @@ const ChannelManagement: React.FC<ChannelManagementProps> = ({
   
   const [formData, setFormData] = useState({
     name: channel?.name || '',
-    type: channel?.type || 'public',
+    type: channel?.type || 'public' as ChatChannel['type'],
     description: channel?.description || '',
     participants: channel?.participants || []
   });
@@ -40,7 +40,7 @@ const ChannelManagement: React.FC<ChannelManagementProps> = ({
     if (mode === 'create') {
       createChannel(
         formData.name,
-        formData.type as ChatChannel['type'],
+        formData.type,
         formData.description,
         formData.participants
       );
@@ -80,6 +80,13 @@ const ChannelManagement: React.FC<ChannelManagementProps> = ({
     }));
   };
 
+  const handleTypeChange = (value: string) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      type: value as ChatChannel['type']
+    }));
+  };
+
   return (
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
@@ -109,7 +116,7 @@ const ChannelManagement: React.FC<ChannelManagementProps> = ({
               <Label>Tipo do Canal</Label>
               <Select 
                 value={formData.type} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}
+                onValueChange={handleTypeChange}
               >
                 <SelectTrigger>
                   <SelectValue />
