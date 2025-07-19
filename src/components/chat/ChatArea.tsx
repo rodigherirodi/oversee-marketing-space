@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useChat } from '@/contexts/ChatContext';
 import MessageItem from './MessageItem';
-import MessageInput from './MessageInput';
+import MentionInput from './MentionInput';
+import VoiceChannel from './VoiceChannel';
 
 const ChatArea = () => {
   const { activeChannel, messages, users } = useChat();
@@ -31,10 +32,40 @@ const ChatArea = () => {
     );
   }
 
+  // Renderizar canal de voz
+  if (activeChannel.type === 'voice') {
+    return (
+      <div className="flex-1 flex flex-col">
+        {/* Channel Header */}
+        <div className="flex items-center justify-between p-4 border-b bg-background">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Hash className="w-5 h-5" />
+              <h2 className="font-semibold">{activeChannel.name}</h2>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm">
+              <Settings className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Voice Channel Content */}
+        <div className="flex-1 p-6">
+          <VoiceChannel channel={activeChannel} />
+        </div>
+      </div>
+    );
+  }
+
   const getChannelIcon = () => {
     switch (activeChannel.type) {
       case 'public':
         return <Hash className="w-5 h-5" />;
+      case 'private':
+        return <Hash className="w-5 h-5 text-yellow-600" />;
       case 'direct':
         return <Users className="w-5 h-5" />;
       case 'group':
@@ -66,7 +97,7 @@ const ChatArea = () => {
           {getChannelIcon()}
           <div>
             <h2 className="font-semibold">
-              {activeChannel.type === 'direct' ? activeChannel.name : `#${activeChannel.name}`}
+              {activeChannel.type === 'direct' ? activeChannel.name : `${activeChannel.name}`}
             </h2>
             {activeChannel.description && (
               <p className="text-sm text-muted-foreground">{activeChannel.description}</p>
@@ -109,7 +140,7 @@ const ChatArea = () => {
                 <h3 className="text-lg font-medium mt-4 mb-2">
                   {activeChannel.type === 'direct' 
                     ? `Esta é a sua conversa com ${activeChannel.name}`
-                    : `Bem-vindo ao #${activeChannel.name}`
+                    : `Bem-vindo ao ${activeChannel.name}`
                   }
                 </h3>
                 <p className="text-muted-foreground">
@@ -137,7 +168,7 @@ const ChatArea = () => {
       </ScrollArea>
 
       {/* Message Input */}
-      <MessageInput />
+      <MentionInput />
     </div>
   );
 };
