@@ -10,6 +10,7 @@ import {
   Bell,
   ChevronDown
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
   Tooltip,
@@ -26,6 +27,7 @@ import {
 
 const ToolbarShortcuts = () => {
   const [notifications, setNotifications] = useState(3);
+  const navigate = useNavigate();
 
   const shortcuts = [
     { 
@@ -42,7 +44,7 @@ const ToolbarShortcuts = () => {
     { 
       icon: MessageCircle, 
       label: 'Chat', 
-      onClick: () => console.log('Chat clicked'),
+      onClick: () => navigate('/chat'),
       badge: 2
     },
     { 
