@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   Target, 
@@ -26,7 +25,7 @@ import MonthlyEvolutionChart from '@/components/MonthlyEvolutionChart';
 
 const Productivity = () => {
   const user = mockCurrentUser;
-  const totalTasks = user.tasksCompleted + user.tasksOpen + user.tasInProgress;
+  const totalTasks = user.tasksCompleted + user.tasksOpen + user.tasksInProgress;
   const completionRate = Math.round((user.tasksCompleted / totalTasks) * 100);
 
   return (
