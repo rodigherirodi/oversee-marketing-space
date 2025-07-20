@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Mail, 
@@ -33,13 +32,13 @@ const ToolbarShortcuts = () => {
     { 
       icon: Mail, 
       label: 'Email', 
-      onClick: () => console.log('Email clicked'),
+      onClick: () => window.open('https://mail.google.com/mail/u/0/#inbox', '_blank'),
       badge: 5
     },
     { 
       icon: Calendar, 
       label: 'Agenda', 
-      onClick: () => console.log('Agenda clicked') 
+      onClick: () => window.open('https://calendar.google.com/calendar/u/0/r', '_blank')
     },
     { 
       icon: MessageCircle, 

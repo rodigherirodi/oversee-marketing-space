@@ -1,4 +1,3 @@
-
 export interface Event {
   id: string;
   title: string;
@@ -10,6 +9,7 @@ export interface Event {
   attendees: number;
   maxAttendees?: number;
   isUserAttending: boolean;
+  imageUrl?: string;
 }
 
 export interface OnboardingItem {
@@ -70,7 +70,8 @@ export const mockEvents: Event[] = [
     location: 'Terraço da Agência',
     attendees: 15,
     maxAttendees: 25,
-    isUserAttending: true
+    isUserAttending: true,
+    imageUrl: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?w=400&h=200&fit=crop'
   },
   {
     id: '2',
@@ -82,7 +83,8 @@ export const mockEvents: Event[] = [
     location: 'Sala de Reuniões',
     attendees: 8,
     maxAttendees: 12,
-    isUserAttending: false
+    isUserAttending: false,
+    imageUrl: 'https://images.unsplash.com/photo-1721322800607-8c38375eef04?w=400&h=200&fit=crop'
   },
   {
     id: '3',
@@ -93,7 +95,8 @@ export const mockEvents: Event[] = [
     description: 'Celebração dos 5 anos da agência',
     location: 'Salão de Eventos',
     attendees: 35,
-    isUserAttending: true
+    isUserAttending: true,
+    imageUrl: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&h=200&fit=crop'
   }
 ];
 
