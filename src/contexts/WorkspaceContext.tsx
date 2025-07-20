@@ -17,7 +17,13 @@ import {
   LucideIcon,
   Map,
   BookOpen,
-  FileQuestion
+  FileQuestion,
+  Calendar,
+  UserPlus,
+  TrendingUp,
+  Trophy,
+  BookMarked,
+  MessageSquare
 } from 'lucide-react';
 
 export interface WorkspacePage {
@@ -67,7 +73,14 @@ const workspaces: Workspace[] = [
     name: 'Cultura',
     icon: Heart,
     color: 'bg-pink-100 text-pink-700',
-    pages: []
+    pages: [
+      { name: 'Agenda & Eventos', path: '/cultura/agenda', icon: Calendar },
+      { name: 'Onboarding', path: '/cultura/onboarding', icon: UserPlus },
+      { name: 'PDI', path: '/cultura/pdi', icon: TrendingUp },
+      { name: 'Reconhecimento', path: '/cultura/reconhecimento', icon: Trophy },
+      { name: 'Manual da Cultura', path: '/cultura/manual', icon: BookMarked },
+      { name: 'Feedback', path: '/cultura/feedback', icon: MessageSquare }
+    ]
   },
   {
     id: 'comercial',

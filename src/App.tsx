@@ -23,6 +23,8 @@ import TrilhaDetail from "./pages/TrilhaDetail";
 import Cursos from "./pages/Cursos";
 import Guias from "./pages/Guias";
 import Chat from "./pages/Chat";
+import Agenda from "./pages/cultura/Agenda";
+import Onboarding from "./pages/cultura/Onboarding";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -52,6 +54,8 @@ const App = () => (
                 <Route path="cursos" element={<Cursos />} />
                 <Route path="guias" element={<Guias />} />
                 <Route path="chat" element={<Chat />} />
+                <Route path="cultura/agenda" element={<Agenda />} />
+                <Route path="cultura/onboarding" element={<Onboarding />} />
               </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
