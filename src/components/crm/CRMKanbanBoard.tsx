@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   DndContext,
@@ -22,16 +21,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Plus, Settings } from 'lucide-react';
-
-interface CRMKanbanBoardProps {
-  leads: Lead[];
-  pipeline: Pipeline;
-  onLeadMove: (leadId: string, newStage: string) => void;
-  onLeadEdit: (lead: Lead) => void;
-  onLeadView: (lead: Lead) => void;
-  onLeadDelete: (leadId: string) => void;
-  onAddLead: (stage: string) => void;
-}
 
 interface SortableLeadCardProps {
   lead: Lead;
@@ -108,7 +97,7 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
 
   return (
     <div className="w-80 flex-shrink-0">
-      <Card className="h-full">
+      <Card className="h-full max-h-[550px]">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -139,7 +128,7 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
             items={stageLeads.map(lead => lead.id)}
             strategy={verticalListSortingStrategy}
           >
-            <div className="space-y-3 min-h-96 max-h-[600px] overflow-y-auto">
+            <div className="space-y-3 min-h-96 max-h-[400px] overflow-y-auto">
               {stageLeads.map((lead) => (
                 <SortableLeadCard
                   key={lead.id}
@@ -162,6 +151,16 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
     </div>
   );
 };
+
+interface CRMKanbanBoardProps {
+  leads: Lead[];
+  pipeline: Pipeline;
+  onLeadMove: (leadId: string, newStage: string) => void;
+  onLeadEdit: (lead: Lead) => void;
+  onLeadView: (lead: Lead) => void;
+  onLeadDelete: (leadId: string) => void;
+  onAddLead: (stage: string) => void;
+}
 
 export const CRMKanbanBoard: React.FC<CRMKanbanBoardProps> = ({
   leads,
@@ -247,7 +246,7 @@ export const CRMKanbanBoard: React.FC<CRMKanbanBoardProps> = ({
       onDragEnd={handleDragEnd}
       onDragOver={handleDragOver}
     >
-      <div className="flex gap-6 overflow-x-auto pb-6 h-full">
+      <div className="flex gap-6 pb-6 h-full min-w-max">
         {pipeline.stages
           .sort((a, b) => a.order - b.order)
           .map((stage) => (

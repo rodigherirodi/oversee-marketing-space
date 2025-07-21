@@ -14,10 +14,10 @@ import {
   Download
 } from 'lucide-react';
 import { CRMKanbanBoard } from '@/components/crm/CRMKanbanBoard';
+import { CRMListView } from '@/components/crm/CRMListView';
 import { CRMMetricsComponent } from '@/components/crm/CRMMetrics';
 import { mockLeads, defaultPipeline, mockMetrics } from '@/data/crmMockData';
 import { Lead } from '@/types/crm';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const CRM = () => {
   const [leads, setLeads] = useState<Lead[]>(mockLeads);
@@ -71,7 +71,7 @@ const CRM = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -94,7 +94,7 @@ const CRM = () => {
         </div>
       </div>
 
-      {/* Métricas */}
+      {/* Métricas Compactas */}
       <CRMMetricsComponent metrics={mockMetrics} />
 
       {/* Filtros */}
@@ -161,31 +161,29 @@ const CRM = () => {
         </CardContent>
       </Card>
 
-      {/* Conteúdo Principal */}
-      <div className="h-[calc(100vh-400px)]">
+      {/* Conteúdo Principal com Scroll Limitado */}
+      <div className="min-h-[600px] max-h-[calc(100vh-350px)]">
         {view === 'kanban' ? (
-          <CRMKanbanBoard
-            leads={filteredLeads}
-            pipeline={defaultPipeline}
-            onLeadMove={handleLeadMove}
-            onLeadEdit={handleLeadEdit}
-            onLeadView={handleLeadView}
-            onLeadDelete={handleLeadDelete}
-            onAddLead={handleAddLead}
-          />
+          <div className="h-full overflow-x-auto overflow-y-hidden">
+            <CRMKanbanBoard
+              leads={filteredLeads}
+              pipeline={defaultPipeline}
+              onLeadMove={handleLeadMove}
+              onLeadEdit={handleLeadEdit}
+              onLeadView={handleLeadView}
+              onLeadDelete={handleLeadDelete}
+              onAddLead={handleAddLead}
+            />
+          </div>
         ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>Lista de Leads</CardTitle>
-              <CardDescription>Visualização em lista dos seus leads</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12 text-gray-500">
-                <List className="w-12 h-12 mx-auto mb-4" />
-                <p>Visualização em lista será implementada na próxima fase</p>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="h-full overflow-y-auto">
+            <CRMListView
+              leads={filteredLeads}
+              onLeadEdit={handleLeadEdit}
+              onLeadView={handleLeadView}
+              onLeadDelete={handleLeadDelete}
+            />
+          </div>
         )}
       </div>
     </div>
