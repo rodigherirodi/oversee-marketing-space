@@ -1,4 +1,4 @@
-import { Client, Project, Task, TeamMember } from '../types/entities';
+import { Client, Project, Task, TeamMember, TaskType, KanbanConfig } from '../types/entities';
 
 export const mockClients: Client[] = [
   {
@@ -102,21 +102,91 @@ export const mockProjects: Project[] = [
   }
 ];
 
+export const mockTaskTypes: TaskType[] = [
+  { id: 'agendamento', name: 'Agendamento', color: '#3B82F6', icon: '📅' },
+  { id: 'material', name: 'Material', color: '#10B981', icon: '📄' },
+  { id: 'apresentacao', name: 'Apresentação', color: '#8B5CF6', icon: '📊' },
+  { id: 'video', name: 'Vídeo', color: '#F59E0B', icon: '🎥' },
+  { id: 'design', name: 'Design', color: '#EF4444', icon: '🎨' },
+  { id: 'desenvolvimento', name: 'Desenvolvimento', color: '#06B6D4', icon: '💻' },
+  { id: 'reuniao', name: 'Reunião', color: '#84CC16', icon: '🤝' },
+  { id: 'planejamento', name: 'Planejamento', color: '#F97316', icon: '📋' },
+];
+
+export const mockKanbanConfigs: KanbanConfig[] = [
+  {
+    id: 'geral',
+    name: 'Geral',
+    department: 'all',
+    color: '#6B7280',
+    stages: [
+      { id: 'todo', name: 'A Fazer', color: '#6B7280', order: 1 },
+      { id: 'doing', name: 'Em Andamento', color: '#3B82F6', order: 2 },
+      { id: 'review', name: 'Em Revisão', color: '#F59E0B', order: 3 },
+      { id: 'done', name: 'Concluído', color: '#10B981', order: 4 },
+    ],
+  },
+  {
+    id: 'design',
+    name: 'Design',
+    department: 'Design',
+    color: '#EC4899',
+    stages: [
+      { id: 'briefing', name: 'Briefing', color: '#6B7280', order: 1 },
+      { id: 'conceito', name: 'Conceito', color: '#8B5CF6', order: 2 },
+      { id: 'criacao', name: 'Criação', color: '#EC4899', order: 3 },
+      { id: 'revisao', name: 'Revisão', color: '#F59E0B', order: 4 },
+      { id: 'aprovado', name: 'Aprovado', color: '#10B981', order: 5 },
+    ],
+  },
+  {
+    id: 'desenvolvimento',
+    name: 'Desenvolvimento',
+    department: 'Tecnologia',
+    color: '#06B6D4',
+    stages: [
+      { id: 'backlog', name: 'Backlog', color: '#6B7280', order: 1 },
+      { id: 'desenvolvimento', name: 'Desenvolvimento', color: '#06B6D4', order: 2 },
+      { id: 'teste', name: 'Teste', color: '#F59E0B', order: 3 },
+      { id: 'homologacao', name: 'Homologação', color: '#8B5CF6', order: 4 },
+      { id: 'producao', name: 'Produção', color: '#10B981', order: 5 },
+    ],
+  },
+  {
+    id: 'audiovisual',
+    name: 'Audiovisual',
+    department: 'Conteúdo',
+    color: '#F97316',
+    stages: [
+      { id: 'roteiro', name: 'Roteiro', color: '#6B7280', order: 1 },
+      { id: 'gravacao', name: 'Gravação', color: '#F97316', order: 2 },
+      { id: 'edicao', name: 'Edição', color: '#EF4444', order: 3 },
+      { id: 'pos-producao', name: 'Pós-Produção', color: '#8B5CF6', order: 4 },
+      { id: 'finalizado', name: 'Finalizado', color: '#10B981', order: 5 },
+    ],
+  },
+];
+
 export const mockTasks: Task[] = [
   {
     id: '1',
     title: 'Criação de landing page',
     description: 'Desenvolver landing page para campanha de Black Friday',
-    status: 'doing',
+    status: 'criacao',
     priority: 'high',
+    type: 'design',
     assignee: 'Ana Silva',
+    squad: 'Design',
     clientId: '1',
     client: mockClients[0],
     projectId: '1',
     project: mockProjects[0],
     dueDate: '2024-11-20',
     tags: ['design', 'desenvolvimento', 'urgente'],
-    createdAt: '2024-11-10'
+    createdAt: '2024-11-10',
+    comments: [],
+    attachments: [],
+    customFields: {},
   },
   {
     id: '2',
@@ -124,14 +194,19 @@ export const mockTasks: Task[] = [
     description: 'Relatório mensal de performance das campanhas',
     status: 'todo',
     priority: 'medium',
+    type: 'material',
     assignee: 'Carlos Mendes',
+    squad: 'Análise',
     clientId: '2',
     client: mockClients[1],
     projectId: '2',
     project: mockProjects[1],
     dueDate: '2024-11-25',
     tags: ['análise', 'relatório'],
-    createdAt: '2024-11-12'
+    createdAt: '2024-11-12',
+    comments: [],
+    attachments: [],
+    customFields: {},
   },
   {
     id: '3',
@@ -139,15 +214,56 @@ export const mockTasks: Task[] = [
     description: 'Criação de copies para posts da semana',
     status: 'review',
     priority: 'medium',
+    type: 'material',
     assignee: 'Marina Costa',
+    squad: 'Conteúdo',
     clientId: '1',
     client: mockClients[0],
     projectId: '1',
     project: mockProjects[0],
     dueDate: '2024-11-18',
     tags: ['copywriting', 'social'],
-    createdAt: '2024-11-08'
-  }
+    createdAt: '2024-11-08',
+    comments: [],
+    attachments: [],
+    customFields: {},
+  },
+  {
+    id: '4',
+    title: 'Desenvolvimento de API',
+    description: 'Criação de endpoints para integração',
+    status: 'desenvolvimento',
+    priority: 'high',
+    type: 'desenvolvimento',
+    assignee: 'Pedro Lima',
+    squad: 'Tecnologia',
+    clientId: '1',
+    client: mockClients[0],
+    dueDate: '2024-11-22',
+    tags: ['api', 'backend'],
+    createdAt: '2024-11-09',
+    comments: [],
+    attachments: [],
+    customFields: {},
+  },
+  {
+    id: '5',
+    title: 'Produção de vídeo institucional',
+    description: 'Gravação e edição de vídeo para apresentação da empresa',
+    status: 'edicao',
+    priority: 'medium',
+    type: 'video',
+    assignee: 'João Santos',
+    squad: 'Conteúdo',
+    clientId: '2',
+    client: mockClients[1],
+    dueDate: '2024-11-30',
+    tags: ['vídeo', 'institucional'],
+    createdAt: '2024-11-11',
+    comments: [],
+    attachments: [],
+    customFields: {},
+  },
 ];
 
 export const mockTeamMembers: TeamMember[] = [

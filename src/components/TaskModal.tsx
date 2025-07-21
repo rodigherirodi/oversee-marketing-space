@@ -1,13 +1,24 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { X, Calendar, User, Tag, AlertCircle } from 'lucide-react';
-import { Task, Client, Project } from '../types/entities';
+import { Task, Client, Project, TaskType } from '../types/entities';
+import { useTaskContext } from '@/contexts/TaskContext';
+import { mockTeamMembers } from '@/data/mockData';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (task: Omit<Task, 'id' | 'createdAt'>) => void;
+  onSubmit: (task: Omit<Task, 'id' | 'createdAt'> | Task) => void;
   clients?: Client[];
   projects?: Project[];
+  editTask?: Task | null;
 }
 
 export const TaskModal: React.FC<TaskModalProps> = ({ 
@@ -15,14 +26,18 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   onClose, 
   onSubmit, 
   clients = [], 
-  projects = [] 
+  projects = [],
+  editTask = null
 }) => {
+  const { taskTypes, currentKanban } = useTaskContext();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    status: 'todo' as Task['status'],
+    status: currentKanban.stages[0]?.id || 'todo',
     priority: 'medium' as Task['priority'],
+    type: taskTypes[0]?.id || '',
     assignee: '',
+    squad: currentKanban.department === 'all' ? 'Geral' : currentKanban.department,
     clientId: '',
     projectId: '',
     dueDate: '',
@@ -30,6 +45,40 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   });
 
   const [newTag, setNewTag] = useState('');
+
+  // Load edit data
+  useEffect(() => {
+    if (editTask) {
+      setFormData({
+        title: editTask.title,
+        description: editTask.description,
+        status: editTask.status,
+        priority: editTask.priority,
+        type: editTask.type,
+        assignee: editTask.assignee,
+        squad: editTask.squad,
+        clientId: editTask.clientId,
+        projectId: editTask.projectId || '',
+        dueDate: editTask.dueDate,
+        tags: editTask.tags
+      });
+    } else {
+      // Reset form for new task
+      setFormData({
+        title: '',
+        description: '',
+        status: currentKanban.stages[0]?.id || 'todo',
+        priority: 'medium',
+        type: taskTypes[0]?.id || '',
+        assignee: '',
+        squad: currentKanban.department === 'all' ? 'Geral' : currentKanban.department,
+        clientId: '',
+        projectId: '',
+        dueDate: '',
+        tags: []
+      });
+    }
+  }, [editTask, currentKanban, taskTypes]);
 
   // Find selected client and project
   const selectedClient = clients.find(c => c.id === formData.clientId);
@@ -40,28 +89,41 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     if (!formData.title.trim() || !formData.clientId) return;
 
     // Create the task object matching the Task interface
-    const taskData: Omit<Task, 'id' | 'createdAt'> = {
+    const taskData = {
       title: formData.title,
       description: formData.description,
       status: formData.status,
       priority: formData.priority,
+      type: formData.type,
       assignee: formData.assignee,
+      squad: formData.squad,
       clientId: formData.clientId,
-      client: selectedClient!, // We know it exists because clientId is required
+      client: selectedClient!,
       projectId: formData.projectId || undefined,
       project: selectedProject || undefined,
       dueDate: formData.dueDate,
       tags: formData.tags,
-      completedAt: formData.status === 'done' ? new Date().toISOString() : undefined
+      completedAt: formData.status === 'done' ? new Date().toISOString() : undefined,
+      comments: editTask?.comments || [],
+      attachments: editTask?.attachments || [],
+      customFields: editTask?.customFields || {},
     };
 
-    onSubmit(taskData);
+    if (editTask) {
+      onSubmit({ ...editTask, ...taskData });
+    } else {
+      onSubmit(taskData);
+    }
+
+    // Reset form
     setFormData({
       title: '',
       description: '',
-      status: 'todo',
+      status: currentKanban.stages[0]?.id || 'todo',
       priority: 'medium',
+      type: taskTypes[0]?.id || '',
       assignee: '',
+      squad: currentKanban.department === 'all' ? 'Geral' : currentKanban.department,
       clientId: '',
       projectId: '',
       dueDate: '',
@@ -86,6 +148,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     }));
   };
 
+  const getTaskType = (typeId: string) => taskTypes.find(t => t.id === typeId);
+
   if (!isOpen) return null;
 
   return (
@@ -93,7 +157,9 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-90vh overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Nova Tarefa</h2>
+          <h2 className="text-xl font-semibold text-gray-900">
+            {editTask ? 'Editar Tarefa' : 'Nova Tarefa'}
+          </h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -133,22 +199,37 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             />
           </div>
 
-          {/* Row 1: Status and Priority */}
+          {/* Row 1: Type and Priority */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Status
+                Tipo de Tarefa
               </label>
-              <select
-                value={formData.status}
-                onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as Task['status'] }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              <Select
+                value={formData.type}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}
               >
-                <option value="todo">A Fazer</option>
-                <option value="doing">Em Andamento</option>
-                <option value="review">Em Revisão</option>
-                <option value="done">Concluído</option>
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um tipo...">
+                    {formData.type && getTaskType(formData.type) && (
+                      <div className="flex items-center gap-2">
+                        <span>{getTaskType(formData.type)!.icon}</span>
+                        <span>{getTaskType(formData.type)!.name}</span>
+                      </div>
+                    )}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {taskTypes.map((type) => (
+                    <SelectItem key={type.id} value={type.id}>
+                      <div className="flex items-center gap-2">
+                        <span>{type.icon}</span>
+                        <span>{type.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
@@ -167,7 +248,48 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             </div>
           </div>
 
-          {/* Row 2: Client and Project */}
+          {/* Row 2: Status and Squad */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Status
+              </label>
+              <select
+                value={formData.status}
+                onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {currentKanban.stages
+                  .sort((a, b) => a.order - b.order)
+                  .map((stage) => (
+                    <option key={stage.id} value={stage.id}>
+                      {stage.name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Squad
+              </label>
+              <select
+                value={formData.squad}
+                onChange={(e) => setFormData(prev => ({ ...prev, squad: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="Geral">Geral</option>
+                <option value="Design">Design</option>
+                <option value="Tecnologia">Tecnologia</option>
+                <option value="Conteúdo">Conteúdo</option>
+                <option value="Marketing">Marketing</option>
+                <option value="Análise">Análise</option>
+                <option value="Gestão">Gestão</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Row 3: Client and Project */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -210,19 +332,32 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             </div>
           </div>
 
-          {/* Row 3: Assignee and Due Date */}
+          {/* Row 4: Assignee and Due Date */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Responsável
               </label>
-              <input
-                type="text"
+              <Select
                 value={formData.assignee}
-                onChange={(e) => setFormData(prev => ({ ...prev, assignee: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Nome do responsável..."
-              />
+                onValueChange={(value) => setFormData(prev => ({ ...prev, assignee: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um responsável..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {mockTeamMembers.map((member) => (
+                    <SelectItem key={member.id} value={member.name}>
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-medium">
+                          {member.name.split(' ').map(n => n[0]).join('')}
+                        </div>
+                        <span>{member.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
@@ -295,7 +430,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               type="submit"
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
-              Criar Tarefa
+              {editTask ? 'Salvar Alterações' : 'Criar Tarefa'}
             </button>
           </div>
         </form>

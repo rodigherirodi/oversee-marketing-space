@@ -11,14 +11,17 @@ import {
   Building,
   FolderOpen
 } from 'lucide-react';
-import { Task } from '../types/entities';
+import { Task, TaskType } from '../types/entities';
+import { useTaskContext } from '@/contexts/TaskContext';
 
 interface TaskCardProps {
   task: Task;
   onUpdate: (taskId: string, updates: Partial<Task>) => void;
+  onEdit: (task: Task) => void;
 }
 
-export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate }) => {
+export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate, onEdit }) => {
+  const { taskTypes } = useTaskContext();
   const [showDetails, setShowDetails] = useState(false);
 
   const priorityColors = {
@@ -33,20 +36,50 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate }) => {
     low: 'Baixa'
   };
 
+  const getTaskType = (typeId: string) => taskTypes.find(type => type.id === typeId);
+  const taskType = getTaskType(task.type);
+
   const isOverdue = new Date(task.dueDate) < new Date();
   const daysUntilDue = Math.ceil((new Date(task.dueDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
 
+  const handleCardClick = () => {
+    onEdit(task);
+  };
+
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer">
+    <div 
+      className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer"
+      onClick={handleCardClick}
+    >
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <h4 className="font-medium text-gray-900 text-sm leading-tight flex-1 pr-2">
           {task.title}
         </h4>
-        <button className="text-gray-400 hover:text-gray-600 p-1">
+        <button 
+          className="text-gray-400 hover:text-gray-600 p-1"
+          onClick={(e) => e.stopPropagation()}
+        >
           <MoreHorizontal className="w-4 h-4" />
         </button>
       </div>
+
+      {/* Task Type */}
+      {taskType && (
+        <div className="mb-3">
+          <span
+            className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md border"
+            style={{
+              backgroundColor: `${taskType.color}20`,
+              borderColor: `${taskType.color}40`,
+              color: taskType.color
+            }}
+          >
+            <span>{taskType.icon}</span>
+            <span>{taskType.name}</span>
+          </span>
+        </div>
+      )}
 
       {/* Description */}
       {task.description && (
@@ -105,6 +138,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate }) => {
         )}
       </div>
 
+      {/* Squad */}
+      <div className="mb-3">
+        <span className="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-md">
+          {task.squad}
+        </span>
+      </div>
+
       {/* Footer */}
       <div className="flex items-center justify-between">
         {/* Assignee */}
@@ -119,11 +159,23 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate }) => {
 
         {/* Actions */}
         <div className="flex items-center space-x-1">
-          <button className="text-gray-400 hover:text-gray-600 p-1">
+          <button 
+            className="text-gray-400 hover:text-gray-600 p-1"
+            onClick={(e) => e.stopPropagation()}
+          >
             <MessageSquare className="w-3 h-3" />
+            {task.comments.length > 0 && (
+              <span className="text-xs">{task.comments.length}</span>
+            )}
           </button>
-          <button className="text-gray-400 hover:text-gray-600 p-1">
+          <button 
+            className="text-gray-400 hover:text-gray-600 p-1"
+            onClick={(e) => e.stopPropagation()}
+          >
             <Paperclip className="w-3 h-3" />
+            {task.attachments.length > 0 && (
+              <span className="text-xs">{task.attachments.length}</span>
+            )}
           </button>
         </div>
       </div>

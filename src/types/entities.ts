@@ -1,3 +1,4 @@
+
 export interface Client {
   id: string;
   name: string;
@@ -49,13 +50,37 @@ export interface Project {
   createdAt: string;
 }
 
+export interface TaskType {
+  id: string;
+  name: string;
+  color: string;
+  icon: string;
+}
+
+export interface KanbanConfig {
+  id: string;
+  name: string;
+  department: string;
+  color: string;
+  stages: TaskStage[];
+}
+
+export interface TaskStage {
+  id: string;
+  name: string;
+  color: string;
+  order: number;
+}
+
 export interface Task {
   id: string;
   title: string;
   description: string;
-  status: 'todo' | 'doing' | 'review' | 'done';
+  status: string; // Now dynamic based on kanban stages
   priority: 'low' | 'medium' | 'high';
+  type: string; // Reference to TaskType
   assignee: string;
+  squad: string;
   clientId: string;
   client: Client;
   projectId?: string;
@@ -64,6 +89,26 @@ export interface Task {
   tags: string[];
   createdAt: string;
   completedAt?: string;
+  comments: TaskComment[];
+  attachments: TaskAttachment[];
+  customFields: Record<string, any>;
+}
+
+export interface TaskComment {
+  id: string;
+  author: string;
+  content: string;
+  createdAt: string;
+}
+
+export interface TaskAttachment {
+  id: string;
+  name: string;
+  url: string;
+  type: string;
+  size: number;
+  uploadedAt: string;
+  uploadedBy: string;
 }
 
 export interface TeamMember {
@@ -102,12 +147,7 @@ export interface TeamMember {
 
 export interface DashboardMetrics {
   totalTasks: number;
-  tasksByStatus: {
-    todo: number;
-    doing: number;
-    review: number;
-    done: number;
-  };
+  tasksByStatus: Record<string, number>;
   overdueTasks: number;
   averageCompletionTime: number;
   activeProjects: number;

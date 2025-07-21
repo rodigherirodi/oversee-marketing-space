@@ -1,25 +1,30 @@
 
 import React from 'react';
-import { Task } from '../types/entities';
+import { Task, KanbanConfig } from '../types/entities';
 import { TaskCard } from './TaskCard';
 
 interface KanbanBoardProps {
   tasks: Task[];
   onUpdateTask: (taskId: string, updates: Partial<Task>) => void;
+  onEditTask: (task: Task) => void;
+  kanbanConfig: KanbanConfig;
 }
 
-export const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, onUpdateTask }) => {
-  const columns = [
-    { id: 'todo', title: 'A Fazer', color: 'border-gray-300', count: 0 },
-    { id: 'doing', title: 'Em Andamento', color: 'border-blue-300', count: 0 },
-    { id: 'review', title: 'Em Revisão', color: 'border-yellow-300', count: 0 },
-    { id: 'done', title: 'Concluído', color: 'border-green-300', count: 0 }
-  ];
-
-  // Count tasks for each column
-  columns.forEach(column => {
-    column.count = tasks.filter(task => task.status === column.id).length;
-  });
+export const KanbanBoard: React.FC<KanbanBoardProps> = ({ 
+  tasks, 
+  onUpdateTask, 
+  onEditTask, 
+  kanbanConfig 
+}) => {
+  const columns = kanbanConfig.stages
+    .sort((a, b) => a.order - b.order)
+    .map(stage => ({
+      id: stage.id,
+      title: stage.name,
+      color: `border-t-4`,
+      borderColor: stage.color,
+      count: tasks.filter(task => task.status === stage.id).length
+    }));
 
   const handleDragStart = (e: React.DragEvent, taskId: string) => {
     e.dataTransfer.setData('taskId', taskId);
@@ -29,7 +34,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, onUpdateTask })
     e.preventDefault();
   };
 
-  const handleDrop = (e: React.DragEvent, status: Task['status']) => {
+  const handleDrop = (e: React.DragEvent, status: string) => {
     e.preventDefault();
     const taskId = e.dataTransfer.getData('taskId');
     onUpdateTask(taskId, { status });
@@ -42,10 +47,13 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, onUpdateTask })
           key={column.id}
           className="flex-shrink-0 w-80"
           onDragOver={handleDragOver}
-          onDrop={(e) => handleDrop(e, column.id as Task['status'])}
+          onDrop={(e) => handleDrop(e, column.id)}
         >
           {/* Column Header */}
-          <div className={`bg-white rounded-lg border-t-4 ${column.color} p-4 mb-4 shadow-sm`}>
+          <div 
+            className={`bg-white rounded-lg ${column.color} p-4 mb-4 shadow-sm`}
+            style={{ borderTopColor: column.borderColor }}
+          >
             <div className="flex items-center justify-between">
               <h3 className="font-medium text-gray-900">{column.title}</h3>
               <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
@@ -65,7 +73,11 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ tasks, onUpdateTask })
                   onDragStart={(e) => handleDragStart(e, task.id)}
                   className="cursor-move"
                 >
-                  <TaskCard task={task} onUpdate={onUpdateTask} />
+                  <TaskCard 
+                    task={task} 
+                    onUpdate={onUpdateTask}
+                    onEdit={onEditTask}
+                  />
                 </div>
               ))}
             
