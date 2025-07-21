@@ -36,13 +36,13 @@ const TasksContent = () => {
   
   const [viewMode, setViewMode] = useState<ViewMode>('kanban');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedClient, setSelectedClient] = useState('');
-  const [selectedProject, setSelectedProject] = useState('');
-  const [selectedAssignee, setSelectedAssignee] = useState('');
-  const [selectedSquad, setSelectedSquad] = useState('');
-  const [selectedType, setSelectedType] = useState('');
-  const [selectedPriority, setSelectedPriority] = useState('');
-  const [dateFilter, setDateFilter] = useState('');
+  const [selectedClient, setSelectedClient] = useState('all');
+  const [selectedProject, setSelectedProject] = useState('all');
+  const [selectedAssignee, setSelectedAssignee] = useState('all');
+  const [selectedSquad, setSelectedSquad] = useState('all');
+  const [selectedType, setSelectedType] = useState('all');
+  const [selectedPriority, setSelectedPriority] = useState('all');
+  const [dateFilter, setDateFilter] = useState('all');
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -58,31 +58,31 @@ const TasksContent = () => {
       );
     }
 
-    if (selectedClient) {
+    if (selectedClient && selectedClient !== 'all') {
       results = results.filter(task => task.clientId === selectedClient);
     }
 
-    if (selectedProject) {
+    if (selectedProject && selectedProject !== 'all') {
       results = results.filter(task => task.projectId === selectedProject);
     }
 
-    if (selectedAssignee) {
+    if (selectedAssignee && selectedAssignee !== 'all') {
       results = results.filter(task => task.assignee === selectedAssignee);
     }
 
-    if (selectedSquad) {
+    if (selectedSquad && selectedSquad !== 'all') {
       results = results.filter(task => task.squad === selectedSquad);
     }
 
-    if (selectedType) {
+    if (selectedType && selectedType !== 'all') {
       results = results.filter(task => task.type === selectedType);
     }
 
-    if (selectedPriority) {
+    if (selectedPriority && selectedPriority !== 'all') {
       results = results.filter(task => task.priority === selectedPriority);
     }
 
-    if (dateFilter) {
+    if (dateFilter && dateFilter !== 'all') {
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       
@@ -134,24 +134,24 @@ const TasksContent = () => {
 
   const clearFilters = () => {
     setSearchTerm('');
-    setSelectedClient('');
-    setSelectedProject('');
-    setSelectedAssignee('');
-    setSelectedSquad('');
-    setSelectedType('');
-    setSelectedPriority('');
-    setDateFilter('');
+    setSelectedClient('all');
+    setSelectedProject('all');
+    setSelectedAssignee('all');
+    setSelectedSquad('all');
+    setSelectedType('all');
+    setSelectedPriority('all');
+    setDateFilter('all');
   };
 
   const activeFiltersCount = [
     searchTerm,
-    selectedClient,
-    selectedProject,
-    selectedAssignee,
-    selectedSquad,
-    selectedType,
-    selectedPriority,
-    dateFilter
+    selectedClient !== 'all' ? selectedClient : '',
+    selectedProject !== 'all' ? selectedProject : '',
+    selectedAssignee !== 'all' ? selectedAssignee : '',
+    selectedSquad !== 'all' ? selectedSquad : '',
+    selectedType !== 'all' ? selectedType : '',
+    selectedPriority !== 'all' ? selectedPriority : '',
+    dateFilter !== 'all' ? dateFilter : ''
   ].filter(Boolean).length;
 
   return (
@@ -244,7 +244,7 @@ const TasksContent = () => {
             <SelectValue placeholder="Todos os tipos" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos os tipos</SelectItem>
+            <SelectItem value="all">Todos os tipos</SelectItem>
             {taskTypes.map((type) => (
               <SelectItem key={type.id} value={type.id}>
                 <div className="flex items-center gap-2">
@@ -262,7 +262,7 @@ const TasksContent = () => {
             <SelectValue placeholder="Todos os responsáveis" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos os responsáveis</SelectItem>
+            <SelectItem value="all">Todos os responsáveis</SelectItem>
             {mockTeamMembers.map((member) => (
               <SelectItem key={member.id} value={member.name}>
                 {member.name}
@@ -277,7 +277,7 @@ const TasksContent = () => {
             <SelectValue placeholder="Todos os squads" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos os squads</SelectItem>
+            <SelectItem value="all">Todos os squads</SelectItem>
             <SelectItem value="Design">Design</SelectItem>
             <SelectItem value="Tecnologia">Tecnologia</SelectItem>
             <SelectItem value="Conteúdo">Conteúdo</SelectItem>
@@ -293,7 +293,7 @@ const TasksContent = () => {
             <SelectValue placeholder="Todas as prioridades" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas as prioridades</SelectItem>
+            <SelectItem value="all">Todas as prioridades</SelectItem>
             <SelectItem value="high">Alta</SelectItem>
             <SelectItem value="medium">Média</SelectItem>
             <SelectItem value="low">Baixa</SelectItem>
@@ -306,7 +306,7 @@ const TasksContent = () => {
             <SelectValue placeholder="Filtrar por data" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas as datas</SelectItem>
+            <SelectItem value="all">Todas as datas</SelectItem>
             <SelectItem value="today">Hoje</SelectItem>
             <SelectItem value="week">Esta semana</SelectItem>
             <SelectItem value="overdue">Em atraso</SelectItem>
