@@ -92,7 +92,7 @@ export const LeadFormDialog: React.FC<LeadFormDialogProps> = ({
       position: '',
       source: 'website',
       value: 0,
-      pipelineId: defaultPipelineId || 'padrao',
+      pipelineId: defaultPipelineId || 'assessoria',
       assignedTo: '',
     },
   });
@@ -120,7 +120,7 @@ export const LeadFormDialog: React.FC<LeadFormDialogProps> = ({
         position: '',
         source: 'website',
         value: 0,
-        pipelineId: defaultPipelineId || 'padrao',
+        pipelineId: defaultPipelineId || 'assessoria',
         assignedTo: '',
       });
       setTags([]);
@@ -128,11 +128,22 @@ export const LeadFormDialog: React.FC<LeadFormDialogProps> = ({
   }, [lead, form, defaultPipelineId]);
 
   const handleSubmit = (values: z.infer<typeof leadFormSchema>) => {
-    onSubmit({
-      ...values,
+    // Garantir que todos os campos obrigatórios estão presentes
+    const leadData: LeadFormData = {
+      name: values.name,
+      company: values.company,
+      email: values.email,
+      phone: values.phone,
+      position: values.position,
+      source: values.source,
+      value: values.value,
+      pipelineId: values.pipelineId,
+      assignedTo: values.assignedTo,
       tags,
       customFields: {},
-    });
+    };
+    
+    onSubmit(leadData);
     onClose();
   };
 

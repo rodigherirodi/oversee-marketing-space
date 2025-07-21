@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -19,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { 
   Settings, 
-  Pipeline, 
+  GitBranch, 
   Tags, 
   Users,
   Palette
@@ -52,7 +51,7 @@ export const CRMConfigDialog: React.FC<CRMConfigDialogProps> = ({
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="pipelines" className="flex items-center gap-2">
-              <Pipeline className="w-4 h-4" />
+              <GitBranch className="w-4 h-4" />
               Pipelines
             </TabsTrigger>
             <TabsTrigger value="stages" className="flex items-center gap-2">
