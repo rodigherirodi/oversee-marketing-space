@@ -1,5 +1,5 @@
-
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Target,
   CheckSquare, 
@@ -23,7 +23,17 @@ import {
   TrendingUp,
   Trophy,
   BookMarked,
-  MessageSquare
+  MessageSquare,
+  UserCircle,
+  BookText,
+  Coins,
+  Gauge,
+  Settings,
+  PieChart,
+  Cog,
+  FileCheck,
+  UserCog,
+  Calculator
 } from 'lucide-react';
 
 export interface WorkspacePage {
@@ -87,16 +97,37 @@ const workspaces: Workspace[] = [
     name: 'Comercial',
     icon: DollarSign,
     color: 'bg-green-100 text-green-700',
-    pages: []
+    pages: [
+      { name: 'CRM', path: '/comercial/crm', icon: UserCircle },
+      { name: 'Playbooks', path: '/comercial/playbooks', icon: BookText },
+      { name: 'Money', path: '/comercial/money', icon: Coins }
+    ]
   },
   {
     id: 'gestao',
     name: 'Gestão',
     icon: BarChart3,
     color: 'bg-orange-100 text-orange-700',
-    pages: []
+    pages: [
+      { name: 'Gerenciamento', path: '/gestao/gerenciamento', icon: Gauge },
+      { name: 'Admin', path: '/gestao/admin', icon: Settings },
+      { name: 'Relatórios', path: '/gestao/relatorios', icon: PieChart },
+      { name: 'Configurações', path: '/gestao/configuracoes', icon: Cog },
+      { name: 'Auditoria', path: '/gestao/auditoria', icon: FileCheck },
+      { name: 'RH', path: '/gestao/rh', icon: UserCog },
+      { name: 'Financeiro', path: '/gestao/financeiro', icon: Calculator }
+    ]
   }
 ];
+
+// Mapeamento de workspaces para páginas padrão
+const defaultPages = {
+  'operacao': '/',
+  'academy': '/trilhas',
+  'cultura': '/cultura/agenda',
+  'comercial': '/comercial/crm',
+  'gestao': '/gestao/gerenciamento'
+};
 
 interface WorkspaceContextType {
   activeWorkspace: Workspace;
@@ -120,8 +151,32 @@ interface WorkspaceProviderProps {
 }
 
 export const WorkspaceProvider: React.FC<WorkspaceProviderProps> = ({ children }) => {
-  // Default to "Operação" workspace
+  const navigate = useNavigate();
+  const location = useLocation();
   const [activeWorkspace, setActiveWorkspace] = useState<Workspace>(workspaces[0]);
+
+  // Determinar workspace ativo baseado na rota atual
+  useEffect(() => {
+    const currentPath = location.pathname;
+    
+    // Encontrar o workspace baseado na rota atual
+    for (const workspace of workspaces) {
+      const isWorkspacePage = workspace.pages.some(page => page.path === currentPath);
+      if (isWorkspacePage) {
+        setActiveWorkspace(workspace);
+        return;
+      }
+    }
+  }, [location.pathname]);
+
+  // Função para trocar workspace e navegar para página padrão
+  const handleWorkspaceChange = (workspace: Workspace) => {
+    setActiveWorkspace(workspace);
+    const defaultPath = defaultPages[workspace.id as keyof typeof defaultPages];
+    if (defaultPath && location.pathname !== defaultPath) {
+      navigate(defaultPath);
+    }
+  };
 
   const getCurrentPage = (pathname: string): WorkspacePage | null => {
     return activeWorkspace.pages.find(page => page.path === pathname) || null;
@@ -131,7 +186,7 @@ export const WorkspaceProvider: React.FC<WorkspaceProviderProps> = ({ children }
     <WorkspaceContext.Provider 
       value={{ 
         activeWorkspace, 
-        setActiveWorkspace, 
+        setActiveWorkspace: handleWorkspaceChange, 
         workspaces, 
         getCurrentPage 
       }}

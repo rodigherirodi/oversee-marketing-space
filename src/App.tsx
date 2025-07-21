@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -26,6 +25,11 @@ import Chat from "./pages/Chat";
 import Agenda from "./pages/cultura/Agenda";
 import Onboarding from "./pages/cultura/Onboarding";
 import NotFound from "./pages/NotFound";
+import Gerenciamento from "./pages/gestao/Gerenciamento";
+import Admin from "./pages/gestao/Admin";
+import CRM from "./pages/comercial/CRM";
+import Playbooks from "./pages/comercial/Playbooks";
+import Money from "./pages/comercial/Money";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +60,11 @@ const App = () => (
                 <Route path="chat" element={<Chat />} />
                 <Route path="cultura/agenda" element={<Agenda />} />
                 <Route path="cultura/onboarding" element={<Onboarding />} />
+                <Route path="comercial/crm" element={<CRM />} />
+                <Route path="comercial/playbooks" element={<Playbooks />} />
+                <Route path="comercial/money" element={<Money />} />
+                <Route path="gestao/gerenciamento" element={<Gerenciamento />} />
+                <Route path="gestao/admin" element={<Admin />} />
               </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
