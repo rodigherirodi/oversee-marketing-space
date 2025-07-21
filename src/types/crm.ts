@@ -83,8 +83,20 @@ export interface CRMMetrics {
   totalValue: number;
   conversionRate: number;
   averageTicket: number;
-  leadsThisMonth: number;
   wonThisMonth: number;
-  lostThisMonth: number;
   pipelineVelocity: number;
+}
+
+export interface LeadFormData {
+  name: string;
+  company: string;
+  email: string;
+  phone: string;
+  position: string;
+  source: 'website' | 'linkedin' | 'indicacao' | 'evento' | 'cold-call' | 'outro';
+  value: number;
+  pipelineId: string;
+  assignedTo: string;
+  tags: string[];
+  customFields: Record<string, any>;
 }

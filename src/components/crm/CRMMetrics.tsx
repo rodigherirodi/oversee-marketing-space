@@ -7,7 +7,6 @@ import {
   TrendingUp, 
   DollarSign, 
   Target,
-  Calendar,
   Award
 } from 'lucide-react';
 
@@ -26,21 +25,21 @@ export const CRMMetricsComponent: React.FC<CRMMetricsProps> = ({ metrics }) => {
 
   const metricsData = [
     {
-      title: 'Total Leads',
+      title: 'Total de Leads',
       value: metrics.totalLeads.toString(),
       icon: Users,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50'
     },
     {
-      title: 'Valor Pipeline',
+      title: 'Valor em Negociação',
       value: formatCurrency(metrics.totalValue),
       icon: DollarSign,
       color: 'text-green-600',
       bgColor: 'bg-green-50'
     },
     {
-      title: 'Taxa Conversão',
+      title: 'Taxa de Conversão',
       value: `${metrics.conversionRate}%`,
       icon: Target,
       color: 'text-purple-600',
@@ -54,13 +53,6 @@ export const CRMMetricsComponent: React.FC<CRMMetricsProps> = ({ metrics }) => {
       bgColor: 'bg-orange-50'
     },
     {
-      title: 'Leads Mês',
-      value: metrics.leadsThisMonth.toString(),
-      icon: Calendar,
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-50'
-    },
-    {
       title: 'Vendas Mês',
       value: metrics.wonThisMonth.toString(),
       icon: Award,
@@ -70,17 +62,17 @@ export const CRMMetricsComponent: React.FC<CRMMetricsProps> = ({ metrics }) => {
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
       {metricsData.map((metric) => (
         <Card key={metric.title} className="hover:shadow-md transition-shadow">
-          <CardContent className="p-3">
-            <div className="flex items-center gap-2">
-              <div className={`p-1.5 rounded-md ${metric.bgColor}`}>
-                <metric.icon className={`w-4 h-4 ${metric.color}`} />
+          <CardContent className="p-2">
+            <div className="flex items-center gap-1.5">
+              <div className={`p-1 rounded-md ${metric.bgColor}`}>
+                <metric.icon className={`w-3 h-3 ${metric.color}`} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-lg font-bold text-gray-900 leading-none">{metric.value}</p>
-                <p className="text-xs text-gray-600 truncate mt-0.5">{metric.title}</p>
+                <p className="text-sm font-bold text-gray-900 leading-none">{metric.value}</p>
+                <p className="text-[10px] text-gray-600 truncate mt-0.5">{metric.title}</p>
               </div>
             </div>
           </CardContent>

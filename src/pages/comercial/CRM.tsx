@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -8,33 +8,69 @@ import {
   Search,
   Filter,
   Settings,
-  BarChart3,
+  Download,
   List,
-  Kanban,
-  Download
+  Kanban
 } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { CRMKanbanBoard } from '@/components/crm/CRMKanbanBoard';
 import { CRMListView } from '@/components/crm/CRMListView';
 import { CRMMetricsComponent } from '@/components/crm/CRMMetrics';
-import { mockLeads, defaultPipeline, mockMetrics } from '@/data/crmMockData';
-import { Lead } from '@/types/crm';
+import { LeadFormDialog } from '@/components/crm/LeadFormDialog';
+import { CRMConfigDialog } from '@/components/crm/CRMConfigDialog';
+import { mockLeads, pipelines, calculateMetrics } from '@/data/crmMockData';
+import { Lead, LeadFormData } from '@/types/crm';
 
 const CRM = () => {
   const [leads, setLeads] = useState<Lead[]>(mockLeads);
+  const [selectedPipeline, setSelectedPipeline] = useState('padrao');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStage, setFilterStage] = useState('');
   const [view, setView] = useState<'kanban' | 'list'>('kanban');
+  const [leadFormOpen, setLeadFormOpen] = useState(false);
+  const [configOpen, setConfigOpen] = useState(false);
+  const [editingLead, setEditingLead] = useState<Lead | undefined>();
+  const [defaultStage, setDefaultStage] = useState<string>('');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [leadToDelete, setLeadToDelete] = useState<string>('');
 
-  // Filtrar leads
+  // Get current pipeline
+  const currentPipeline = pipelines.find(p => p.id === selectedPipeline) || pipelines[0];
+  
+  // Filter leads based on pipeline, search and stage
   const filteredLeads = leads.filter(lead => {
+    // Pipeline filter
+    const matchesPipeline = selectedPipeline === 'padrao' || lead.pipelineId === selectedPipeline;
+    
+    // Search filter
     const matchesSearch = lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          lead.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          lead.email.toLowerCase().includes(searchTerm.toLowerCase());
     
+    // Stage filter
     const matchesStage = !filterStage || lead.stage === filterStage;
     
-    return matchesSearch && matchesStage;
+    return matchesPipeline && matchesSearch && matchesStage;
   });
+
+  // Calculate metrics for current pipeline
+  const metrics = calculateMetrics(leads, selectedPipeline);
 
   const handleLeadMove = (leadId: string, newStage: string) => {
     setLeads(prevLeads => 
@@ -44,30 +80,70 @@ const CRM = () => {
               ...lead, 
               stage: newStage, 
               updatedAt: new Date(),
-              probability: defaultPipeline.stages.find(s => s.id === newStage)?.probability || lead.probability
+              probability: currentPipeline.stages.find(s => s.id === newStage)?.probability || lead.probability
             }
           : lead
       )
     );
   };
 
+  const handleLeadSubmit = (formData: LeadFormData) => {
+    if (editingLead) {
+      // Update existing lead
+      setLeads(prevLeads =>
+        prevLeads.map(lead =>
+          lead.id === editingLead.id
+            ? {
+                ...lead,
+                ...formData,
+                updatedAt: new Date(),
+              }
+            : lead
+        )
+      );
+      setEditingLead(undefined);
+    } else {
+      // Create new lead
+      const newLead: Lead = {
+        id: `lead-${Date.now()}`,
+        ...formData,
+        stage: defaultStage || 'em-contato',
+        probability: currentPipeline.stages.find(s => s.id === (defaultStage || 'em-contato'))?.probability || 25,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        score: Math.floor(Math.random() * 100) + 1,
+        status: 'active',
+      };
+      setLeads(prevLeads => [...prevLeads, newLead]);
+    }
+    setDefaultStage('');
+  };
+
   const handleLeadEdit = (lead: Lead) => {
-    console.log('Edit lead:', lead);
-    // TODO: Implementar modal de edição
+    setEditingLead(lead);
+    setLeadFormOpen(true);
   };
 
   const handleLeadView = (lead: Lead) => {
     console.log('View lead:', lead);
-    // TODO: Implementar modal de visualização
+    // TODO: Implementar modal de visualização detalhada
   };
 
   const handleLeadDelete = (leadId: string) => {
-    setLeads(prevLeads => prevLeads.filter(lead => lead.id !== leadId));
+    setLeadToDelete(leadId);
+    setDeleteDialogOpen(true);
   };
 
-  const handleAddLead = (stage: string) => {
-    console.log('Add lead to stage:', stage);
-    // TODO: Implementar modal de criação de lead
+  const confirmDeleteLead = () => {
+    setLeads(prevLeads => prevLeads.filter(lead => lead.id !== leadToDelete));
+    setDeleteDialogOpen(false);
+    setLeadToDelete('');
+  };
+
+  const handleAddLead = (stage?: string) => {
+    setDefaultStage(stage || '');
+    setEditingLead(undefined);
+    setLeadFormOpen(true);
   };
 
   return (
@@ -83,11 +159,18 @@ const CRM = () => {
             <Download className="w-4 h-4 mr-2" />
             Exportar
           </Button>
-          <Button variant="outline" size="sm">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setConfigOpen(true)}
+          >
             <Settings className="w-4 h-4 mr-2" />
             Configurações
           </Button>
-          <Button className="flex items-center gap-2">
+          <Button 
+            className="flex items-center gap-2"
+            onClick={() => handleAddLead()}
+          >
             <Plus className="w-4 h-4" />
             Novo Lead
           </Button>
@@ -95,7 +178,7 @@ const CRM = () => {
       </div>
 
       {/* Métricas Compactas */}
-      <CRMMetricsComponent metrics={mockMetrics} />
+      <CRMMetricsComponent metrics={metrics} />
 
       {/* Filtros */}
       <Card>
@@ -112,13 +195,25 @@ const CRM = () => {
               />
             </div>
 
+            <Select value={selectedPipeline} onValueChange={setSelectedPipeline}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Selecionar Pipeline" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="padrao">Padrão (Todos)</SelectItem>
+                <SelectItem value="assessoria">Assessoria</SelectItem>
+                <SelectItem value="produtora">Produtora</SelectItem>
+                <SelectItem value="consultoria">Consultoria</SelectItem>
+              </SelectContent>
+            </Select>
+
             <select
               value={filterStage}
               onChange={(e) => setFilterStage(e.target.value)}
               className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
             >
               <option value="">Todos os estágios</option>
-              {defaultPipeline.stages.map(stage => (
+              {currentPipeline.stages.map(stage => (
                 <option key={stage.id} value={stage.id}>{stage.name}</option>
               ))}
             </select>
@@ -152,7 +247,7 @@ const CRM = () => {
             <span className="text-sm text-gray-600">Pipeline:</span>
             <Badge variant="outline" className="flex items-center gap-1">
               <div className="w-2 h-2 bg-green-500 rounded-full" />
-              {defaultPipeline.name}
+              {currentPipeline.name}
             </Badge>
             <span className="text-xs text-gray-500">
               {filteredLeads.length} de {leads.length} leads
@@ -161,31 +256,66 @@ const CRM = () => {
         </CardContent>
       </Card>
 
-      {/* Conteúdo Principal com Scroll Limitado */}
-      <div className="min-h-[600px] max-h-[calc(100vh-350px)]">
+      {/* Conteúdo Principal com altura fixa */}
+      <div className="h-[500px]">
         {view === 'kanban' ? (
-          <div className="h-full overflow-x-auto overflow-y-hidden">
-            <CRMKanbanBoard
-              leads={filteredLeads}
-              pipeline={defaultPipeline}
-              onLeadMove={handleLeadMove}
-              onLeadEdit={handleLeadEdit}
-              onLeadView={handleLeadView}
-              onLeadDelete={handleLeadDelete}
-              onAddLead={handleAddLead}
-            />
-          </div>
+          <CRMKanbanBoard
+            leads={filteredLeads}
+            pipeline={currentPipeline}
+            onLeadMove={handleLeadMove}
+            onLeadEdit={handleLeadEdit}
+            onLeadView={handleLeadView}
+            onLeadDelete={handleLeadDelete}
+            onAddLead={handleAddLead}
+          />
         ) : (
-          <div className="h-full overflow-y-auto">
-            <CRMListView
-              leads={filteredLeads}
-              onLeadEdit={handleLeadEdit}
-              onLeadView={handleLeadView}
-              onLeadDelete={handleLeadDelete}
-            />
-          </div>
+          <CRMListView
+            leads={filteredLeads}
+            onLeadEdit={handleLeadEdit}
+            onLeadView={handleLeadView}
+            onLeadDelete={handleLeadDelete}
+            onAddLead={() => handleAddLead()}
+          />
         )}
       </div>
+
+      {/* Dialogs */}
+      <LeadFormDialog
+        open={leadFormOpen}
+        onClose={() => {
+          setLeadFormOpen(false);
+          setEditingLead(undefined);
+          setDefaultStage('');
+        }}
+        onSubmit={handleLeadSubmit}
+        lead={editingLead}
+        defaultStage={defaultStage}
+        defaultPipelineId={selectedPipeline === 'padrao' ? 'assessoria' : selectedPipeline}
+      />
+
+      <CRMConfigDialog
+        open={configOpen}
+        onClose={() => setConfigOpen(false)}
+      />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este lead? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteDialogOpen(false)}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteLead} className="bg-red-600 hover:bg-red-700">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
