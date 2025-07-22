@@ -5,13 +5,14 @@ import { mockProjects } from '@/data/mockData';
 import { Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { TaskProvider } from '@/contexts/TaskContext';
 import ProjectHeader from '@/components/project/ProjectHeader';
 import ProjectMetaInfo from '@/components/project/ProjectMetaInfo';
 import ProjectChecklist from '@/components/project/ProjectChecklist';
 import EditableSection from '@/components/project/EditableSection';
 import { Project } from '@/types/entities';
 
-const ProjectDetail = () => {
+const ProjectDetailContent = () => {
   const { id } = useParams();
   const { toast } = useToast();
   const project = mockProjects.find(p => p.id === id);
@@ -24,13 +25,13 @@ const ProjectDetail = () => {
   const [materials, setMaterials] = useState("• Manual da marca: https://drive.google.com/...\n• Figma com layouts: https://figma.com/...\n• Briefing original: [arquivo anexado]\n• Referências visuais: https://pinterest.com/...");
 
   const [checklist, setChecklist] = useState([
-    { id: 1, task: "Criação de wireframe da landing page", completed: true, date: "05/10/2024" },
-    { id: 2, task: "Aprovação do layout pelo cliente", completed: true, date: "08/10/2024" },
-    { id: 3, task: "Produção das peças gráficas", completed: false, date: "15/10/2024" },
-    { id: 4, task: "Desenvolvimento da landing page", completed: false, date: "20/10/2024" },
-    { id: 5, task: "Criação dos e-mails marketing", completed: false, date: "25/10/2024" },
-    { id: 6, task: "Configuração das campanhas de tráfego", completed: false, date: "28/10/2024" },
-    { id: 7, task: "Lançamento da campanha", completed: false, date: "01/11/2024" }
+    { id: 1, task: "Criação de wireframe da landing page", completed: true, date: "05/10/2024", isLinked: false },
+    { id: 2, task: "Aprovação do layout pelo cliente", completed: true, date: "08/10/2024", isLinked: false },
+    { id: 3, task: "Produção das peças gráficas", completed: false, date: "15/10/2024", isLinked: false },
+    { id: 4, task: "Desenvolvimento da landing page", completed: false, date: "20/10/2024", isLinked: false },
+    { id: 5, task: "Criação dos e-mails marketing", completed: false, date: "25/10/2024", isLinked: false },
+    { id: 6, task: "Configuração das campanhas de tráfego", completed: false, date: "28/10/2024", isLinked: false },
+    { id: 7, task: "Lançamento da campanha", completed: false, date: "01/11/2024", isLinked: false }
   ]);
 
   if (!project || !editedProject) {
@@ -101,6 +102,7 @@ const ProjectDetail = () => {
           checklist={checklist}
           isEditing={isEditing}
           onUpdate={setChecklist}
+          projectId={project.id}
         />
 
         <EditableSection
@@ -132,6 +134,14 @@ const ProjectDetail = () => {
         )}
       </div>
     </div>
+  );
+};
+
+const ProjectDetail = () => {
+  return (
+    <TaskProvider>
+      <ProjectDetailContent />
+    </TaskProvider>
   );
 };
 
