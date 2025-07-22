@@ -1,4 +1,3 @@
-
 export interface Client {
   id: string;
   name: string;
@@ -80,6 +79,7 @@ export interface Task {
   priority: 'low' | 'medium' | 'high';
   type: string; // Reference to TaskType
   assignee: string;
+  watchers: string[]; // New field for multiple watchers
   squad: string;
   clientId: string;
   client: Client;

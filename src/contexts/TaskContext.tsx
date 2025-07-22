@@ -14,6 +14,8 @@ interface TaskContextType {
   setCurrentKanban: (kanban: KanbanConfig) => void;
   addTaskType: (taskType: Omit<TaskType, 'id'>) => void;
   updateKanbanConfig: (id: string, updates: Partial<KanbanConfig>) => void;
+  addKanbanConfig: (kanban: Omit<KanbanConfig, 'id'>) => void;
+  deleteKanbanConfig: (id: string) => void;
   getTasksByKanban: (kanbanId: string) => Task[];
 }
 
@@ -41,6 +43,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       comments: [],
       attachments: [],
       customFields: {},
+      watchers: taskData.watchers || [],
     };
     setTasks(prev => [newTask, ...prev]);
   };
@@ -71,6 +74,30 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         config.id === id ? { ...config, ...updates } : config
       )
     );
+    
+    // Update currentKanban if it's the one being updated
+    if (currentKanban.id === id) {
+      setCurrentKanban(prev => ({ ...prev, ...updates }));
+    }
+  };
+
+  const addKanbanConfig = (kanbanData: Omit<KanbanConfig, 'id'>) => {
+    const newKanban: KanbanConfig = {
+      ...kanbanData,
+      id: `kanban-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    };
+    setKanbanConfigs(prev => [...prev, newKanban]);
+  };
+
+  const deleteKanbanConfig = (id: string) => {
+    if (id === 'geral') return; // Don't allow deleting the general kanban
+    
+    setKanbanConfigs(prev => prev.filter(config => config.id !== id));
+    
+    // If deleting the current kanban, switch to general
+    if (currentKanban.id === id) {
+      setCurrentKanban(kanbanConfigs.find(k => k.id === 'geral') || kanbanConfigs[0]);
+    }
   };
 
   const getTasksByKanban = (kanbanId: string) => {
@@ -97,6 +124,8 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setCurrentKanban,
         addTaskType,
         updateKanbanConfig,
+        addKanbanConfig,
+        deleteKanbanConfig,
         getTasksByKanban,
       }}
     >
