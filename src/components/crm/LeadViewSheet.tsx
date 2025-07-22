@@ -99,10 +99,18 @@ export const LeadViewSheet: React.FC<LeadViewSheetProps> = ({
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent side="right" className="w-1/2 max-w-2xl overflow-y-auto">
+      <SheetContent side="right" className="w-3/5 max-w-3xl overflow-y-auto bg-background border-l border-border">
         <SheetHeader className="pb-4">
           <div className="flex items-center justify-between">
-            <SheetTitle className="text-xl font-bold">{lead.name}</SheetTitle>
+            {isEditing ? (
+              <Input
+                value={editedLead.name ?? lead.name}
+                onChange={(e) => setEditedLead({ ...editedLead, name: e.target.value })}
+                className="text-xl font-bold"
+              />
+            ) : (
+              <SheetTitle className="text-xl font-bold">{lead.name}</SheetTitle>
+            )}
             <div className="flex items-center gap-2">
               {!isEditing ? (
                 <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
@@ -125,7 +133,16 @@ export const LeadViewSheet: React.FC<LeadViewSheetProps> = ({
             <Badge variant="outline" className={currentStage?.color}>
               {currentStage?.name}
             </Badge>
-            <span className="text-sm text-gray-500">• {lead.company}</span>
+            {isEditing ? (
+              <Input
+                value={editedLead.company ?? lead.company}
+                onChange={(e) => setEditedLead({ ...editedLead, company: e.target.value })}
+                className="text-sm ml-1"
+                placeholder="Nome da empresa"
+              />
+            ) : (
+              <span className="text-sm text-gray-500">• {lead.company}</span>
+            )}
           </div>
         </SheetHeader>
 
@@ -164,27 +181,48 @@ export const LeadViewSheet: React.FC<LeadViewSheetProps> = ({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Email</Label>
-                <div className="flex items-center gap-2 text-sm">
-                  <Mail className="w-4 h-4 text-gray-500" />
-                  {lead.email}
-                </div>
+                {isEditing ? (
+                  <Input
+                    value={editedLead.email ?? lead.email}
+                    onChange={(e) => setEditedLead({ ...editedLead, email: e.target.value })}
+                  />
+                ) : (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Mail className="w-4 h-4 text-gray-500" />
+                    {lead.email}
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Telefone</Label>
-                <div className="flex items-center gap-2 text-sm">
-                  <Phone className="w-4 h-4 text-gray-500" />
-                  {lead.phone}
-                </div>
+                {isEditing ? (
+                  <Input
+                    value={editedLead.phone ?? lead.phone}
+                    onChange={(e) => setEditedLead({ ...editedLead, phone: e.target.value })}
+                  />
+                ) : (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Phone className="w-4 h-4 text-gray-500" />
+                    {lead.phone}
+                  </div>
+                )}
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Cargo</Label>
-                <div className="flex items-center gap-2 text-sm">
-                  <User className="w-4 h-4 text-gray-500" />
-                  {lead.position}
-                </div>
+                {isEditing ? (
+                  <Input
+                    value={editedLead.position ?? lead.position}
+                    onChange={(e) => setEditedLead({ ...editedLead, position: e.target.value })}
+                  />
+                ) : (
+                  <div className="flex items-center gap-2 text-sm">
+                    <User className="w-4 h-4 text-gray-500" />
+                    {lead.position}
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Responsável</Label>
