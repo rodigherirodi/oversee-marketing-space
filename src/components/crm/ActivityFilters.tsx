@@ -96,7 +96,7 @@ export const ActivityFiltersComponent: React.FC<ActivityFiltersProps> = ({
             <SelectValue placeholder="Filtrar por Lead" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos os Leads</SelectItem>
+            <SelectItem value="all">Todos os Leads</SelectItem>
             {leads.map((lead) => (
               <SelectItem key={lead.id} value={lead.id}>
                 {lead.name} - {lead.company}
@@ -113,7 +113,7 @@ export const ActivityFiltersComponent: React.FC<ActivityFiltersProps> = ({
             <SelectValue placeholder="Tipo" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos os Tipos</SelectItem>
+            <SelectItem value="all">Todos os Tipos</SelectItem>
             {activityTypes.map((type) => (
               <SelectItem key={type.value} value={type.value}>
                 {type.label}
@@ -130,7 +130,7 @@ export const ActivityFiltersComponent: React.FC<ActivityFiltersProps> = ({
             <SelectValue placeholder="Responsável" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos</SelectItem>
+            <SelectItem value="all">Todos</SelectItem>
             {teamMembers.map((member) => (
               <SelectItem key={member} value={member}>
                 {member}
@@ -140,9 +140,9 @@ export const ActivityFiltersComponent: React.FC<ActivityFiltersProps> = ({
         </Select>
 
         <Select
-          value={filters.completed !== undefined ? String(filters.completed) : ''}
+          value={filters.completed !== undefined ? String(filters.completed) : 'all'}
           onValueChange={(value) => {
-            if (value === '') {
+            if (value === 'all') {
               const newFilters = { ...filters };
               delete newFilters.completed;
               onFilterChange(newFilters);
@@ -155,7 +155,7 @@ export const ActivityFiltersComponent: React.FC<ActivityFiltersProps> = ({
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos</SelectItem>
+            <SelectItem value="all">Todos</SelectItem>
             <SelectItem value="true">Concluídas</SelectItem>
             <SelectItem value="false">Pendentes</SelectItem>
           </SelectContent>
@@ -199,6 +199,7 @@ export const ActivityFiltersComponent: React.FC<ActivityFiltersProps> = ({
                 }
               }}
               initialFocus
+              className="pointer-events-auto"
             />
           </PopoverContent>
         </Popover>

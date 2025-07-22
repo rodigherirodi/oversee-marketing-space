@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -109,13 +110,14 @@ const Activities: React.FC = () => {
       activity.description.toLowerCase().includes(filters.search.toLowerCase());
     
     // Lead filter
-    const matchesLead = !filters.leadId || activity.leadId === filters.leadId;
+    const matchesLead = !filters.leadId || filters.leadId === 'all' || activity.leadId === filters.leadId;
     
     // Type filter
-    const matchesType = !filters.type || activity.type === filters.type;
+    const matchesType = !filters.type || filters.type === 'all' || activity.type === filters.type;
     
     // Responsible person filter
     const matchesResponsible = !filters.responsiblePerson || 
+      filters.responsiblePerson === 'all' || 
       activity.responsiblePerson === filters.responsiblePerson;
     
     // Date range filter

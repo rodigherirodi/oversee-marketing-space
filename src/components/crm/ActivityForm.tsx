@@ -99,6 +99,7 @@ export const ActivityForm: React.FC<ActivityFormProps> = ({
     { value: 'note', label: 'Nota' },
     { value: 'task', label: 'Tarefa' },
     { value: 'follow_up', label: 'Follow-up' },
+    { value: 'stage_change', label: 'Mudança de Estágio' },
   ];
 
   const outcomeOptions = [
@@ -262,6 +263,7 @@ export const ActivityForm: React.FC<ActivityFormProps> = ({
                         onSelect={field.onChange}
                         disabled={(date) => date < new Date("1900-01-01")}
                         initialFocus
+                        className="pointer-events-auto"
                       />
                     </PopoverContent>
                   </Popover>
