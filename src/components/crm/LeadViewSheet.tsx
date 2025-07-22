@@ -244,7 +244,7 @@ export const LeadViewSheet: React.FC<LeadViewSheetProps> = ({
   return (
     <>
       <Sheet open={open} onOpenChange={onClose}>
-        <SheetContent side="right" className="w-[calc(50vw+400px)] overflow-y-auto bg-background border-l border-border">
+        <SheetContent side="right" className="w-3xl overflow-y-auto bg-background border-l border-border">
           <SheetHeader className="pb-4">
             <div className="flex items-center justify-between">
               {isEditing ? (
