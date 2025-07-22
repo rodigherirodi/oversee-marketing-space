@@ -33,7 +33,8 @@ import {
   Cog,
   FileCheck,
   UserCog,
-  Calculator
+  Calculator,
+  Activity
 } from 'lucide-react';
 
 export interface WorkspacePage {
@@ -99,6 +100,7 @@ const workspaces: Workspace[] = [
     color: 'bg-green-100 text-green-700',
     pages: [
       { name: 'CRM', path: '/comercial/crm', icon: UserCircle },
+      { name: 'Atividades', path: '/comercial/activities', icon: Activity },
       { name: 'Playbooks', path: '/comercial/playbooks', icon: BookText },
       { name: 'Money', path: '/comercial/money', icon: Coins }
     ]

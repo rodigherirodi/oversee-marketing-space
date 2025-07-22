@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,10 +23,11 @@ import {
 } from 'lucide-react';
 import { PipelineProgress } from '@/components/crm/PipelineProgress';
 import { ActivityTimeline } from '@/components/crm/ActivityTimeline';
-import { ActivityForm } from '@/components/crm/ActivityForm';
-import { Lead, LeadActivity, LeadFormData, ActivityFormData, Pipeline } from '@/types/crm';
+import { EditableField } from '@/components/crm/EditableField';
+import { TagEditor } from '@/components/crm/TagEditor';
+import { QuickActivityForm } from '@/components/crm/QuickActivityForm';
+import { Lead, LeadActivity, ActivityFormData, Pipeline } from '@/types/crm';
 import { mockLeads, pipelines } from '@/data/crmMockData';
-import { LeadFormDialog } from '@/components/crm/LeadFormDialog';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -45,9 +45,11 @@ const LeadDetail: React.FC = () => {
   
   const [lead, setLead] = useState<Lead | null>(null);
   const [pipeline, setPipeline] = useState<Pipeline | null>(null);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [activityFormOpen, setActivityFormOpen] = useState(false);
+  const [quickActivityForm, setQuickActivityForm] = useState<{
+    open: boolean;
+    type: 'call' | 'email' | 'meeting' | null;
+  }>({ open: false, type: null });
   
   // Find the lead and its pipeline
   useEffect(() => {
@@ -57,7 +59,6 @@ const LeadDetail: React.FC = () => {
       const foundPipeline = pipelines.find(p => p.id === foundLead.pipelineId) || pipelines[0];
       setPipeline(foundPipeline);
     } else {
-      // Lead not found, redirect to CRM
       navigate('/comercial/crm');
     }
   }, [id, navigate]);
@@ -80,19 +81,31 @@ const LeadDetail: React.FC = () => {
     setLead(updatedLead);
   };
 
-  const handleLeadUpdate = (formData: LeadFormData) => {
+  const handleFieldUpdate = (field: keyof Lead) => async (value: string | number) => {
     const updatedLead = {
       ...lead,
-      ...formData,
+      [field]: value,
       updatedAt: new Date()
     };
     setLead(updatedLead);
-    setEditDialogOpen(false);
+    // In a real app, this would save to backend
+  };
+
+  const handleTagsUpdate = async (tags: string[]) => {
+    const updatedLead = {
+      ...lead,
+      tags,
+      updatedAt: new Date()
+    };
+    setLead(updatedLead);
   };
 
   const handleDeleteLead = () => {
-    // In a real app, this would delete from the backend
     navigate('/comercial/crm');
+  };
+
+  const handleQuickActivity = (type: 'call' | 'email' | 'meeting') => {
+    setQuickActivityForm({ open: true, type });
   };
 
   const handleAddActivity = (activity: ActivityFormData) => {
@@ -156,7 +169,6 @@ const LeadDetail: React.FC = () => {
     }).format(date);
   };
 
-  // Get the team members (in a real app this would come from an API)
   const teamMembers = [
     'Maria Santos',
     'Carlos Lima',
@@ -179,9 +191,18 @@ const LeadDetail: React.FC = () => {
           </Button>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold text-gray-900">{lead.name}</h1>
+              <EditableField
+                value={lead.name}
+                onSave={handleFieldUpdate('name')}
+                placeholder="Nome do lead"
+                displayComponent={<h1 className="text-2xl font-bold text-gray-900">{lead.name}</h1>}
+              />
               <Badge variant="outline" className="text-sm">
-                {lead.company}
+                <EditableField
+                  value={lead.company}
+                  onSave={handleFieldUpdate('company')}
+                  placeholder="Empresa"
+                />
               </Badge>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -196,14 +217,6 @@ const LeadDetail: React.FC = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setEditDialogOpen(true)}
-          >
-            <Edit className="w-4 h-4 mr-2" />
-            Editar
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
             className="text-red-600 hover:text-red-700"
             onClick={() => setDeleteDialogOpen(true)}
           >
@@ -212,6 +225,18 @@ const LeadDetail: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      {/* Quick Activity Form */}
+      {quickActivityForm.open && quickActivityForm.type && (
+        <QuickActivityForm
+          leadId={lead.id}
+          leadName={lead.name}
+          activityType={quickActivityForm.type}
+          teamMembers={teamMembers}
+          onSubmit={handleAddActivity}
+          onCancel={() => setQuickActivityForm({ open: false, type: null })}
+        />
+      )}
 
       {/* Lead pipeline progress */}
       <Card>
@@ -245,15 +270,29 @@ const LeadDetail: React.FC = () => {
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
                       <Mail className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm">{lead.email}</span>
+                      <EditableField
+                        value={lead.email}
+                        onSave={handleFieldUpdate('email')}
+                        type="email"
+                        placeholder="Email"
+                      />
                     </div>
                     <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm">{lead.phone}</span>
+                      <EditableField
+                        value={lead.phone}
+                        onSave={handleFieldUpdate('phone')}
+                        type="phone"
+                        placeholder="Telefone"
+                      />
                     </div>
                     <div className="flex items-center gap-2">
                       <Building2 className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm">{lead.position} - {lead.company}</span>
+                      <EditableField
+                        value={lead.position}
+                        onSave={handleFieldUpdate('position')}
+                        placeholder="Cargo"
+                      />
                     </div>
                     <div className="flex items-center gap-2">
                       <User className="w-4 h-4 text-gray-500" />
@@ -299,9 +338,12 @@ const LeadDetail: React.FC = () => {
                   <CardTitle className="text-lg">Descrição</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-gray-700">
-                    {lead.description || "Nenhuma descrição disponível."}
-                  </p>
+                  <EditableField
+                    value={lead.description || ""}
+                    onSave={handleFieldUpdate('description')}
+                    type="textarea"
+                    placeholder="Clique para adicionar uma descrição..."
+                  />
                 </CardContent>
               </Card>
               
@@ -313,17 +355,10 @@ const LeadDetail: React.FC = () => {
                     <CardTitle className="text-lg">Tags</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex flex-wrap gap-2">
-                      {lead.tags.length > 0 ? (
-                        lead.tags.map((tag) => (
-                          <Badge key={tag} variant="secondary">
-                            {tag}
-                          </Badge>
-                        ))
-                      ) : (
-                        <span className="text-sm text-gray-500">Nenhuma tag</span>
-                      )}
-                    </div>
+                    <TagEditor
+                      tags={lead.tags}
+                      onSave={handleTagsUpdate}
+                    />
                   </CardContent>
                 </Card>
                 
@@ -350,7 +385,7 @@ const LeadDetail: React.FC = () => {
                   </CardContent>
                 </Card>
               </div>
-              
+
               {/* Related Contacts */}
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
@@ -402,7 +437,7 @@ const LeadDetail: React.FC = () => {
                 <h3 className="text-lg font-medium">Histórico de Atividades</h3>
                 <Button 
                   size="sm"
-                  onClick={() => setActivityFormOpen(true)}
+                  onClick={() => setQuickActivityForm({ open: true, type: 'call' })}
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Nova Atividade
@@ -411,7 +446,7 @@ const LeadDetail: React.FC = () => {
               
               <ActivityTimeline 
                 activities={lead.activities}
-                onActivityAdd={() => setActivityFormOpen(true)}
+                onActivityAdd={() => setQuickActivityForm({ open: true, type: 'call' })}
               />
             </TabsContent>
             
@@ -493,15 +528,27 @@ const LeadDetail: React.FC = () => {
               <CardTitle className="text-lg">Ações Rápidas</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button className="w-full justify-start" variant="outline">
+              <Button 
+                className="w-full justify-start" 
+                variant="outline"
+                onClick={() => handleQuickActivity('call')}
+              >
                 <Phone className="w-4 h-4 mr-2" />
                 Registrar Ligação
               </Button>
-              <Button className="w-full justify-start" variant="outline">
+              <Button 
+                className="w-full justify-start" 
+                variant="outline"
+                onClick={() => handleQuickActivity('email')}
+              >
                 <Mail className="w-4 h-4 mr-2" />
                 Enviar E-mail
               </Button>
-              <Button className="w-full justify-start" variant="outline">
+              <Button 
+                className="w-full justify-start" 
+                variant="outline"
+                onClick={() => handleQuickActivity('meeting')}
+              >
                 <Calendar className="w-4 h-4 mr-2" />
                 Agendar Reunião
               </Button>
@@ -559,7 +606,7 @@ const LeadDetail: React.FC = () => {
               <Button 
                 className="w-full justify-start" 
                 variant="ghost"
-                onClick={() => navigate('/comercial/activities')}
+                onClick={() => navigate(`/comercial/activities?leadId=${lead.id}`)}
               >
                 <Clock className="w-4 h-4 mr-2" />
                 Ver Todas Atividades
@@ -577,31 +624,7 @@ const LeadDetail: React.FC = () => {
         </div>
       </div>
 
-      {/* Dialogs */}
-      <LeadFormDialog
-        open={editDialogOpen}
-        onClose={() => setEditDialogOpen(false)}
-        onSubmit={handleLeadUpdate}
-        lead={lead}
-        defaultPipelineId={lead.pipelineId}
-      />
-
-      <ActivityForm
-        open={activityFormOpen}
-        onClose={() => setActivityFormOpen(false)}
-        onSubmit={handleAddActivity}
-        leads={[lead]}
-        teamMembers={teamMembers}
-        activity={{
-          type: 'call',
-          title: '',
-          description: '',
-          leadId: lead.id,
-          responsiblePerson: lead.assignedTo,
-          completed: false,
-        }}
-      />
-
+      {/* Delete Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
