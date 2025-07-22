@@ -37,7 +37,7 @@ import { ptBR } from 'date-fns/locale';
 import { ActivityFormData, Lead } from '@/types/crm';
 
 const formSchema = z.object({
-  type: z.enum(['call', 'email', 'meeting', 'note', 'task', 'follow_up'], {
+  type: z.enum(['call', 'email', 'meeting', 'note', 'task', 'follow_up', 'stage_change'], {
     required_error: "Selecione o tipo de atividade",
   }),
   title: z.string().min(3, {

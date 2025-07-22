@@ -15,8 +15,8 @@ import { useNavigate } from 'react-router-dom';
 
 interface LeadCardProps {
   lead: Lead;
-  onEdit: (lead: Lead) => void;
-  onDelete: (leadId: string) => void;
+  onEdit?: (lead: Lead) => void;
+  onDelete?: (leadId: string) => void;
 }
 
 export const LeadCard: React.FC<LeadCardProps> = ({

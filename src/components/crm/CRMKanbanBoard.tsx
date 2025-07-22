@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   DndContext,
@@ -26,14 +25,12 @@ import { Plus } from 'lucide-react';
 interface SortableLeadCardProps {
   lead: Lead;
   onEdit: (lead: Lead) => void;
-  onView: (lead: Lead) => void;
   onDelete: (leadId: string) => void;
 }
 
 const SortableLeadCard: React.FC<SortableLeadCardProps> = ({
   lead,
   onEdit,
-  onView,
   onDelete
 }) => {
   const {
@@ -61,7 +58,6 @@ const SortableLeadCard: React.FC<SortableLeadCardProps> = ({
       <LeadCard
         lead={lead}
         onEdit={onEdit}
-        onView={onView}
         onDelete={onDelete}
       />
     </div>
@@ -72,7 +68,6 @@ interface KanbanColumnProps {
   stage: PipelineStage;
   leads: Lead[];
   onEdit: (lead: Lead) => void;
-  onView: (lead: Lead) => void;
   onDelete: (leadId: string) => void;
   onAddLead: (stage: string) => void;
 }
@@ -81,7 +76,6 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
   stage,
   leads,
   onEdit,
-  onView,
   onDelete,
   onAddLead
 }) => {
@@ -135,7 +129,6 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
                   key={lead.id}
                   lead={lead}
                   onEdit={onEdit}
-                  onView={onView}
                   onDelete={onDelete}
                 />
               ))}
@@ -158,7 +151,6 @@ interface CRMKanbanBoardProps {
   pipeline: Pipeline;
   onLeadMove: (leadId: string, newStage: string) => void;
   onLeadEdit: (lead: Lead) => void;
-  onLeadView: (lead: Lead) => void;
   onLeadDelete: (leadId: string) => void;
   onAddLead: (stage: string) => void;
 }
@@ -168,7 +160,6 @@ export const CRMKanbanBoard: React.FC<CRMKanbanBoardProps> = ({
   pipeline,
   onLeadMove,
   onLeadEdit,
-  onLeadView,
   onLeadDelete,
   onAddLead
 }) => {
@@ -256,7 +247,6 @@ export const CRMKanbanBoard: React.FC<CRMKanbanBoardProps> = ({
               stage={stage}
               leads={leads}
               onEdit={onLeadEdit}
-              onView={onLeadView}
               onDelete={onLeadDelete}
               onAddLead={onAddLead}
             />
@@ -268,7 +258,6 @@ export const CRMKanbanBoard: React.FC<CRMKanbanBoardProps> = ({
           <LeadCard
             lead={activeLeadData}
             onEdit={() => {}}
-            onView={() => {}}
             onDelete={() => {}}
           />
         ) : null}

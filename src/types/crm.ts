@@ -84,7 +84,7 @@ export interface PipelineStage {
 export interface Activity {
   id: string;
   leadId: string;
-  type: 'call' | 'email' | 'meeting' | 'note' | 'task' | 'stage_change';
+  type: 'call' | 'email' | 'meeting' | 'note' | 'task' | 'stage_change' | 'follow_up';
   title: string;
   description: string;
   createdAt: Date;
