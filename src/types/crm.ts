@@ -55,6 +55,7 @@ export interface LeadActivity {
   description: string;
   createdAt: Date;
   createdBy: string;
+  responsiblePerson?: string;
   dueDate?: Date;
   completed: boolean;
   outcome?: 'positive' | 'negative' | 'neutral';
@@ -88,6 +89,7 @@ export interface Activity {
   description: string;
   createdAt: Date;
   createdBy: string;
+  responsiblePerson: string;
   dueDate?: Date;
   completed?: boolean;
   outcome?: 'positive' | 'negative' | 'neutral';
@@ -137,4 +139,24 @@ export interface LeadFormData {
   assignedTo: string;
   tags: string[];
   customFields: Record<string, any>;
+}
+
+export interface ActivityFormData {
+  type: 'call' | 'email' | 'meeting' | 'note' | 'task' | 'follow_up';
+  title: string;
+  description: string;
+  leadId: string;
+  responsiblePerson: string;
+  dueDate?: Date;
+  completed: boolean;
+  outcome?: 'positive' | 'negative' | 'neutral';
+}
+
+export interface ActivityFilters {
+  search?: string;
+  leadId?: string;
+  type?: string;
+  responsiblePerson?: string;
+  dateRange?: { start: Date; end: Date };
+  completed?: boolean;
 }

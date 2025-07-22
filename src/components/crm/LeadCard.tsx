@@ -11,18 +11,21 @@ import {
   User, 
   Building2
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface LeadCardProps {
   lead: Lead;
-  onView: (lead: Lead) => void;
   onEdit: (lead: Lead) => void;
   onDelete: (leadId: string) => void;
 }
 
 export const LeadCard: React.FC<LeadCardProps> = ({
   lead,
-  onView
+  onEdit,
+  onDelete
 }) => {
+  const navigate = useNavigate();
+
   const getSourceBadgeColor = (source: string) => {
     switch (source) {
       case 'website': return 'bg-blue-100 text-blue-700';
@@ -55,10 +58,14 @@ export const LeadCard: React.FC<LeadCardProps> = ({
     }).format(date);
   };
 
+  const handleCardClick = () => {
+    navigate(`/comercial/crm/lead/${lead.id}`);
+  };
+
   return (
     <Card 
       className="hover:shadow-md transition-all cursor-pointer hover:border-primary/50"
-      onClick={() => onView(lead)}
+      onClick={handleCardClick}
     >
       <CardContent className="p-4 space-y-3">
         {/* Header */}

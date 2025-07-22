@@ -10,7 +10,8 @@ import {
   Settings,
   Download,
   List,
-  Kanban
+  Kanban,
+  Clock
 } from 'lucide-react';
 import {
   Select,
@@ -34,11 +35,12 @@ import { CRMListView } from '@/components/crm/CRMListView';
 import { CRMMetricsComponent } from '@/components/crm/CRMMetrics';
 import { LeadFormDialog } from '@/components/crm/LeadFormDialog';
 import { CRMConfigDialog } from '@/components/crm/CRMConfigDialog';
-import { LeadViewSheet } from '@/components/crm/LeadViewSheet';
 import { mockLeads, pipelines, calculateMetrics } from '@/data/crmMockData';
 import { Lead, LeadFormData } from '@/types/crm';
+import { useNavigate, Link } from 'react-router-dom';
 
 const CRM = () => {
+  const navigate = useNavigate();
   const [leads, setLeads] = useState<Lead[]>(mockLeads);
   const [selectedPipeline, setSelectedPipeline] = useState('padrao');
   const [searchTerm, setSearchTerm] = useState('');
@@ -50,8 +52,6 @@ const CRM = () => {
   const [defaultStage, setDefaultStage] = useState<string>('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [leadToDelete, setLeadToDelete] = useState<string>('');
-  const [viewingLead, setViewingLead] = useState<Lead | null>(null);
-  const [leadViewOpen, setLeadViewOpen] = useState(false);
 
   // Get current pipeline
   const currentPipeline = pipelines.find(p => p.id === selectedPipeline) || pipelines[0];
@@ -141,8 +141,7 @@ const CRM = () => {
   };
 
   const handleLeadView = (lead: Lead) => {
-    setViewingLead(lead);
-    setLeadViewOpen(true);
+    navigate(`/comercial/crm/lead/${lead.id}`);
   };
 
   const handleLeadDelete = (leadId: string) => {
@@ -162,29 +161,6 @@ const CRM = () => {
     setLeadFormOpen(true);
   };
 
-  const handleLeadUpdate = (leadId: string, updates: Partial<Lead>) => {
-    setLeads(prevLeads =>
-      prevLeads.map(lead =>
-        lead.id === leadId
-          ? { ...lead, ...updates, updatedAt: new Date() }
-          : lead
-      )
-    );
-
-    // Update viewing lead if it's the same one being updated
-    if (viewingLead?.id === leadId) {
-      setViewingLead(prev => prev ? { ...prev, ...updates } : null);
-    }
-  };
-
-  const handleStageChange = (leadId: string, newStage: string) => {
-    const stageData = currentPipeline.stages.find(s => s.id === newStage);
-    handleLeadUpdate(leadId, {
-      stage: newStage,
-      probability: stageData?.probability || 0
-    });
-  };
-
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -194,6 +170,14 @@ const CRM = () => {
           <p className="text-gray-600">Gerencie leads e oportunidades com inteligência</p>
         </div>
         <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => navigate('/comercial/activities')}
+          >
+            <Clock className="w-4 h-4 mr-2" />
+            Atividades
+          </Button>
           <Button variant="outline" size="sm">
             <Download className="w-4 h-4 mr-2" />
             Exportar
@@ -330,18 +314,6 @@ const CRM = () => {
         lead={editingLead}
         defaultStage={defaultStage}
         defaultPipelineId={selectedPipeline === 'padrao' ? 'assessoria' : selectedPipeline}
-      />
-
-      <LeadViewSheet
-        open={leadViewOpen}
-        onClose={() => {
-          setLeadViewOpen(false);
-          setViewingLead(null);
-        }}
-        lead={viewingLead}
-        pipeline={currentPipeline}
-        onLeadUpdate={handleLeadUpdate}
-        onStageChange={handleStageChange}
       />
 
       <CRMConfigDialog

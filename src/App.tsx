@@ -29,6 +29,8 @@ import NotFound from "./pages/NotFound";
 import Gerenciamento from "./pages/gestao/Gerenciamento";
 import Admin from "./pages/gestao/Admin";
 import CRM from "./pages/comercial/CRM";
+import LeadDetail from "./pages/comercial/LeadDetail";
+import Activities from "./pages/comercial/Activities";
 import Playbooks from "./pages/comercial/Playbooks";
 import Money from "./pages/comercial/Money";
 
@@ -75,6 +77,8 @@ const App: React.FC = () => {
                   <Route path="cultura/agenda" element={<Agenda />} />
                   <Route path="cultura/onboarding" element={<Onboarding />} />
                   <Route path="comercial/crm" element={<CRM />} />
+                  <Route path="comercial/crm/lead/:id" element={<LeadDetail />} />
+                  <Route path="comercial/activities" element={<Activities />} />
                   <Route path="comercial/playbooks" element={<Playbooks />} />
                   <Route path="comercial/money" element={<Money />} />
                   <Route path="gestao/gerenciamento" element={<Gerenciamento />} />
