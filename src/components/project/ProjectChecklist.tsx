@@ -115,24 +115,40 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
   };
 
   const handleCreateTask = (itemId: number, taskData: Omit<Task, 'id' | 'createdAt'>) => {
-    const task = createTask({
+    // Create the task
+    createTask({
       ...taskData,
       projectId: projectId
     });
 
-    // Update checklist item to link with new task
-    const updated = editedChecklist.map(item => 
-      item.id === itemId ? {
-        ...item,
-        taskId: task.id,
-        taskStatus: task.status,
-        isLinked: true,
-        lastSync: new Date().toISOString()
-      } : item
-    );
+    // Generate a temporary ID that will match the one created by addTask
+    const tempTaskId = `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
-    setEditedChecklist(updated);
-    onUpdate(updated);
+    // Update checklist item to link with new task
+    // We'll use a setTimeout to allow the task to be created first
+    setTimeout(() => {
+      // Find the most recently created task for this project
+      const projectTasksAfterCreation = tasks.filter(task => task.projectId === projectId);
+      const newestTask = projectTasksAfterCreation.sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )[0];
+
+      if (newestTask) {
+        const updated = editedChecklist.map(item => 
+          item.id === itemId ? {
+            ...item,
+            taskId: newestTask.id,
+            taskStatus: newestTask.status,
+            isLinked: true,
+            lastSync: new Date().toISOString()
+          } : item
+        );
+        
+        setEditedChecklist(updated);
+        onUpdate(updated);
+      }
+    }, 100);
+    
     setShowTaskForm(null);
   };
 
