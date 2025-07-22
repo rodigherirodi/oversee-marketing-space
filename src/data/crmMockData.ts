@@ -374,6 +374,7 @@ export const mockActivities: Activity[] = [
     description: 'Conversei com João sobre as necessidades da empresa. Ele demonstrou interesse e agendamos uma reunião.',
     createdAt: new Date('2024-01-15T10:30:00'),
     createdBy: 'Maria Santos',
+    responsiblePerson: 'Maria Santos',
     outcome: 'positive'
   },
   {
@@ -384,6 +385,7 @@ export const mockActivities: Activity[] = [
     description: 'Enviei a proposta comercial detalhada conforme discutido na reunião.',
     createdAt: new Date('2024-01-20T14:15:00'),
     createdBy: 'Carlos Lima',
+    responsiblePerson: 'Carlos Lima',
     outcome: 'positive'
   }
 ];
