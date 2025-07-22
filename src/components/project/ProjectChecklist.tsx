@@ -36,7 +36,7 @@ interface ProjectChecklistProps {
 }
 
 const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: ProjectChecklistProps) => {
-  const { tasks, addTask, updateTask } = useTaskContext();
+  const { tasks, addTask: addTaskToContext, updateTask: updateTaskInContext } = useTaskContext();
   const { toast } = useToast();
   const [editedChecklist, setEditedChecklist] = useState(checklist);
   const [newTask, setNewTask] = useState('');
@@ -78,7 +78,7 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
     onUpdate(updated);
   };
 
-  const updateTask = (id: number, field: 'task' | 'date', value: string) => {
+  const updateChecklistItem = (id: number, field: 'task' | 'date', value: string) => {
     const updated = editedChecklist.map(item => 
       item.id === id ? { ...item, [field]: value } : item
     );
@@ -86,7 +86,7 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
     onUpdate(updated);
   };
 
-  const addTask = () => {
+  const addChecklistItem = () => {
     if (newTask.trim() && newDate) {
       const newItem: ChecklistItem = {
         id: Math.max(...editedChecklist.map(item => item.id), 0) + 1,
@@ -103,7 +103,7 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
     }
   };
 
-  const removeTask = (id: number) => {
+  const removeChecklistItem = (id: number) => {
     const updated = editedChecklist.filter(item => item.id !== id);
     setEditedChecklist(updated);
     onUpdate(updated);
@@ -112,6 +112,9 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
   const handleLinkToTask = (checklistId: number, taskId: string) => {
     const linkedTask = tasks.find(task => task.id === taskId);
     if (!linkedTask) return;
+
+    const checklistItem = editedChecklist.find(item => item.id === checklistId);
+    if (!checklistItem) return;
 
     const updated = editedChecklist.map(item => 
       item.id === checklistId 
@@ -132,7 +135,7 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
     
     toast({
       title: "Tarefa vinculada",
-      description: `Etapa "${item?.task}" foi vinculada à tarefa "${linkedTask.title}".`
+      description: `Etapa "${checklistItem.task}" foi vinculada à tarefa "${linkedTask.title}".`
     });
   };
 
@@ -180,7 +183,7 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
       customFields: {}
     };
 
-    addTask(newTaskData);
+    addTaskToContext(newTaskData);
     
     // Find the created task (it will be the most recent one)
     setTimeout(() => {
@@ -253,7 +256,7 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
                 <>
                   <Input
                     value={item.task}
-                    onChange={(e) => updateTask(item.id, 'task', e.target.value)}
+                    onChange={(e) => updateChecklistItem(item.id, 'task', e.target.value)}
                     className={`flex-1 text-base h-8 ${item.completed ? 'line-through text-gray-500' : 'text-gray-700'}`}
                   />
                   <Input
@@ -261,7 +264,7 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
                     value={item.date.split('/').reverse().join('-')}
                     onChange={(e) => {
                       const formattedDate = new Date(e.target.value).toLocaleDateString('pt-BR');
-                      updateTask(item.id, 'date', formattedDate);
+                      updateChecklistItem(item.id, 'date', formattedDate);
                     }}
                     className="w-40 h-8 text-sm"
                   />
@@ -298,7 +301,7 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
                           </DropdownMenuItem>
                         </>
                       )}
-                      <DropdownMenuItem onClick={() => removeTask(item.id)} className="text-red-600">
+                      <DropdownMenuItem onClick={() => removeChecklistItem(item.id)} className="text-red-600">
                         <Trash2 className="w-4 h-4 mr-2" />
                         Remover Etapa
                       </DropdownMenuItem>
@@ -359,7 +362,7 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
             <Button
               variant="ghost"
               size="sm"
-              onClick={addTask}
+              onClick={addChecklistItem}
               disabled={!newTask.trim() || !newDate}
               className="text-green-600 hover:text-green-700 p-1"
             >
