@@ -28,6 +28,15 @@ export interface Lead {
   oneTimeValue: number;
   recurringValue: number;
   activities: LeadActivity[];
+  products?: LeadProduct[];
+}
+
+export interface LeadProduct {
+  id: string;
+  name: string;
+  value: number;
+  quantity: number;
+  isRecurring: boolean;
 }
 
 export interface RelatedContact {

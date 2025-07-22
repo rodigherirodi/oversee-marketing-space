@@ -1,5 +1,4 @@
-
-import { Lead, Pipeline, PipelineStage, Activity, CustomField, CRMMetrics, RelatedContact, LeadActivity } from '@/types/crm';
+import { Lead, Pipeline, PipelineStage, Activity, CustomField, CRMMetrics, RelatedContact, LeadActivity, LeadProduct } from '@/types/crm';
 
 export const pipelines: Pipeline[] = [
   {
@@ -135,6 +134,22 @@ export const mockLeads: Lead[] = [
         completed: true,
         outcome: 'positive'
       }
+    ],
+    products: [
+      {
+        id: 'product-1',
+        name: 'Assessoria Estratégica',
+        value: 65000,
+        quantity: 1,
+        isRecurring: false
+      },
+      {
+        id: 'product-2',
+        name: 'Suporte Técnico',
+        value: 20000,
+        quantity: 1,
+        isRecurring: false
+      }
     ]
   },
   {
@@ -187,6 +202,22 @@ export const mockLeads: Lead[] = [
         completed: true,
         outcome: 'positive'
       }
+    ],
+    products: [
+      {
+        id: 'product-3',
+        name: 'Consultoria Estratégica',
+        value: 80000,
+        quantity: 1,
+        isRecurring: false
+      },
+      {
+        id: 'product-4',
+        name: 'Suporte Mensal',
+        value: 10000,
+        quantity: 4,
+        isRecurring: true
+      }
     ]
   },
   {
@@ -228,7 +259,8 @@ export const mockLeads: Lead[] = [
         isPrimary: true
       }
     ],
-    activities: []
+    activities: [],
+    products: []
   },
   {
     id: 'lead-4',
@@ -280,6 +312,15 @@ export const mockLeads: Lead[] = [
         completed: true,
         outcome: 'positive'
       }
+    ],
+    products: [
+      {
+        id: 'product-5',
+        name: 'Pacote Completo',
+        value: 95000,
+        quantity: 1,
+        isRecurring: false
+      }
     ]
   },
   {
@@ -319,7 +360,8 @@ export const mockLeads: Lead[] = [
         isPrimary: true
       }
     ],
-    activities: []
+    activities: [],
+    products: []
   }
 ];
 
