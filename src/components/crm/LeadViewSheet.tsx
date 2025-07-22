@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Lead, Pipeline, LeadActivity, RelatedContact } from '@/types/crm';
 import {
@@ -245,7 +244,7 @@ export const LeadViewSheet: React.FC<LeadViewSheetProps> = ({
   return (
     <>
       <Sheet open={open} onOpenChange={onClose}>
-        <SheetContent side="right" className="w-[50vw] overflow-y-auto bg-background border-l border-border">
+        <SheetContent side="right" className="w-[calc(50vw+100px)] overflow-y-auto bg-background border-l border-border">
           <SheetHeader className="pb-4">
             <div className="flex items-center justify-between">
               {isEditing ? (
