@@ -34,6 +34,7 @@ import { CRMListView } from '@/components/crm/CRMListView';
 import { CRMMetricsComponent } from '@/components/crm/CRMMetrics';
 import { LeadFormDialog } from '@/components/crm/LeadFormDialog';
 import { CRMConfigDialog } from '@/components/crm/CRMConfigDialog';
+import { LeadViewSheet } from '@/components/crm/LeadViewSheet';
 import { mockLeads, pipelines, calculateMetrics } from '@/data/crmMockData';
 import { Lead, LeadFormData } from '@/types/crm';
 
@@ -49,6 +50,8 @@ const CRM = () => {
   const [defaultStage, setDefaultStage] = useState<string>('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [leadToDelete, setLeadToDelete] = useState<string>('');
+  const [viewingLead, setViewingLead] = useState<Lead | null>(null);
+  const [leadViewOpen, setLeadViewOpen] = useState(false);
 
   // Get current pipeline
   const currentPipeline = pipelines.find(p => p.id === selectedPipeline) || pipelines[0];
@@ -113,6 +116,19 @@ const CRM = () => {
         updatedAt: new Date(),
         score: Math.floor(Math.random() * 100) + 1,
         status: 'active',
+        description: '',
+        segment: '',
+        relatedContacts: [{
+          id: `contact-${Date.now()}`,
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          position: formData.position,
+          isPrimary: true
+        }],
+        oneTimeValue: formData.value,
+        recurringValue: 0,
+        activities: []
       };
       setLeads(prevLeads => [...prevLeads, newLead]);
     }
@@ -125,8 +141,8 @@ const CRM = () => {
   };
 
   const handleLeadView = (lead: Lead) => {
-    console.log('View lead:', lead);
-    // TODO: Implementar modal de visualização detalhada
+    setViewingLead(lead);
+    setLeadViewOpen(true);
   };
 
   const handleLeadDelete = (leadId: string) => {
@@ -144,6 +160,29 @@ const CRM = () => {
     setDefaultStage(stage || '');
     setEditingLead(undefined);
     setLeadFormOpen(true);
+  };
+
+  const handleLeadUpdate = (leadId: string, updates: Partial<Lead>) => {
+    setLeads(prevLeads =>
+      prevLeads.map(lead =>
+        lead.id === leadId
+          ? { ...lead, ...updates, updatedAt: new Date() }
+          : lead
+      )
+    );
+
+    // Update viewing lead if it's the same one being updated
+    if (viewingLead?.id === leadId) {
+      setViewingLead(prev => prev ? { ...prev, ...updates } : null);
+    }
+  };
+
+  const handleStageChange = (leadId: string, newStage: string) => {
+    const stageData = currentPipeline.stages.find(s => s.id === newStage);
+    handleLeadUpdate(leadId, {
+      stage: newStage,
+      probability: stageData?.probability || 0
+    });
   };
 
   return (
@@ -291,6 +330,18 @@ const CRM = () => {
         lead={editingLead}
         defaultStage={defaultStage}
         defaultPipelineId={selectedPipeline === 'padrao' ? 'assessoria' : selectedPipeline}
+      />
+
+      <LeadViewSheet
+        open={leadViewOpen}
+        onClose={() => {
+          setLeadViewOpen(false);
+          setViewingLead(null);
+        }}
+        lead={viewingLead}
+        pipeline={currentPipeline}
+        onLeadUpdate={handleLeadUpdate}
+        onStageChange={handleStageChange}
       />
 
       <CRMConfigDialog

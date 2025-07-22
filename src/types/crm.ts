@@ -22,6 +22,33 @@ export interface Lead {
   status: 'active' | 'won' | 'lost';
   lostReason?: string;
   wonDate?: Date;
+  description?: string;
+  segment?: string;
+  relatedContacts: RelatedContact[];
+  oneTimeValue: number;
+  recurringValue: number;
+  activities: LeadActivity[];
+}
+
+export interface RelatedContact {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  position: string;
+  isPrimary: boolean;
+}
+
+export interface LeadActivity {
+  id: string;
+  type: 'call' | 'email' | 'meeting' | 'note' | 'task' | 'follow_up';
+  title: string;
+  description: string;
+  createdAt: Date;
+  createdBy: string;
+  dueDate?: Date;
+  completed: boolean;
+  outcome?: 'positive' | 'negative' | 'neutral';
 }
 
 export interface Pipeline {
@@ -85,6 +112,8 @@ export interface CRMMetrics {
   averageTicket: number;
   wonThisMonth: number;
   pipelineVelocity: number;
+  averageSalesCycle: number;
+  activeProposals: number;
 }
 
 export interface LeadFormData {

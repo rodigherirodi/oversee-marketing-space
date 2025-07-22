@@ -1,5 +1,5 @@
 
-import { Lead, Pipeline, PipelineStage, Activity, CustomField, CRMMetrics } from '@/types/crm';
+import { Lead, Pipeline, PipelineStage, Activity, CustomField, CRMMetrics, RelatedContact, LeadActivity } from '@/types/crm';
 
 export const pipelines: Pipeline[] = [
   {
@@ -66,6 +66,16 @@ export const pipelines: Pipeline[] = [
 
 export const defaultPipeline = pipelines[0];
 
+export const availableTags = [
+  'hot-lead', 'qualified', 'enterprise', 'startup', 'tecnologia', 'ecommerce', 
+  'consultoria', 'assessoria', 'produtora', 'priority', 'warm-lead', 'cold-lead'
+];
+
+export const availableSegments = [
+  'Tecnologia', 'E-commerce', 'Consultoria', 'Educação', 'Saúde', 
+  'Financeiro', 'Varejo', 'Indústria', 'Serviços', 'Outro'
+];
+
 export const mockLeads: Lead[] = [
   {
     id: 'lead-1',
@@ -76,6 +86,8 @@ export const mockLeads: Lead[] = [
     position: 'CEO',
     source: 'website',
     value: 85000,
+    oneTimeValue: 85000,
+    recurringValue: 0,
     probability: 25,
     stage: 'em-contato',
     pipelineId: 'assessoria',
@@ -91,7 +103,39 @@ export const mockLeads: Lead[] = [
     tags: ['hot-lead', 'tecnologia'],
     lastContactAt: new Date('2024-01-15'),
     nextFollowUp: new Date('2024-01-18'),
-    status: 'active'
+    status: 'active',
+    description: 'Empresa de tecnologia em crescimento, buscando assessoria para expansão. CEO muito engajado e com orçamento definido.',
+    segment: 'Tecnologia',
+    relatedContacts: [
+      {
+        id: 'contact-1',
+        name: 'João Silva',
+        email: 'joao@techstart.com',
+        phone: '(11) 99999-9999',
+        position: 'CEO',
+        isPrimary: true
+      },
+      {
+        id: 'contact-2',
+        name: 'Maria Oliveira',
+        email: 'maria@techstart.com',
+        phone: '(11) 88888-8888',
+        position: 'CTO',
+        isPrimary: false
+      }
+    ],
+    activities: [
+      {
+        id: 'activity-1',
+        type: 'call',
+        title: 'Primeira ligação',
+        description: 'Conversei com João sobre as necessidades da empresa. Demonstrou muito interesse.',
+        createdAt: new Date('2024-01-15T10:30:00'),
+        createdBy: 'Maria Santos',
+        completed: true,
+        outcome: 'positive'
+      }
+    ]
   },
   {
     id: 'lead-2',
@@ -102,6 +146,8 @@ export const mockLeads: Lead[] = [
     position: 'Diretora Comercial',
     source: 'indicacao',
     value: 120000,
+    oneTimeValue: 80000,
+    recurringValue: 40000,
     probability: 75,
     stage: 'proposta-enviada',
     pipelineId: 'produtora',
@@ -117,7 +163,31 @@ export const mockLeads: Lead[] = [
     tags: ['qualified', 'enterprise'],
     lastContactAt: new Date('2024-01-20'),
     nextFollowUp: new Date('2024-01-22'),
-    status: 'active'
+    status: 'active',
+    description: 'Empresa consolidada no mercado, buscando parceria estratégica para crescimento digital.',
+    segment: 'E-commerce',
+    relatedContacts: [
+      {
+        id: 'contact-3',
+        name: 'Ana Costa',
+        email: 'ana@inovacao.com',
+        phone: '(11) 88888-8888',
+        position: 'Diretora Comercial',
+        isPrimary: true
+      }
+    ],
+    activities: [
+      {
+        id: 'activity-2',
+        type: 'email',
+        title: 'Proposta enviada',
+        description: 'Enviei proposta detalhada conforme discutido na reunião.',
+        createdAt: new Date('2024-01-20T14:15:00'),
+        createdBy: 'Carlos Lima',
+        completed: true,
+        outcome: 'positive'
+      }
+    ]
   },
   {
     id: 'lead-3',
@@ -128,6 +198,8 @@ export const mockLeads: Lead[] = [
     position: 'Gerente de TI',
     source: 'linkedin',
     value: 65000,
+    oneTimeValue: 65000,
+    recurringValue: 0,
     probability: 50,
     stage: 'reuniao',
     pipelineId: 'consultoria',
@@ -143,7 +215,20 @@ export const mockLeads: Lead[] = [
     tags: ['warm-lead'],
     lastContactAt: new Date('2024-01-18'),
     nextFollowUp: new Date('2024-01-25'),
-    status: 'active'
+    status: 'active',
+    description: 'Construtora tradicional interessada em modernizar processos de TI.',
+    segment: 'Indústria',
+    relatedContacts: [
+      {
+        id: 'contact-4',
+        name: 'Pedro Mendes',
+        email: 'pedro@alpha.com',
+        phone: '(11) 77777-7777',
+        position: 'Gerente de TI',
+        isPrimary: true
+      }
+    ],
+    activities: []
   },
   {
     id: 'lead-4',
@@ -154,6 +239,8 @@ export const mockLeads: Lead[] = [
     position: 'CMO',
     source: 'evento',
     value: 95000,
+    oneTimeValue: 95000,
+    recurringValue: 0,
     probability: 100,
     stage: 'venda',
     pipelineId: 'assessoria',
@@ -169,7 +256,31 @@ export const mockLeads: Lead[] = [
     tags: ['hot-lead', 'ecommerce', 'priority'],
     lastContactAt: new Date('2024-01-21'),
     status: 'won',
-    wonDate: new Date('2024-01-21')
+    wonDate: new Date('2024-01-21'),
+    description: 'Cliente fechado! E-commerce em crescimento que precisava de assessoria estratégica.',
+    segment: 'E-commerce',
+    relatedContacts: [
+      {
+        id: 'contact-5',
+        name: 'Lucia Rodrigues',
+        email: 'lucia@ecommerceplus.com',
+        phone: '(11) 66666-6666',
+        position: 'CMO',
+        isPrimary: true
+      }
+    ],
+    activities: [
+      {
+        id: 'activity-3',
+        type: 'meeting',
+        title: 'Fechamento da venda',
+        description: 'Reunião de fechamento bem-sucedida. Cliente assinou contrato.',
+        createdAt: new Date('2024-01-21T16:00:00'),
+        createdBy: 'Carlos Lima',
+        completed: true,
+        outcome: 'positive'
+      }
+    ]
   },
   {
     id: 'lead-5',
@@ -180,6 +291,8 @@ export const mockLeads: Lead[] = [
     position: 'Diretor Operacional',
     source: 'cold-call',
     value: 45000,
+    oneTimeValue: 30000,
+    recurringValue: 15000,
     probability: 25,
     stage: 'em-contato',
     pipelineId: 'produtora',
@@ -193,7 +306,20 @@ export const mockLeads: Lead[] = [
     },
     score: 35,
     tags: ['cold-lead'],
-    status: 'active'
+    status: 'active',
+    description: 'Empresa de logística com interesse inicial em nossos serviços.',
+    segment: 'Serviços',
+    relatedContacts: [
+      {
+        id: 'contact-6',
+        name: 'Ricardo Santos',
+        email: 'ricardo@logistica.com',
+        phone: '(11) 55555-5555',
+        position: 'Diretor Operacional',
+        isPrimary: true
+      }
+    ],
+    activities: []
   }
 ];
 
@@ -237,12 +363,28 @@ export const calculateMetrics = (leads: Lead[], selectedPipeline: string): CRMMe
     lead.wonDate && new Date(lead.wonDate).getMonth() === new Date().getMonth()
   ).length;
   
+  // Calcular ciclo de venda médio
+  const averageSalesCycle = wonLeads.length > 0 
+    ? Math.round(wonLeads.reduce((sum, lead) => {
+        if (lead.wonDate) {
+          const days = Math.floor((lead.wonDate.getTime() - lead.createdAt.getTime()) / (1000 * 60 * 60 * 24));
+          return sum + days;
+        }
+        return sum;
+      }, 0) / wonLeads.length)
+    : 0;
+  
+  // Contar propostas ativas (leads no estágio "proposta-enviada")
+  const activeProposals = activeLeads.filter(lead => lead.stage === 'proposta-enviada').length;
+  
   return {
     totalLeads: filteredLeads.length,
     totalValue: activeLeads.reduce((sum, lead) => sum + lead.value, 0),
     conversionRate: filteredLeads.length > 0 ? Math.round((wonLeads.length / filteredLeads.length) * 100) : 0,
     averageTicket: wonLeads.length > 0 ? Math.round(wonLeads.reduce((sum, lead) => sum + lead.value, 0) / wonLeads.length) : 0,
     wonThisMonth,
-    pipelineVelocity: 14
+    pipelineVelocity: 14,
+    averageSalesCycle,
+    activeProposals
   };
 };

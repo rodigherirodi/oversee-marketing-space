@@ -7,7 +7,9 @@ import {
   TrendingUp, 
   DollarSign, 
   Target,
-  Award
+  Award,
+  Clock,
+  FileText
 } from 'lucide-react';
 
 interface CRMMetricsProps {
@@ -58,11 +60,25 @@ export const CRMMetricsComponent: React.FC<CRMMetricsProps> = ({ metrics }) => {
       icon: Award,
       color: 'text-green-600',
       bgColor: 'bg-green-50'
+    },
+    {
+      title: 'Ciclo Médio',
+      value: `${metrics.averageSalesCycle}d`,
+      icon: Clock,
+      color: 'text-indigo-600',
+      bgColor: 'bg-indigo-50'
+    },
+    {
+      title: 'Propostas Ativas',
+      value: metrics.activeProposals.toString(),
+      icon: FileText,
+      color: 'text-yellow-600',
+      bgColor: 'bg-yellow-50'
     }
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+    <div className="grid grid-cols-3 md:grid-cols-7 gap-2">
       {metricsData.map((metric) => (
         <Card key={metric.title} className="hover:shadow-md transition-shadow">
           <CardContent className="p-2">

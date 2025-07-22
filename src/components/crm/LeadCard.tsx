@@ -3,37 +3,25 @@ import React from 'react';
 import { Lead } from '@/types/crm';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { 
   Mail, 
   Phone, 
   Calendar, 
   DollarSign, 
   User, 
-  Building2,
-  Edit,
-  Eye,
-  MoreVertical
+  Building2
 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 
 interface LeadCardProps {
   lead: Lead;
-  onEdit: (lead: Lead) => void;
   onView: (lead: Lead) => void;
+  onEdit: (lead: Lead) => void;
   onDelete: (leadId: string) => void;
 }
 
 export const LeadCard: React.FC<LeadCardProps> = ({
   lead,
-  onEdit,
-  onView,
-  onDelete
+  onView
 }) => {
   const getSourceBadgeColor = (source: string) => {
     switch (source) {
@@ -68,7 +56,10 @@ export const LeadCard: React.FC<LeadCardProps> = ({
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing">
+    <Card 
+      className="hover:shadow-md transition-all cursor-pointer hover:border-primary/50"
+      onClick={() => onView(lead)}
+    >
       <CardContent className="p-4 space-y-3">
         {/* Header */}
         <div className="flex items-start justify-between">
@@ -79,30 +70,6 @@ export const LeadCard: React.FC<LeadCardProps> = ({
               <span className="truncate">{lead.company}</span>
             </div>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <MoreVertical className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onView(lead)}>
-                <Eye className="w-4 h-4 mr-2" />
-                Visualizar
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onEdit(lead)}>
-                <Edit className="w-4 h-4 mr-2" />
-                Editar
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => onDelete(lead.id)}
-                className="text-red-600"
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Excluir
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
 
         {/* Value and Score */}
