@@ -14,6 +14,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Globe, Phone, Mail, Facebook, Instagram, Linkedin, MapPin, Calendar, Building2, Users, Star, AlertCircle, FileText, Clock, Target, Edit, ExternalLink, Thermometer, Shield, Video, PenTool, BarChart3, Upload, X, Save, Camera, Plus, Trash2, MessageCircle, FolderOpen, Eye, EyeOff } from 'lucide-react';
+import { MeetingHistorySection } from '@/components/MeetingHistorySection';
+import { ClientNotesSection } from '@/components/ClientNotesSection';
+
 interface PageLink {
   id: string;
   name: string;
@@ -1294,118 +1297,8 @@ const ClientProfile = () => {
 
         {/* History Tab */}
         <TabsContent value="history" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="w-5 h-5" />
-                  Histórico de Reuniões
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Resumo</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell>15/11/2024</TableCell>
-                      <TableCell>Alinhamento</TableCell>
-                      <TableCell>Discussão sobre nova campanha</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>08/11/2024</TableCell>
-                      <TableCell>Aprovação</TableCell>
-                      <TableCell>Aprovação materiais Black Friday</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>01/11/2024</TableCell>
-                      <TableCell>Planejamento</TableCell>
-                      <TableCell>Estratégia fim de ano</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-
-            
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Tarefas Críticas Pendentes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Tarefa</TableHead>
-                    <TableHead>Responsável</TableHead>
-                    <TableHead>Prazo</TableHead>
-                    <TableHead>Prioridade</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell>Finalizar criativos Black Friday</TableCell>
-                    <TableCell>Lucas Pereira</TableCell>
-                    <TableCell>20/11/2024</TableCell>
-                    <TableCell><Badge className="bg-red-100 text-red-700">Alta</Badge></TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Relatório de performance outubro</TableCell>
-                    <TableCell>Fernanda Silva</TableCell>
-                    <TableCell>18/11/2024</TableCell>
-                    <TableCell><Badge className="bg-yellow-100 text-yellow-700">Média</Badge></TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Aprovação de budget Q1 2025</TableCell>
-                    <TableCell>Maria Costa</TableCell>
-                    <TableCell>25/11/2024</TableCell>
-                    <TableCell><Badge className="bg-red-100 text-red-700">Alta</Badge></TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Últimos Feedbacks</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="p-4 border rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="flex text-yellow-400">
-                        {'★'.repeat(5)}
-                      </div>
-                      <span className="text-sm text-gray-600">15/10/2024</span>
-                    </div>
-                    <span className="text-sm text-gray-500">{client.primaryContact.name}</span>
-                  </div>
-                  <p className="text-sm">"Excelente trabalho na campanha! Os resultados superaram nossas expectativas."</p>
-                </div>
-                <div className="p-4 border rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="flex text-yellow-400">
-                        {'★'.repeat(4)}
-                      </div>
-                      <span className="text-sm text-gray-600">01/10/2024</span>
-                    </div>
-                    <span className="text-sm text-gray-500">{client.financialContact.name}</span>
-                  </div>
-                  <p className="text-sm">"Comunicação melhorou muito. Gostamos dos relatórios detalhados."</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <MeetingHistorySection clientId={client.id} />
+          <ClientNotesSection clientId={client.id} />
         </TabsContent>
 
         {/* Pages Tab */}
