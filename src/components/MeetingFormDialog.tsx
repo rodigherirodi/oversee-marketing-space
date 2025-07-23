@@ -77,9 +77,13 @@ export const MeetingFormDialog: React.FC<MeetingFormDialogProps> = ({
 
   const handleSubmit = (values: z.infer<typeof meetingFormSchema>) => {
     const formData: MeetingFormData = {
-      ...values,
-      participants: values.participants || [],
+      date: values.date,
+      type: values.type,
+      summary: values.summary,
+      participants: values.participants,
+      duration: values.duration,
       link: values.link || undefined,
+      notes: values.notes || undefined,
     };
     onSubmit(formData);
     onClose();
