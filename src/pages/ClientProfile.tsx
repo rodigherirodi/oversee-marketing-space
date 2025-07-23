@@ -1122,21 +1122,7 @@ const ClientProfile = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-center">
-                  {isEditing ? <Select value={client.contractType} onValueChange={value => handleInputChange('contractType', value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="recurring">Recorrente</SelectItem>
-                        <SelectItem value="project">Projeto</SelectItem>
-                        <SelectItem value="one-time">Pontual</SelectItem>
-                      </SelectContent>
-                    </Select> : <Badge variant="outline" className="text-lg px-4 py-2">
-                      {client.contractType === 'recurring' ? 'Recorrente' : client.contractType === 'project' ? 'Projeto' : 'Pontual'}
-                    </Badge>}
-                  <p className="text-sm text-gray-600 mt-2">Renovação: Jan/2025</p>
-                </div>
+                
               </CardContent>
             </Card>
           </div>
