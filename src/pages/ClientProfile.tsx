@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Client } from '@/types/entities';
@@ -155,7 +156,6 @@ const ClientProfile = () => {
                       <div>
                         <p className="font-medium">{client.primaryContact.name}</p>
                         <p className="text-sm text-gray-600">{client.primaryContact.email}</p>
-                        <p className="text-xs text-gray-500">{client.primaryContact.role}</p>
                       </div>
                     </div>
                     <Separator />
