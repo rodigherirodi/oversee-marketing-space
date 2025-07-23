@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -24,8 +25,6 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts"
-import { generateRandomData } from '@/data/mockData';
-import { Sparkline } from "@/components/sparkline"
 import { Progress } from "@/components/ui/progress"
 import { Calendar } from 'lucide-react';
 import { format } from 'date-fns';
@@ -43,7 +42,16 @@ export default function ClientProfile() {
     return <div>Cliente não encontrado</div>;
   }
 
-  const randomData = React.useMemo(() => generateRandomData(7), []);
+  // Mock data for analytics chart
+  const chartData = React.useMemo(() => [
+    { name: 'Jan', value: 400 },
+    { name: 'Fev', value: 300 },
+    { name: 'Mar', value: 500 },
+    { name: 'Abr', value: 280 },
+    { name: 'Mai', value: 450 },
+    { name: 'Jun', value: 380 },
+    { name: 'Jul', value: 520 },
+  ], []);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -51,7 +59,7 @@ export default function ClientProfile() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">{client.name}</h1>
-          <p className="text-muted-foreground">{client.company}</p>
+          <p className="text-muted-foreground">{client.segment}</p>
         </div>
         <Badge variant={client.status === 'active' ? 'default' : 'secondary'}>
           {client.status === 'active' ? 'Ativo' : 'Inativo'}
@@ -75,8 +83,8 @@ export default function ClientProfile() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <p><strong>Email:</strong> {client.email}</p>
-                  <p><strong>Telefone:</strong> {client.phone}</p>
+                  <p><strong>Email:</strong> {client.primaryContact.email}</p>
+                  <p><strong>Telefone:</strong> {client.primaryContact.phone}</p>
                   <p><strong>Criado em:</strong> {format(new Date(client.createdAt), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</p>
                 </div>
               </CardContent>
@@ -160,7 +168,7 @@ export default function ClientProfile() {
             <CardContent>
               <ResponsiveContainer width="100%" height={150}>
                 <AreaChart
-                  data={randomData}
+                  data={chartData}
                   margin={{
                     top: 5,
                     right: 0,
