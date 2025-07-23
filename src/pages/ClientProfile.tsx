@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,11 +15,11 @@ import StakeholderDialog from '@/components/StakeholderDialog';
 
 // Other imports for components used in tabs
 import PersonalInfoSection from '@/components/PersonalInfoSection';
-import ClientNotesSection from '@/components/ClientNotesSection';
+import { ClientNotesSection } from '@/components/ClientNotesSection';
 import ImportantDatesSection from '@/components/ImportantDatesSection';
 import NPSHistorySection from '@/components/NPSHistorySection';
 import SLASection from '@/components/SLASection';
-import MeetingHistorySection from '@/components/MeetingHistorySection';
+import { MeetingHistorySection } from '@/components/MeetingHistorySection';
 import { usePageLinks } from '@/hooks/usePageLinks';
 import PageLinkDialog from '@/components/PageLinkDialog';
 import { useClientTeamMembers } from '@/hooks/useClientTeamMembers';
@@ -31,8 +31,8 @@ const ClientProfile: React.FC = () => {
   const { clients, updateClient } = useClients();
   const { stakeholders, addStakeholder, updateStakeholder, deleteStakeholder } = useStakeholders(id || '');
   const { pageLinks, addPageLink, updatePageLink, deletePageLink } = usePageLinks(id || '');
-  const { teamMembers } = useClientTeamMembers(id || '');
-  const { projects } = useProjects(id || '');
+  const { clientTeamMembers } = useClientTeamMembers(id || '');
+  const { projects } = useProjects();
   
   const [activeTab, setActiveTab] = useState('overview');
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -400,7 +400,7 @@ const ClientProfile: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {teamMembers.map((member) => (
+                {clientTeamMembers.map((member) => (
                   <Card key={member.id} className="overflow-hidden">
                     <div className="p-4 flex items-center space-x-4">
                       <Avatar className="h-12 w-12">
@@ -472,9 +472,9 @@ const ClientProfile: React.FC = () => {
                             : project.status === 'planning' 
                               ? 'secondary' 
                               : project.status === 'completed' 
-                                ? 'success' 
+                                ? 'secondary' 
                                 : project.status === 'paused'
-                                  ? 'warning'
+                                  ? 'outline'
                                   : 'outline'
                         }>
                           {project.status === 'in-progress' 

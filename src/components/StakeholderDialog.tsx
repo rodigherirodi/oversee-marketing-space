@@ -69,8 +69,38 @@ const StakeholderDialog: React.FC<StakeholderDialogProps> = ({ open, onOpenChang
     },
   });
 
+  React.useEffect(() => {
+    if (stakeholder) {
+      form.reset({
+        name: stakeholder.name,
+        position: stakeholder.position,
+        department: stakeholder.department,
+        email: stakeholder.email,
+        phone: stakeholder.phone,
+        importance: stakeholder.importance,
+      });
+    } else {
+      form.reset({
+        name: '',
+        position: '',
+        department: '',
+        email: '',
+        phone: '',
+        importance: 'medium',
+      });
+    }
+  }, [stakeholder, form]);
+
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    onSave(values);
+    // Ensure all required fields are present
+    onSave({
+      name: values.name,
+      position: values.position,
+      department: values.department,
+      email: values.email,
+      phone: values.phone,
+      importance: values.importance,
+    });
     onOpenChange(false);
   };
 
