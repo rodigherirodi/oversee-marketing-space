@@ -36,18 +36,26 @@ import TeamMemberSelector from '@/components/TeamMemberSelector';
 import NPSHistorySection from '@/components/NPSHistorySection';
 import ImportantDatesSection from '@/components/ImportantDatesSection';
 import SLASection from '@/components/SLASection';
+import ClientEditDialog from '@/components/ClientEditDialog';
+import StakeholderDialog, { Stakeholder } from '@/components/StakeholderDialog';
+import { useStakeholders } from '@/hooks/useStakeholders';
+import { toast } from 'sonner';
 
 const ClientProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { clients } = useClients();
+  const { clients, updateClient } = useClients();
   const { projects } = useProjects();
   const [isPageLinkDialogOpen, setIsPageLinkDialogOpen] = useState(false);
   const [currentPageLink, setCurrentPageLink] = useState<any | null>(null);
+  const [isClientEditDialogOpen, setIsClientEditDialogOpen] = useState(false);
+  const [isStakeholderDialogOpen, setIsStakeholderDialogOpen] = useState(false);
+  const [currentStakeholder, setCurrentStakeholder] = useState<Stakeholder | undefined>(undefined);
   
   const client = clients.find(c => c.id === id);
   const clientProjects = projects.filter(project => project.clientId === id);
   const { pageLinks, addPageLink, updatePageLink, deletePageLink } = usePageLinks(id || '');
+  const { stakeholders, addStakeholder, updateStakeholder, deleteStakeholder } = useStakeholders(id || '');
 
   if (!client) {
     return <div>Cliente não encontrado</div>;
@@ -120,6 +128,32 @@ const ClientProfile = () => {
     }
   };
   
+  const getImportanceColor = (importance: string) => {
+    switch (importance) {
+      case 'high':
+        return 'bg-red-100 text-red-800';
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'low':
+        return 'bg-green-100 text-green-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getImportanceLabel = (importance: string) => {
+    switch (importance) {
+      case 'high':
+        return 'Alta';
+      case 'medium':
+        return 'Média';
+      case 'low':
+        return 'Baixa';
+      default:
+        return importance;
+    }
+  };
+  
   const handleOpenPageLinkDialog = (pageLink = null) => {
     setCurrentPageLink(pageLink);
     setIsPageLinkDialogOpen(true);
@@ -135,6 +169,32 @@ const ClientProfile = () => {
   
   const handleNavigateToProject = (projectId: string) => {
     navigate(`/projects/${projectId}`);
+  };
+
+  const handleOpenEditClient = () => {
+    setIsClientEditDialogOpen(true);
+  };
+
+  const handleClientUpdate = (updatedClientData: Partial<Client>) => {
+    updateClient(id || '', updatedClientData);
+    toast.success('Dados do cliente atualizados com sucesso!');
+  };
+
+  const handleOpenStakeholderDialog = (stakeholder?: Stakeholder) => {
+    setCurrentStakeholder(stakeholder);
+    setIsStakeholderDialogOpen(true);
+  };
+
+  const handleSaveStakeholder = (data: Omit<Stakeholder, 'id'>) => {
+    if (currentStakeholder) {
+      updateStakeholder(currentStakeholder.id, data);
+    } else {
+      addStakeholder(data);
+    }
+  };
+
+  const handleDeleteStakeholder = (id: string) => {
+    deleteStakeholder(id);
   };
 
   return (
@@ -163,7 +223,7 @@ const ClientProfile = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline">Editar Dados</Button>
+          <Button variant="outline" onClick={handleOpenEditClient}>Editar Dados</Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -552,80 +612,53 @@ const ClientProfile = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    <TableRow>
-                      <TableCell className="font-medium">Maria Silva</TableCell>
-                      <TableCell>CEO</TableCell>
-                      <TableCell>Diretoria</TableCell>
-                      <TableCell>maria@empresa.com</TableCell>
-                      <TableCell>(11) 98765-4321</TableCell>
-                      <TableCell>
-                        <Badge className="bg-red-100 text-red-800">Alta</Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>Editar</DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600">Remover</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="font-medium">José Oliveira</TableCell>
-                      <TableCell>Gerente de Marketing</TableCell>
-                      <TableCell>Marketing</TableCell>
-                      <TableCell>jose@empresa.com</TableCell>
-                      <TableCell>(11) 99876-5432</TableCell>
-                      <TableCell>
-                        <Badge className="bg-yellow-100 text-yellow-800">Média</Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>Editar</DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600">Remover</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="font-medium">Roberto Santos</TableCell>
-                      <TableCell>Analista de Mídia</TableCell>
-                      <TableCell>Marketing</TableCell>
-                      <TableCell>roberto@empresa.com</TableCell>
-                      <TableCell>(11) 97654-3210</TableCell>
-                      <TableCell>
-                        <Badge className="bg-green-100 text-green-800">Baixa</Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>Editar</DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600">Remover</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
+                    {stakeholders.map((stakeholder) => (
+                      <TableRow key={stakeholder.id}>
+                        <TableCell className="font-medium">{stakeholder.name}</TableCell>
+                        <TableCell>{stakeholder.position}</TableCell>
+                        <TableCell>{stakeholder.department}</TableCell>
+                        <TableCell>{stakeholder.email}</TableCell>
+                        <TableCell>{stakeholder.phone}</TableCell>
+                        <TableCell>
+                          <Badge className={getImportanceColor(stakeholder.importance)}>
+                            {getImportanceLabel(stakeholder.importance)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleOpenStakeholderDialog(stakeholder)}>
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                className="text-red-600"
+                                onClick={() => handleDeleteStakeholder(stakeholder.id)}
+                              >
+                                Remover
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    
+                    {stakeholders.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-6">
+                          Nenhum stakeholder encontrado para este cliente.
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
                 
                 <div className="flex justify-end">
-                  <Button>
+                  <Button onClick={() => handleOpenStakeholderDialog()}>
                     <Plus className="mr-2 h-4 w-4" /> Adicionar Stakeholder
                   </Button>
                 </div>
@@ -634,6 +667,21 @@ const ClientProfile = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Dialogs */}
+      <ClientEditDialog 
+        open={isClientEditDialogOpen} 
+        onOpenChange={setIsClientEditDialogOpen}
+        client={client}
+        onUpdate={handleClientUpdate}
+      />
+      
+      <StakeholderDialog
+        open={isStakeholderDialogOpen}
+        onOpenChange={setIsStakeholderDialogOpen}
+        stakeholder={currentStakeholder}
+        onSave={handleSaveStakeholder}
+      />
     </div>
   );
 };
