@@ -12,9 +12,19 @@ export const useClients = () => {
       try {
         // In a real app, this would be an API call
         const response = await import('@/data/newMockData');
-        setClients(response.clients);
+        // The mock data module might export clients differently, we need to check
+        if (Array.isArray(response.default?.clients)) {
+          setClients(response.default.clients);
+        } else if (Array.isArray(response.clients)) {
+          setClients(response.clients);
+        } else {
+          // Fallback to empty array if no clients found in mock data
+          console.error('No clients found in mock data');
+          setClients([]);
+        }
       } catch (error) {
         console.error('Error loading clients:', error);
+        setClients([]);
       } finally {
         setLoading(false);
       }

@@ -35,7 +35,7 @@ interface ClientEditDialogProps {
 const formSchema = z.object({
   name: z.string().min(2, 'O nome deve ter pelo menos 2 caracteres'),
   segment: z.string().min(1, 'Segmento é obrigatório'),
-  size: z.string(),
+  size: z.enum(['MEI', 'PME', 'large']),
   address: z.string().optional(),
   website: z.string().optional(),
   status: z.enum(['active', 'inactive', 'onboarding']),
