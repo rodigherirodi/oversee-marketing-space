@@ -32,4 +32,5 @@ export interface PageLink {
   link?: string;
   startDate?: string;
   endDate?: string;
+  clientId: string;
 }

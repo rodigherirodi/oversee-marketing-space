@@ -18,7 +18,7 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  DialogDescription,
+  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -186,9 +186,9 @@ export const NPSHistorySection: React.FC<NPSHistorySectionProps> = ({ clientId }
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir NPS</AlertDialogTitle>
-            <DialogDescription>
+            <AlertDialogDescription>
               Tem certeza que deseja excluir este registro de NPS? Esta ação não pode ser desfeita.
-            </DialogDescription>
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>

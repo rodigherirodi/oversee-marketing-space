@@ -42,7 +42,11 @@ export const PageLinkDialog: React.FC<PageLinkDialogProps> = ({ clientId }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    addPageLink(clientId, { ...formData, clientId });
+    addPageLink({
+      ...formData,
+      id: Date.now().toString(),
+      clientId
+    });
     toast({
       title: "Página adicionada",
       description: "A página foi adicionada com sucesso."

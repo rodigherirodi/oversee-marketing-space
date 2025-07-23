@@ -11,7 +11,8 @@ const mockPageLinks: PageLink[] = [
     status: 'active',
     link: 'https://docs.google.com/document/d/landing-brief',
     startDate: '2024-01-01',
-    endDate: '2024-12-31'
+    endDate: '2024-12-31',
+    clientId: '1'
   },
   {
     id: '2',
@@ -21,7 +22,8 @@ const mockPageLinks: PageLink[] = [
     status: 'active',
     link: 'https://cliente.com',
     startDate: '2024-01-15',
-    endDate: '2024-06-30'
+    endDate: '2024-06-30',
+    clientId: '1'
   }
 ];
 
@@ -35,7 +37,6 @@ export const usePageLinks = () => {
   const addPageLink = (data: PageLink): PageLink => {
     const newPage: PageLink = {
       ...data,
-      id: Date.now().toString()
     };
     
     setPageLinks(prev => [...prev, newPage]);

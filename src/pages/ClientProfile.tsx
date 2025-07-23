@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,7 +41,6 @@ import {
 import { mockClients, mockProjects } from '@/data/mockData';
 import { MeetingHistorySection } from '@/components/MeetingHistorySection';
 import { ClientNotesSection } from '@/components/ClientNotesSection';
-import { useNavigate } from 'react-router-dom';
 import { mockTeamMembers } from '@/data/mockData';
 import { useTeamMembers } from '@/hooks/useTeamMembers';
 import { usePageLinks } from '@/hooks/usePageLinks';
@@ -93,11 +93,11 @@ const ClientProfile = () => {
                 <div className="flex items-center gap-4 text-muted-foreground mt-1">
                   <div className="flex items-center gap-1">
                     <Building2 className="w-4 h-4" />
-                    {client.industry}
+                    {client.sector || 'Setor não especificado'}
                   </div>
                   <div className="flex items-center gap-1">
                     <MapPin className="w-4 h-4" />
-                    {client.location}
+                    {client.city || 'Localização não especificada'}
                   </div>
                   <Badge variant={client.status === 'active' ? 'default' : 'secondary'}>
                     {client.status === 'active' ? 'Ativo' : 'Inativo'}
@@ -133,15 +133,15 @@ const ClientProfile = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="flex items-center gap-2">
               <Phone className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm">{client.phone}</span>
+              <span className="text-sm">{client.contactPhone || 'Telefone não especificado'}</span>
             </div>
             <div className="flex items-center gap-2">
               <Mail className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm">{client.email}</span>
+              <span className="text-sm">{client.contactEmail || 'Email não especificado'}</span>
             </div>
             <div className="flex items-center gap-2">
               <Globe className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm">{client.website}</span>
+              <span className="text-sm">{client.website || 'Website não especificado'}</span>
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 text-muted-foreground" />
@@ -270,8 +270,8 @@ const ClientProfile = () => {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">{project.name}</CardTitle>
-                    <Badge variant={project.status === 'active' ? 'default' : 'secondary'}>
-                      {project.status === 'active' ? 'Ativo' : 'Concluído'}
+                    <Badge variant={project.status === 'completed' ? 'secondary' : 'default'}>
+                      {project.status === 'completed' ? 'Concluído' : 'Ativo'}
                     </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">
