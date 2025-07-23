@@ -14,7 +14,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Globe, Phone, Mail, Facebook, Instagram, Linkedin, MapPin, Calendar, Building2, Users, Star, AlertCircle, FileText, Clock, Target, Edit, ExternalLink, Thermometer, Shield, Video, PenTool, BarChart3, Upload, X, Save, Camera, Plus, Trash2, MessageCircle, FolderOpen, Eye, EyeOff } from 'lucide-react';
-
 interface PageLink {
   id: string;
   name: string;
@@ -22,7 +21,6 @@ interface PageLink {
   type: 'landing' | 'institutional' | 'other';
   status: 'active' | 'inactive';
 }
-
 interface AccessCredential {
   id: string;
   platform: string;
@@ -31,7 +29,6 @@ interface AccessCredential {
   status: 'active' | 'inactive';
   notes: string;
 }
-
 interface Stakeholder {
   id: string;
   name: string;
@@ -40,51 +37,46 @@ interface Stakeholder {
   email: string;
   phone: string;
 }
-
 const ClientProfile = () => {
-  const { id } = useParams();
+  const {
+    id
+  } = useParams();
   const [activeTab, setActiveTab] = useState('general');
   const [isEditing, setIsEditing] = useState(false);
-  
+
   // Find the client - in a real app, this would be fetched from an API
   const originalClient = mockClients.find(c => c.id === id) || mockClients[0];
 
   // Stakeholders state
-  const [stakeholders, setStakeholders] = useState<Stakeholder[]>([
-    {
-      id: '1',
-      name: originalClient.primaryContact.name,
-      position: 'Diretor de Marketing',
-      type: 'decisor',
-      email: originalClient.primaryContact.email,
-      phone: originalClient.primaryContact.phone
-    },
-    {
-      id: '2',
-      name: originalClient.financialContact.name,
-      position: 'Gerente Financeiro',
-      type: 'aprovador',
-      email: originalClient.financialContact.email,
-      phone: originalClient.financialContact.phone
-    },
-    {
-      id: '3',
-      name: 'Roberto Oliveira',
-      position: 'Assistente de Marketing',
-      type: 'operacional',
-      email: `roberto.oliveira@${originalClient.name.toLowerCase().replace(/\s/g, '')}.com`,
-      phone: '(11) 98765-4321'
-    },
-    {
-      id: '4',
-      name: 'Ana Santos',
-      position: 'Coordenadora de Comunicação',
-      type: 'influenciador',
-      email: `ana.santos@${originalClient.name.toLowerCase().replace(/\s/g, '')}.com`,
-      phone: '(11) 97654-3210'
-    }
-  ]);
-
+  const [stakeholders, setStakeholders] = useState<Stakeholder[]>([{
+    id: '1',
+    name: originalClient.primaryContact.name,
+    position: 'Diretor de Marketing',
+    type: 'decisor',
+    email: originalClient.primaryContact.email,
+    phone: originalClient.primaryContact.phone
+  }, {
+    id: '2',
+    name: originalClient.financialContact.name,
+    position: 'Gerente Financeiro',
+    type: 'aprovador',
+    email: originalClient.financialContact.email,
+    phone: originalClient.financialContact.phone
+  }, {
+    id: '3',
+    name: 'Roberto Oliveira',
+    position: 'Assistente de Marketing',
+    type: 'operacional',
+    email: `roberto.oliveira@${originalClient.name.toLowerCase().replace(/\s/g, '')}.com`,
+    phone: '(11) 98765-4321'
+  }, {
+    id: '4',
+    name: 'Ana Santos',
+    position: 'Coordenadora de Comunicação',
+    type: 'influenciador',
+    email: `ana.santos@${originalClient.name.toLowerCase().replace(/\s/g, '')}.com`,
+    phone: '(11) 97654-3210'
+  }]);
   const [isStakeholderDialogOpen, setIsStakeholderDialogOpen] = useState(false);
   const [editingStakeholder, setEditingStakeholder] = useState<Stakeholder | null>(null);
   const [stakeholderForm, setStakeholderForm] = useState({
@@ -96,33 +88,28 @@ const ClientProfile = () => {
   });
 
   // Access credentials state
-  const [accessCredentials, setAccessCredentials] = useState<AccessCredential[]>([
-    {
-      id: '1',
-      platform: 'Google Ads',
-      login: `ads@${originalClient.name.toLowerCase().replace(/\s/g, '')}.com`,
-      password: 'senha123',
-      status: 'active',
-      notes: 'Acesso completo'
-    },
-    {
-      id: '2',
-      platform: 'Meta Business',
-      login: 'Business Manager compartilhado',
-      password: 'meta456',
-      status: 'active',
-      notes: 'Administrador'
-    },
-    {
-      id: '3',
-      platform: 'Google Analytics',
-      login: 'Acesso via GTM',
-      password: 'analytics789',
-      status: 'active',
-      notes: 'Visualização'
-    }
-  ]);
-
+  const [accessCredentials, setAccessCredentials] = useState<AccessCredential[]>([{
+    id: '1',
+    platform: 'Google Ads',
+    login: `ads@${originalClient.name.toLowerCase().replace(/\s/g, '')}.com`,
+    password: 'senha123',
+    status: 'active',
+    notes: 'Acesso completo'
+  }, {
+    id: '2',
+    platform: 'Meta Business',
+    login: 'Business Manager compartilhado',
+    password: 'meta456',
+    status: 'active',
+    notes: 'Administrador'
+  }, {
+    id: '3',
+    platform: 'Google Analytics',
+    login: 'Acesso via GTM',
+    password: 'analytics789',
+    status: 'active',
+    notes: 'Visualização'
+  }]);
   const [isAccessDialogOpen, setIsAccessDialogOpen] = useState(false);
   const [editingAccess, setEditingAccess] = useState<AccessCredential | null>(null);
   const [accessForm, setAccessForm] = useState({
@@ -132,40 +119,36 @@ const ClientProfile = () => {
     status: 'active' as 'active' | 'inactive',
     notes: ''
   });
-  const [showPasswords, setShowPasswords] = useState<{[key: string]: boolean}>({});
-  
-  // Pages and Links state
-  const [pagesAndLinks, setPagesAndLinks] = useState<PageLink[]>([
-    {
-      id: '1',
-      name: 'Black Friday 2024',
-      url: `blackfriday.${originalClient.name.toLowerCase().replace(/\s/g, '')}.com`,
-      type: 'landing',
-      status: 'active'
-    },
-    {
-      id: '2',
-      name: 'Campanha Verão',
-      url: `verao.${originalClient.name.toLowerCase().replace(/\s/g, '')}.com`,
-      type: 'landing',
-      status: 'inactive'
-    },
-    {
-      id: '3',
-      name: 'Site Principal',
-      url: originalClient.website || '',
-      type: 'institutional',
-      status: 'active'
-    },
-    {
-      id: '4',
-      name: 'Blog',
-      url: `blog.${originalClient.name.toLowerCase().replace(/\s/g, '')}.com`,
-      type: 'institutional',
-      status: 'active'
-    }
-  ]);
+  const [showPasswords, setShowPasswords] = useState<{
+    [key: string]: boolean;
+  }>({});
 
+  // Pages and Links state
+  const [pagesAndLinks, setPagesAndLinks] = useState<PageLink[]>([{
+    id: '1',
+    name: 'Black Friday 2024',
+    url: `blackfriday.${originalClient.name.toLowerCase().replace(/\s/g, '')}.com`,
+    type: 'landing',
+    status: 'active'
+  }, {
+    id: '2',
+    name: 'Campanha Verão',
+    url: `verao.${originalClient.name.toLowerCase().replace(/\s/g, '')}.com`,
+    type: 'landing',
+    status: 'inactive'
+  }, {
+    id: '3',
+    name: 'Site Principal',
+    url: originalClient.website || '',
+    type: 'institutional',
+    status: 'active'
+  }, {
+    id: '4',
+    name: 'Blog',
+    url: `blog.${originalClient.name.toLowerCase().replace(/\s/g, '')}.com`,
+    type: 'institutional',
+    status: 'active'
+  }]);
   const [isPageDialogOpen, setIsPageDialogOpen] = useState(false);
   const [editingPage, setEditingPage] = useState<PageLink | null>(null);
   const [pageForm, setPageForm] = useState({
@@ -210,17 +193,13 @@ const ClientProfile = () => {
     }
     setIsStakeholderDialogOpen(true);
   };
-
   const handleStakeholderSubmit = () => {
     if (editingStakeholder) {
       // Edit existing stakeholder
-      setStakeholders(prev => 
-        prev.map(stakeholder => 
-          stakeholder.id === editingStakeholder.id 
-            ? { ...stakeholder, ...stakeholderForm }
-            : stakeholder
-        )
-      );
+      setStakeholders(prev => prev.map(stakeholder => stakeholder.id === editingStakeholder.id ? {
+        ...stakeholder,
+        ...stakeholderForm
+      } : stakeholder));
     } else {
       // Add new stakeholder
       const newStakeholder: Stakeholder = {
@@ -232,11 +211,9 @@ const ClientProfile = () => {
     setIsStakeholderDialogOpen(false);
     setEditingStakeholder(null);
   };
-
   const handleDeleteStakeholder = (stakeholderId: string) => {
     setStakeholders(prev => prev.filter(stakeholder => stakeholder.id !== stakeholderId));
   };
-
   const getStakeholderTypeLabel = (type: string) => {
     switch (type) {
       case 'decisor':
@@ -251,7 +228,6 @@ const ClientProfile = () => {
         return type;
     }
   };
-
   const getStakeholderTypeBadgeClass = (type: string) => {
     switch (type) {
       case 'decisor':
@@ -290,17 +266,13 @@ const ClientProfile = () => {
     }
     setIsAccessDialogOpen(true);
   };
-
   const handleAccessSubmit = () => {
     if (editingAccess) {
       // Edit existing access
-      setAccessCredentials(prev => 
-        prev.map(access => 
-          access.id === editingAccess.id 
-            ? { ...access, ...accessForm }
-            : access
-        )
-      );
+      setAccessCredentials(prev => prev.map(access => access.id === editingAccess.id ? {
+        ...access,
+        ...accessForm
+      } : access));
     } else {
       // Add new access
       const newAccess: AccessCredential = {
@@ -312,25 +284,21 @@ const ClientProfile = () => {
     setIsAccessDialogOpen(false);
     setEditingAccess(null);
   };
-
   const handleDeleteAccess = (accessId: string) => {
     setAccessCredentials(prev => prev.filter(access => access.id !== accessId));
   };
-
   const togglePasswordVisibility = (accessId: string) => {
     setShowPasswords(prev => ({
       ...prev,
       [accessId]: !prev[accessId]
     }));
   };
-
   const handleSave = () => {
     // In a real app, this would save to backend
     console.log('Saving client data:', editableClient);
     setIsEditing(false);
     // Here you would typically update the mock data or make an API call
   };
-
   const handleCancel = () => {
     setEditableClient({
       ...originalClient,
@@ -344,14 +312,12 @@ const ClientProfile = () => {
     });
     setIsEditing(false);
   };
-
   const handleInputChange = (field: string, value: string) => {
     setEditableClient(prev => ({
       ...prev,
       [field]: value
     }));
   };
-
   const handleContactChange = (contactType: 'primaryContact' | 'financialContact', field: string, value: string) => {
     setEditableClient(prev => ({
       ...prev,
@@ -361,7 +327,6 @@ const ClientProfile = () => {
       }
     }));
   };
-
   const handleSocialMediaChange = (platform: string, value: string) => {
     setEditableClient(prev => ({
       ...prev,
@@ -371,12 +336,11 @@ const ClientProfile = () => {
       }
     }));
   };
-
   const handleFileUpload = (field: 'logo' | 'cover', event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = e => {
         const result = e.target?.result as string;
         setEditableClient(prev => ({
           ...prev,
@@ -408,17 +372,13 @@ const ClientProfile = () => {
     }
     setIsPageDialogOpen(true);
   };
-
   const handlePageSubmit = () => {
     if (editingPage) {
       // Edit existing page
-      setPagesAndLinks(prev => 
-        prev.map(page => 
-          page.id === editingPage.id 
-            ? { ...page, ...pageForm }
-            : page
-        )
-      );
+      setPagesAndLinks(prev => prev.map(page => page.id === editingPage.id ? {
+        ...page,
+        ...pageForm
+      } : page));
     } else {
       // Add new page
       const newPage: PageLink = {
@@ -430,11 +390,9 @@ const ClientProfile = () => {
     setIsPageDialogOpen(false);
     setEditingPage(null);
   };
-
   const handleDeletePage = (pageId: string) => {
     setPagesAndLinks(prev => prev.filter(page => page.id !== pageId));
   };
-
   const getTypeLabel = (type: string) => {
     switch (type) {
       case 'landing':
@@ -447,9 +405,7 @@ const ClientProfile = () => {
         return type;
     }
   };
-
   const client = isEditing ? editableClient : originalClient;
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
@@ -462,7 +418,6 @@ const ClientProfile = () => {
         return 'bg-gray-100 text-gray-700';
     }
   };
-
   const getSizeLabel = (size: string) => {
     switch (size) {
       case 'MEI':
@@ -475,7 +430,6 @@ const ClientProfile = () => {
         return size;
     }
   };
-
   const getTemperatureColor = (temp: string) => {
     switch (temp) {
       case 'hot':
@@ -488,7 +442,6 @@ const ClientProfile = () => {
         return 'text-gray-500 bg-gray-50';
     }
   };
-
   const getTemperatureIcon = (temp: string) => {
     switch (temp) {
       case 'hot':
@@ -501,35 +454,20 @@ const ClientProfile = () => {
         return '🌡️';
     }
   };
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       {/* Header Section */}
       <div className="bg-white rounded-lg border shadow-sm">
         <div className="relative">
           {/* Cover Photo */}
           <div className="h-32 bg-gradient-to-br from-green-500 to-blue-600 rounded-t-lg relative overflow-hidden">
-            {client.cover && (
-              <img 
-                src={client.cover} 
-                alt="Cover" 
-                className="w-full h-full object-cover"
-              />
-            )}
-            {isEditing && (
-              <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+            {client.cover && <img src={client.cover} alt="Cover" className="w-full h-full object-cover" />}
+            {isEditing && <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
                 <label className="cursor-pointer bg-white/90 hover:bg-white rounded-lg p-2 flex items-center gap-2">
                   <Camera className="w-4 h-4" />
                   <span className="text-sm">Alterar Capa</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleFileUpload('cover', e)}
-                    className="hidden"
-                  />
+                  <input type="file" accept="image/*" onChange={e => handleFileUpload('cover', e)} className="hidden" />
                 </label>
-              </div>
-            )}
+              </div>}
           </div>
           
           <div className="p-6 -mt-16 relative">
@@ -537,53 +475,27 @@ const ClientProfile = () => {
               {/* Logo */}
               <div className="relative">
                 <div className="w-24 h-24 bg-white rounded-lg flex items-center justify-center text-4xl border-4 border-white shadow-lg overflow-hidden">
-                  {typeof client.logo === 'string' && client.logo.startsWith('data:') ? (
-                    <img src={client.logo} alt="Logo" className="w-full h-full object-cover" />
-                  ) : (
-                    client.logo || '🏢'
-                  )}
+                  {typeof client.logo === 'string' && client.logo.startsWith('data:') ? <img src={client.logo} alt="Logo" className="w-full h-full object-cover" /> : client.logo || '🏢'}
                 </div>
-                {isEditing && (
-                  <label className="absolute -bottom-2 -right-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-2 cursor-pointer shadow-lg">
+                {isEditing && <label className="absolute -bottom-2 -right-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-2 cursor-pointer shadow-lg">
                     <Upload className="w-4 h-4" />
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleFileUpload('logo', e)}
-                      className="hidden"
-                    />
-                  </label>
-                )}
+                    <input type="file" accept="image/*" onChange={e => handleFileUpload('logo', e)} className="hidden" />
+                  </label>}
               </div>
 
               <div className="flex-1 mt-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex-1">
-                    {isEditing ? (
-                      <div className="space-y-2">
-                        <Input
-                          value={client.name}
-                          onChange={(e) => handleInputChange('name', e.target.value)}
-                          className="text-3xl font-bold h-12"
-                          placeholder="Nome da empresa"
-                        />
-                        <Input
-                          value={client.segment}
-                          onChange={(e) => handleInputChange('segment', e.target.value)}
-                          className="text-lg"
-                          placeholder="Segmento"
-                        />
-                      </div>
-                    ) : (
-                      <div>
+                    {isEditing ? <div className="space-y-2">
+                        <Input value={client.name} onChange={e => handleInputChange('name', e.target.value)} className="text-3xl font-bold h-12" placeholder="Nome da empresa" />
+                        <Input value={client.segment} onChange={e => handleInputChange('segment', e.target.value)} className="text-lg" placeholder="Segmento" />
+                      </div> : <div>
                         <h1 className="text-3xl font-bold text-gray-900">{client.name}</h1>
                         <p className="text-lg text-gray-600">{client.segment}</p>
-                      </div>
-                    )}
+                      </div>}
                   </div>
                   <div className="flex items-center gap-3">
-                    {isEditing ? (
-                      <>
+                    {isEditing ? <>
                         <Button onClick={handleSave} className="bg-green-600 hover:bg-green-700">
                           <Save className="w-4 h-4 mr-2" />
                           Salvar
@@ -592,21 +504,13 @@ const ClientProfile = () => {
                           <X className="w-4 h-4 mr-2" />
                           Cancelar
                         </Button>
-                      </>
-                    ) : (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setIsEditing(true)}
-                      >
+                      </> : <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
                         <Edit className="w-4 h-4 mr-2" />
                         Editar Perfil
-                      </Button>
-                    )}
+                      </Button>}
                     
-                    {isEditing ? (
-                      <div className="flex items-center gap-2">
-                        <Select value={client.status} onValueChange={(value) => handleInputChange('status', value)}>
+                    {isEditing ? <div className="flex items-center gap-2">
+                        <Select value={client.status} onValueChange={value => handleInputChange('status', value)}>
                           <SelectTrigger className="w-32">
                             <SelectValue />
                           </SelectTrigger>
@@ -616,7 +520,7 @@ const ClientProfile = () => {
                             <SelectItem value="onboarding">Onboarding</SelectItem>
                           </SelectContent>
                         </Select>
-                        <Select value={client.size} onValueChange={(value) => handleInputChange('size', value)}>
+                        <Select value={client.size} onValueChange={value => handleInputChange('size', value)}>
                           <SelectTrigger className="w-40">
                             <SelectValue />
                           </SelectTrigger>
@@ -626,120 +530,59 @@ const ClientProfile = () => {
                             <SelectItem value="large">Grande Porte</SelectItem>
                           </SelectContent>
                         </Select>
-                      </div>
-                    ) : (
-                      <>
+                      </div> : <>
                         <Badge className={getStatusColor(client.status)}>
                           {client.status === 'active' ? 'Ativo' : client.status === 'inactive' ? 'Inativo' : 'Onboarding'}
                         </Badge>
                         <Badge variant="outline">{getSizeLabel(client.size)}</Badge>
-                      </>
-                    )}
+                      </>}
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-6 text-sm text-gray-600 mb-4">
                   <div className="flex items-center gap-1">
                     <MapPin className="w-4 h-4" />
-                    {isEditing ? (
-                      <Input
-                        value={client.address}
-                        onChange={(e) => handleInputChange('address', e.target.value)}
-                        className="h-8"
-                        placeholder="Endereço"
-                      />
-                    ) : (
-                      <span>{client.address}</span>
-                    )}
+                    {isEditing ? <Input value={client.address} onChange={e => handleInputChange('address', e.target.value)} className="h-8" placeholder="Endereço" /> : <span>{client.address}</span>}
                   </div>
                   <div className="flex items-center gap-1">
                     <Calendar className="w-4 h-4" />
-                    {isEditing ? (
-                      <Input
-                        type="date"
-                        value={client.entryDate}
-                        onChange={(e) => handleInputChange('entryDate', e.target.value)}
-                        className="h-8"
-                      />
-                    ) : (
-                      <span>Cliente desde {new Date(client.entryDate).toLocaleDateString()}</span>
-                    )}
+                    {isEditing ? <Input type="date" value={client.entryDate} onChange={e => handleInputChange('entryDate', e.target.value)} className="h-8" /> : <span>Cliente desde {new Date(client.entryDate).toLocaleDateString()}</span>}
                   </div>
                   <div className="flex items-center gap-1">
                     <Users className="w-4 h-4" />
-                    {isEditing ? (
-                      <Input
-                        value={client.responsibleManager}
-                        onChange={(e) => handleInputChange('responsibleManager', e.target.value)}
-                        className="h-8"
-                        placeholder="Gestor responsável"
-                      />
-                    ) : (
-                      <span>Gestor: {client.responsibleManager}</span>
-                    )}
+                    {isEditing ? <Input value={client.responsibleManager} onChange={e => handleInputChange('responsibleManager', e.target.value)} className="h-8" placeholder="Gestor responsável" /> : <span>Gestor: {client.responsibleManager}</span>}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  {isEditing ? (
-                    <div className="flex items-center gap-2">
-                      <Input
-                        value={client.website || ''}
-                        onChange={(e) => handleInputChange('website', e.target.value)}
-                        placeholder="Website"
-                        className="h-8"
-                      />
-                      <Input
-                        value={client.socialMedia.linkedin || ''}
-                        onChange={(e) => handleSocialMediaChange('linkedin', e.target.value)}
-                        placeholder="LinkedIn"
-                        className="h-8"
-                      />
-                      <Input
-                        value={client.socialMedia.instagram || ''}
-                        onChange={(e) => handleSocialMediaChange('instagram', e.target.value)}
-                        placeholder="Instagram"
-                        className="h-8"
-                      />
-                      <Input
-                        value={client.socialMedia.facebook || ''}
-                        onChange={(e) => handleSocialMediaChange('facebook', e.target.value)}
-                        placeholder="Facebook"
-                        className="h-8"
-                      />
-                    </div>
-                  ) : (
-                    <>
-                      {client.website && (
-                        <Button variant="outline" size="sm" asChild>
+                  {isEditing ? <div className="flex items-center gap-2">
+                      <Input value={client.website || ''} onChange={e => handleInputChange('website', e.target.value)} placeholder="Website" className="h-8" />
+                      <Input value={client.socialMedia.linkedin || ''} onChange={e => handleSocialMediaChange('linkedin', e.target.value)} placeholder="LinkedIn" className="h-8" />
+                      <Input value={client.socialMedia.instagram || ''} onChange={e => handleSocialMediaChange('instagram', e.target.value)} placeholder="Instagram" className="h-8" />
+                      <Input value={client.socialMedia.facebook || ''} onChange={e => handleSocialMediaChange('facebook', e.target.value)} placeholder="Facebook" className="h-8" />
+                    </div> : <>
+                      {client.website && <Button variant="outline" size="sm" asChild>
                           <a href={client.website} target="_blank" rel="noopener noreferrer">
                             <Globe className="w-4 h-4 mr-2" />
                             Website
                             <ExternalLink className="w-3 h-3 ml-1" />
                           </a>
-                        </Button>
-                      )}
-                      {client.socialMedia.linkedin && (
-                        <Button variant="outline" size="sm" asChild>
+                        </Button>}
+                      {client.socialMedia.linkedin && <Button variant="outline" size="sm" asChild>
                           <a href={client.socialMedia.linkedin} target="_blank" rel="noopener noreferrer">
                             <Linkedin className="w-4 h-4" />
                           </a>
-                        </Button>
-                      )}
-                      {client.socialMedia.instagram && (
-                        <Button variant="outline" size="sm" asChild>
+                        </Button>}
+                      {client.socialMedia.instagram && <Button variant="outline" size="sm" asChild>
                           <a href={client.socialMedia.instagram} target="_blank" rel="noopener noreferrer">
                             <Instagram className="w-4 h-4" />
                           </a>
-                        </Button>
-                      )}
-                      {client.socialMedia.facebook && (
-                        <Button variant="outline" size="sm" asChild>
+                        </Button>}
+                      {client.socialMedia.facebook && <Button variant="outline" size="sm" asChild>
                           <a href={client.socialMedia.facebook} target="_blank" rel="noopener noreferrer">
                             <Facebook className="w-4 h-4" />
                           </a>
-                        </Button>
-                      )}
+                        </Button>}
                       <Button variant="outline" size="sm" asChild>
                         <a href="#" target="_blank" rel="noopener noreferrer">
                           <MessageCircle className="w-4 h-4" />
@@ -750,8 +593,7 @@ const ClientProfile = () => {
                           <FolderOpen className="w-4 h-4" />
                         </a>
                       </Button>
-                    </>
-                  )}
+                    </>}
                 </div>
               </div>
             </div>
@@ -784,26 +626,11 @@ const ClientProfile = () => {
               <CardContent className="space-y-4">
                 <div>
                   <h4 className="font-medium text-sm text-gray-500 mb-2">Contato Principal</h4>
-                  {isEditing ? (
-                    <div className="space-y-2">
-                      <Input
-                        value={client.primaryContact.name}
-                        onChange={(e) => handleContactChange('primaryContact', 'name', e.target.value)}
-                        placeholder="Nome"
-                      />
-                      <Input
-                        value={client.primaryContact.phone}
-                        onChange={(e) => handleContactChange('primaryContact', 'phone', e.target.value)}
-                        placeholder="Telefone"
-                      />
-                      <Input
-                        value={client.primaryContact.email}
-                        onChange={(e) => handleContactChange('primaryContact', 'email', e.target.value)}
-                        placeholder="Email"
-                      />
-                    </div>
-                  ) : (
-                    <div className="space-y-1">
+                  {isEditing ? <div className="space-y-2">
+                      <Input value={client.primaryContact.name} onChange={e => handleContactChange('primaryContact', 'name', e.target.value)} placeholder="Nome" />
+                      <Input value={client.primaryContact.phone} onChange={e => handleContactChange('primaryContact', 'phone', e.target.value)} placeholder="Telefone" />
+                      <Input value={client.primaryContact.email} onChange={e => handleContactChange('primaryContact', 'email', e.target.value)} placeholder="Email" />
+                    </div> : <div className="space-y-1">
                       <p className="font-medium">{client.primaryContact.name}</p>
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <Phone className="w-4 h-4" />
@@ -813,31 +640,15 @@ const ClientProfile = () => {
                         <Mail className="w-4 h-4" />
                         <span>{client.primaryContact.email}</span>
                       </div>
-                    </div>
-                  )}
+                    </div>}
                 </div>
                 <div>
                   <h4 className="font-medium text-sm text-gray-500 mb-2">Contato Financeiro</h4>
-                  {isEditing ? (
-                    <div className="space-y-2">
-                      <Input
-                        value={client.financialContact.name}
-                        onChange={(e) => handleContactChange('financialContact', 'name', e.target.value)}
-                        placeholder="Nome"
-                      />
-                      <Input
-                        value={client.financialContact.phone}
-                        onChange={(e) => handleContactChange('financialContact', 'phone', e.target.value)}
-                        placeholder="Telefone"
-                      />
-                      <Input
-                        value={client.financialContact.email}
-                        onChange={(e) => handleContactChange('financialContact', 'email', e.target.value)}
-                        placeholder="Email"
-                      />
-                    </div>
-                  ) : (
-                    <div className="space-y-1">
+                  {isEditing ? <div className="space-y-2">
+                      <Input value={client.financialContact.name} onChange={e => handleContactChange('financialContact', 'name', e.target.value)} placeholder="Nome" />
+                      <Input value={client.financialContact.phone} onChange={e => handleContactChange('financialContact', 'phone', e.target.value)} placeholder="Telefone" />
+                      <Input value={client.financialContact.email} onChange={e => handleContactChange('financialContact', 'email', e.target.value)} placeholder="Email" />
+                    </div> : <div className="space-y-1">
                       <p className="font-medium">{client.financialContact.name}</p>
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <Phone className="w-4 h-4" />
@@ -847,8 +658,7 @@ const ClientProfile = () => {
                         <Mail className="w-4 h-4" />
                         <span>{client.financialContact.email}</span>
                       </div>
-                    </div>
-                  )}
+                    </div>}
                 </div>
               </CardContent>
             </Card>
@@ -863,20 +673,11 @@ const ClientProfile = () => {
               <CardContent className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-500">Segmento:</span>
-                  {isEditing ? (
-                    <Input
-                      value={client.segment}
-                      onChange={(e) => handleInputChange('segment', e.target.value)}
-                      className="h-8 w-48"
-                    />
-                  ) : (
-                    <span className="font-medium">{client.segment}</span>
-                  )}
+                  {isEditing ? <Input value={client.segment} onChange={e => handleInputChange('segment', e.target.value)} className="h-8 w-48" /> : <span className="font-medium">{client.segment}</span>}
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-500">Porte:</span>
-                  {isEditing ? (
-                    <Select value={client.size} onValueChange={(value) => handleInputChange('size', value)}>
+                  {isEditing ? <Select value={client.size} onValueChange={value => handleInputChange('size', value)}>
                       <SelectTrigger className="w-48">
                         <SelectValue />
                       </SelectTrigger>
@@ -885,35 +686,15 @@ const ClientProfile = () => {
                         <SelectItem value="PME">PME</SelectItem>
                         <SelectItem value="large">Grande Porte</SelectItem>
                       </SelectContent>
-                    </Select>
-                  ) : (
-                    <span className="font-medium">{getSizeLabel(client.size)}</span>
-                  )}
+                    </Select> : <span className="font-medium">{getSizeLabel(client.size)}</span>}
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-500">Endereço:</span>
-                  {isEditing ? (
-                    <Textarea
-                      value={client.address}
-                      onChange={(e) => handleInputChange('address', e.target.value)}
-                      className="w-48 h-20"
-                    />
-                  ) : (
-                    <span className="font-medium text-right">{client.address}</span>
-                  )}
+                  {isEditing ? <Textarea value={client.address} onChange={e => handleInputChange('address', e.target.value)} className="w-48 h-20" /> : <span className="font-medium text-right">{client.address}</span>}
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-500">Data de Entrada:</span>
-                  {isEditing ? (
-                    <Input
-                      type="date"
-                      value={client.entryDate}
-                      onChange={(e) => handleInputChange('entryDate', e.target.value)}
-                      className="h-8 w-48"
-                    />
-                  ) : (
-                    <span className="font-medium">{new Date(client.entryDate).toLocaleDateString()}</span>
-                  )}
+                  {isEditing ? <Input type="date" value={client.entryDate} onChange={e => handleInputChange('entryDate', e.target.value)} className="h-8 w-48" /> : <span className="font-medium">{new Date(client.entryDate).toLocaleDateString()}</span>}
                 </div>
               </CardContent>
             </Card>
@@ -942,35 +723,31 @@ const ClientProfile = () => {
                     <div className="space-y-4">
                       <div>
                         <Label htmlFor="access-platform">Plataforma</Label>
-                        <Input
-                          id="access-platform"
-                          value={accessForm.platform}
-                          onChange={(e) => setAccessForm(prev => ({ ...prev, platform: e.target.value }))}
-                          placeholder="Nome da plataforma"
-                        />
+                        <Input id="access-platform" value={accessForm.platform} onChange={e => setAccessForm(prev => ({
+                        ...prev,
+                        platform: e.target.value
+                      }))} placeholder="Nome da plataforma" />
                       </div>
                       <div>
                         <Label htmlFor="access-login">Login</Label>
-                        <Input
-                          id="access-login"
-                          value={accessForm.login}
-                          onChange={(e) => setAccessForm(prev => ({ ...prev, login: e.target.value }))}
-                          placeholder="Email ou usuário"
-                        />
+                        <Input id="access-login" value={accessForm.login} onChange={e => setAccessForm(prev => ({
+                        ...prev,
+                        login: e.target.value
+                      }))} placeholder="Email ou usuário" />
                       </div>
                       <div>
                         <Label htmlFor="access-password">Senha</Label>
-                        <Input
-                          id="access-password"
-                          type="password"
-                          value={accessForm.password}
-                          onChange={(e) => setAccessForm(prev => ({ ...prev, password: e.target.value }))}
-                          placeholder="Senha"
-                        />
+                        <Input id="access-password" type="password" value={accessForm.password} onChange={e => setAccessForm(prev => ({
+                        ...prev,
+                        password: e.target.value
+                      }))} placeholder="Senha" />
                       </div>
                       <div>
                         <Label htmlFor="access-status">Status</Label>
-                        <Select value={accessForm.status} onValueChange={(value: 'active' | 'inactive') => setAccessForm(prev => ({ ...prev, status: value }))}>
+                        <Select value={accessForm.status} onValueChange={(value: 'active' | 'inactive') => setAccessForm(prev => ({
+                        ...prev,
+                        status: value
+                      }))}>
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
@@ -982,12 +759,10 @@ const ClientProfile = () => {
                       </div>
                       <div>
                         <Label htmlFor="access-notes">Observações</Label>
-                        <Textarea
-                          id="access-notes"
-                          value={accessForm.notes}
-                          onChange={(e) => setAccessForm(prev => ({ ...prev, notes: e.target.value }))}
-                          placeholder="Observações sobre o acesso"
-                        />
+                        <Textarea id="access-notes" value={accessForm.notes} onChange={e => setAccessForm(prev => ({
+                        ...prev,
+                        notes: e.target.value
+                      }))} placeholder="Observações sobre o acesso" />
                       </div>
                       <div className="flex justify-end gap-2">
                         <Button variant="outline" onClick={() => setIsAccessDialogOpen(false)}>
@@ -1015,8 +790,7 @@ const ClientProfile = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {accessCredentials.map((access) => (
-                    <TableRow key={access.id}>
+                  {accessCredentials.map(access => <TableRow key={access.id}>
                       <TableCell className="font-medium">{access.platform}</TableCell>
                       <TableCell>{access.login}</TableCell>
                       <TableCell>
@@ -1024,16 +798,8 @@ const ClientProfile = () => {
                           <span className="font-mono text-sm">
                             {showPasswords[access.id] ? access.password : '••••••••'}
                           </span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => togglePasswordVisibility(access.id)}
-                          >
-                            {showPasswords[access.id] ? (
-                              <EyeOff className="w-4 h-4" />
-                            ) : (
-                              <Eye className="w-4 h-4" />
-                            )}
+                          <Button variant="ghost" size="sm" onClick={() => togglePasswordVisibility(access.id)}>
+                            {showPasswords[access.id] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                           </Button>
                         </div>
                       </TableCell>
@@ -1071,8 +837,7 @@ const ClientProfile = () => {
                           </AlertDialog>
                         </div>
                       </TableCell>
-                    </TableRow>
-                  ))}
+                    </TableRow>)}
                 </TableBody>
               </Table>
             </CardContent>
@@ -1083,21 +848,13 @@ const ClientProfile = () => {
               <CardTitle>Observações Gerais</CardTitle>
             </CardHeader>
             <CardContent>
-              {isEditing ? (
-                <Textarea
-                  placeholder="Adicione observações sobre o cliente..."
-                  className="min-h-[100px]"
-                  defaultValue="• Cliente prefere reuniões às sextas-feiras&#10;• Evitar campanhas em dezembro devido ao fechamento&#10;• Aprovações podem levar até 48h&#10;• Gosta de relatórios detalhados com métricas específicas&#10;• Disponibilidade limitada entre 12h-14h"
-                />
-              ) : (
-                <div className="space-y-2 text-sm">
+              {isEditing ? <Textarea placeholder="Adicione observações sobre o cliente..." className="min-h-[100px]" defaultValue="• Cliente prefere reuniões às sextas-feiras&#10;• Evitar campanhas em dezembro devido ao fechamento&#10;• Aprovações podem levar até 48h&#10;• Gosta de relatórios detalhados com métricas específicas&#10;• Disponibilidade limitada entre 12h-14h" /> : <div className="space-y-2 text-sm">
                   <p>• Cliente prefere reuniões às sextas-feiras</p>
                   <p>• Evitar campanhas em dezembro devido ao fechamento</p>
                   <p>• Aprovações podem levar até 48h</p>
                   <p>• Gosta de relatórios detalhados com métricas específicas</p>
                   <p>• Disponibilidade limitada entre 12h-14h</p>
-                </div>
-              )}
+                </div>}
             </CardContent>
           </Card>
         </TabsContent>
@@ -1126,25 +883,24 @@ const ClientProfile = () => {
                     <div className="space-y-4">
                       <div>
                         <Label htmlFor="stakeholder-name">Nome</Label>
-                        <Input
-                          id="stakeholder-name"
-                          value={stakeholderForm.name}
-                          onChange={(e) => setStakeholderForm(prev => ({ ...prev, name: e.target.value }))}
-                          placeholder="Nome completo"
-                        />
+                        <Input id="stakeholder-name" value={stakeholderForm.name} onChange={e => setStakeholderForm(prev => ({
+                        ...prev,
+                        name: e.target.value
+                      }))} placeholder="Nome completo" />
                       </div>
                       <div>
                         <Label htmlFor="stakeholder-position">Cargo</Label>
-                        <Input
-                          id="stakeholder-position"
-                          value={stakeholderForm.position}
-                          onChange={(e) => setStakeholderForm(prev => ({ ...prev, position: e.target.value }))}
-                          placeholder="Cargo ou função"
-                        />
+                        <Input id="stakeholder-position" value={stakeholderForm.position} onChange={e => setStakeholderForm(prev => ({
+                        ...prev,
+                        position: e.target.value
+                      }))} placeholder="Cargo ou função" />
                       </div>
                       <div>
                         <Label htmlFor="stakeholder-type">Tipo</Label>
-                        <Select value={stakeholderForm.type} onValueChange={(value: 'decisor' | 'aprovador' | 'operacional' | 'influenciador') => setStakeholderForm(prev => ({ ...prev, type: value }))}>
+                        <Select value={stakeholderForm.type} onValueChange={(value: 'decisor' | 'aprovador' | 'operacional' | 'influenciador') => setStakeholderForm(prev => ({
+                        ...prev,
+                        type: value
+                      }))}>
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
@@ -1158,22 +914,17 @@ const ClientProfile = () => {
                       </div>
                       <div>
                         <Label htmlFor="stakeholder-email">Email</Label>
-                        <Input
-                          id="stakeholder-email"
-                          type="email"
-                          value={stakeholderForm.email}
-                          onChange={(e) => setStakeholderForm(prev => ({ ...prev, email: e.target.value }))}
-                          placeholder="email@exemplo.com"
-                        />
+                        <Input id="stakeholder-email" type="email" value={stakeholderForm.email} onChange={e => setStakeholderForm(prev => ({
+                        ...prev,
+                        email: e.target.value
+                      }))} placeholder="email@exemplo.com" />
                       </div>
                       <div>
                         <Label htmlFor="stakeholder-phone">Telefone</Label>
-                        <Input
-                          id="stakeholder-phone"
-                          value={stakeholderForm.phone}
-                          onChange={(e) => setStakeholderForm(prev => ({ ...prev, phone: e.target.value }))}
-                          placeholder="(11) 99999-9999"
-                        />
+                        <Input id="stakeholder-phone" value={stakeholderForm.phone} onChange={e => setStakeholderForm(prev => ({
+                        ...prev,
+                        phone: e.target.value
+                      }))} placeholder="(11) 99999-9999" />
                       </div>
                       <div className="flex justify-end gap-2">
                         <Button variant="outline" onClick={() => setIsStakeholderDialogOpen(false)}>
@@ -1201,8 +952,7 @@ const ClientProfile = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {stakeholders.map((stakeholder) => (
-                    <TableRow key={stakeholder.id}>
+                  {stakeholders.map(stakeholder => <TableRow key={stakeholder.id}>
                       <TableCell className="font-medium">{stakeholder.name}</TableCell>
                       <TableCell>{stakeholder.position}</TableCell>
                       <TableCell>
@@ -1240,8 +990,7 @@ const ClientProfile = () => {
                           </AlertDialog>
                         </div>
                       </TableCell>
-                    </TableRow>
-                  ))}
+                    </TableRow>)}
                 </TableBody>
               </Table>
             </CardContent>
@@ -1329,8 +1078,7 @@ const ClientProfile = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-center">
-                  {isEditing ? (
-                    <Select value={client.temperature} onValueChange={(value) => handleInputChange('temperature', value)}>
+                  {isEditing ? <Select value={client.temperature} onValueChange={value => handleInputChange('temperature', value)}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -1339,15 +1087,12 @@ const ClientProfile = () => {
                         <SelectItem value="warm">🌡️ Morno</SelectItem>
                         <SelectItem value="cold">❄️ Frio</SelectItem>
                       </SelectContent>
-                    </Select>
-                  ) : (
-                    <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg ${getTemperatureColor(client.temperature)}`}>
+                    </Select> : <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg ${getTemperatureColor(client.temperature)}`}>
                       <span className="text-2xl">{getTemperatureIcon(client.temperature)}</span>
                       <span className="font-medium">
                         {client.temperature === 'hot' ? 'Quente' : client.temperature === 'warm' ? 'Morno' : 'Frio'}
                       </span>
-                    </div>
-                  )}
+                    </div>}
                   <p className="text-sm text-gray-600 mt-2">Última atualização: 15/11/2024</p>
                 </div>
               </CardContent>
@@ -1362,18 +1107,7 @@ const ClientProfile = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-center">
-                  {isEditing ? (
-                    <Input
-                      type="number"
-                      min="0"
-                      max="10"
-                      value={client.nps}
-                      onChange={(e) => handleInputChange('nps', e.target.value)}
-                      className="text-center text-3xl font-bold"
-                    />
-                  ) : (
-                    <div className="text-3xl font-bold text-green-600 mb-2">{client.nps}/10</div>
-                  )}
+                  {isEditing ? <Input type="number" min="0" max="10" value={client.nps} onChange={e => handleInputChange('nps', e.target.value)} className="text-center text-3xl font-bold" /> : <div className="text-3xl font-bold text-green-600 mb-2">{client.nps}/10</div>}
                   <p className="text-sm text-gray-600">Última coleta: 15/10/2024</p>
                   <Badge className="mt-2 bg-green-100 text-green-700">Promotor</Badge>
                 </div>
@@ -1389,8 +1123,7 @@ const ClientProfile = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-center">
-                  {isEditing ? (
-                    <Select value={client.contractType} onValueChange={(value) => handleInputChange('contractType', value)}>
+                  {isEditing ? <Select value={client.contractType} onValueChange={value => handleInputChange('contractType', value)}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -1399,12 +1132,9 @@ const ClientProfile = () => {
                         <SelectItem value="project">Projeto</SelectItem>
                         <SelectItem value="one-time">Pontual</SelectItem>
                       </SelectContent>
-                    </Select>
-                  ) : (
-                    <Badge variant="outline" className="text-lg px-4 py-2">
+                    </Select> : <Badge variant="outline" className="text-lg px-4 py-2">
                       {client.contractType === 'recurring' ? 'Recorrente' : client.contractType === 'project' ? 'Projeto' : 'Pontual'}
-                    </Badge>
-                  )}
+                    </Badge>}
                   <p className="text-sm text-gray-600 mt-2">Renovação: Jan/2025</p>
                 </div>
               </CardContent>
@@ -1616,36 +1346,7 @@ const ClientProfile = () => {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <AlertCircle className="w-5 h-5" />
-                  Alertas Ativos
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <div className="flex items-center gap-2 text-yellow-800">
-                      <AlertCircle className="w-4 h-4" />
-                      <span className="text-sm font-medium">Reunião agendada para amanhã</span>
-                    </div>
-                  </div>
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-center gap-2 text-blue-800">
-                      <FileText className="w-4 h-4" />
-                      <span className="text-sm font-medium">Relatório mensal pendente</span>
-                    </div>
-                  </div>
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                    <div className="flex items-center gap-2 text-red-800">
-                      <Clock className="w-4 h-4" />
-                      <span className="text-sm font-medium">Prazo de entrega em 3 dias</span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            
           </div>
 
           <Card>
@@ -1746,25 +1447,24 @@ const ClientProfile = () => {
                     <div className="space-y-4">
                       <div>
                         <Label htmlFor="page-name">Nome</Label>
-                        <Input
-                          id="page-name"
-                          value={pageForm.name}
-                          onChange={(e) => setPageForm(prev => ({ ...prev, name: e.target.value }))}
-                          placeholder="Nome da página"
-                        />
+                        <Input id="page-name" value={pageForm.name} onChange={e => setPageForm(prev => ({
+                        ...prev,
+                        name: e.target.value
+                      }))} placeholder="Nome da página" />
                       </div>
                       <div>
                         <Label htmlFor="page-url">URL</Label>
-                        <Input
-                          id="page-url"
-                          value={pageForm.url}
-                          onChange={(e) => setPageForm(prev => ({ ...prev, url: e.target.value }))}
-                          placeholder="https://exemplo.com"
-                        />
+                        <Input id="page-url" value={pageForm.url} onChange={e => setPageForm(prev => ({
+                        ...prev,
+                        url: e.target.value
+                      }))} placeholder="https://exemplo.com" />
                       </div>
                       <div>
                         <Label htmlFor="page-type">Tipo</Label>
-                        <Select value={pageForm.type} onValueChange={(value: 'landing' | 'institutional' | 'other') => setPageForm(prev => ({ ...prev, type: value }))}>
+                        <Select value={pageForm.type} onValueChange={(value: 'landing' | 'institutional' | 'other') => setPageForm(prev => ({
+                        ...prev,
+                        type: value
+                      }))}>
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
@@ -1777,7 +1477,10 @@ const ClientProfile = () => {
                       </div>
                       <div>
                         <Label htmlFor="page-status">Status</Label>
-                        <Select value={pageForm.status} onValueChange={(value: 'active' | 'inactive') => setPageForm(prev => ({ ...prev, status: value }))}>
+                        <Select value={pageForm.status} onValueChange={(value: 'active' | 'inactive') => setPageForm(prev => ({
+                        ...prev,
+                        status: value
+                      }))}>
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
@@ -1812,8 +1515,7 @@ const ClientProfile = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {pagesAndLinks.map((page) => (
-                    <TableRow key={page.id}>
+                  {pagesAndLinks.map(page => <TableRow key={page.id}>
                       <TableCell className="font-medium">{page.name}</TableCell>
                       <TableCell className="text-blue-600">{page.url}</TableCell>
                       <TableCell>
@@ -1859,8 +1561,7 @@ const ClientProfile = () => {
                           </AlertDialog>
                         </div>
                       </TableCell>
-                    </TableRow>
-                  ))}
+                    </TableRow>)}
                 </TableBody>
               </Table>
             </CardContent>
@@ -1925,8 +1626,6 @@ const ClientProfile = () => {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
-  );
+    </div>;
 };
-
 export default ClientProfile;
