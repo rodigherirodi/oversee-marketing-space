@@ -93,11 +93,11 @@ const ClientProfile = () => {
                 <div className="flex items-center gap-4 text-muted-foreground mt-1">
                   <div className="flex items-center gap-1">
                     <Building2 className="w-4 h-4" />
-                    {client.sector || 'Setor não especificado'}
+                    {client.segment || 'Setor não especificado'}
                   </div>
                   <div className="flex items-center gap-1">
                     <MapPin className="w-4 h-4" />
-                    {client.city || 'Localização não especificada'}
+                    {client.address || 'Localização não especificada'}
                   </div>
                   <Badge variant={client.status === 'active' ? 'default' : 'secondary'}>
                     {client.status === 'active' ? 'Ativo' : 'Inativo'}
@@ -133,11 +133,11 @@ const ClientProfile = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="flex items-center gap-2">
               <Phone className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm">{client.contactPhone || 'Telefone não especificado'}</span>
+              <span className="text-sm">{client.primaryContact?.phone || 'Telefone não especificado'}</span>
             </div>
             <div className="flex items-center gap-2">
               <Mail className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm">{client.contactEmail || 'Email não especificado'}</span>
+              <span className="text-sm">{client.primaryContact?.email || 'Email não especificado'}</span>
             </div>
             <div className="flex items-center gap-2">
               <Globe className="w-4 h-4 text-muted-foreground" />
