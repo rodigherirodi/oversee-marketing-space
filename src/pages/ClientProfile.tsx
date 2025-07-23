@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -19,7 +20,8 @@ import {
   MoreHorizontal,
   Plus,
   Phone, 
-  Users 
+  Users,
+  Key 
 } from 'lucide-react';
 import { 
   DropdownMenu,
@@ -190,123 +192,175 @@ const ClientProfile = () => {
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6">
             <Card>
               <CardContent className="p-6 space-y-4">
                 <h2 className="text-xl font-semibold">Informações Principais</h2>
                 <PersonalInfoSection client={client} />
+                
+                <div className="mt-6 pt-6 border-t border-gray-100">
+                  <h2 className="text-xl font-semibold mb-4">Endereço</h2>
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-2">
+                      <MapPin className="w-4 h-4 text-gray-500 mt-1" />
+                      <span>{client.address}</span>
+                    </div>
+                    
+                    {client.website && (
+                      <div className="flex items-start gap-2">
+                        <ExternalLink className="w-4 h-4 text-gray-500 mt-1" />
+                        <a 
+                          href={client.website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          {client.website}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </CardContent>
             </Card>
             
-            <Card>
-              <CardContent className="p-6 space-y-4">
-                <h2 className="text-xl font-semibold">Contatos</h2>
-                
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="font-medium text-gray-700 mb-2">Contato Principal</h3>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm">
-                        <Users className="w-4 h-4 text-gray-500" />
-                        <span>{client.primaryContact.name}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Phone className="w-4 h-4 text-gray-500" />
-                        <span>{client.primaryContact.phone}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Mail className="w-4 h-4 text-gray-500" />
-                        <span>{client.primaryContact.email}</span>
-                      </div>
-                    </div>
-                  </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card>
+                <CardContent className="p-6 space-y-4">
+                  <h2 className="text-xl font-semibold">Contatos</h2>
                   
-                  <div>
-                    <h3 className="font-medium text-gray-700 mb-2">Contato Financeiro</h3>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm">
-                        <Users className="w-4 h-4 text-gray-500" />
-                        <span>{client.financialContact.name}</span>
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="font-medium text-gray-700 mb-2">Contato Principal</h3>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Users className="w-4 h-4 text-gray-500" />
+                          <span>{client.primaryContact.name}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <Phone className="w-4 h-4 text-gray-500" />
+                          <span>{client.primaryContact.phone}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <Mail className="w-4 h-4 text-gray-500" />
+                          <span>{client.primaryContact.email}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Phone className="w-4 h-4 text-gray-500" />
-                        <span>{client.financialContact.phone}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Mail className="w-4 h-4 text-gray-500" />
-                        <span>{client.financialContact.email}</span>
+                    </div>
+                    
+                    <div>
+                      <h3 className="font-medium text-gray-700 mb-2">Contato Financeiro</h3>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Users className="w-4 h-4 text-gray-500" />
+                          <span>{client.financialContact.name}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <Phone className="w-4 h-4 text-gray-500" />
+                          <span>{client.financialContact.phone}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <Mail className="w-4 h-4 text-gray-500" />
+                          <span>{client.financialContact.email}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                </CardContent>
+              </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="md:col-span-2">
-              <CardContent className="p-6 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold">Endereço</h2>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="flex items-start gap-2">
-                    <MapPin className="w-4 h-4 text-gray-500 mt-1" />
-                    <span>{client.address}</span>
-                  </div>
+              <Card>
+                <CardContent className="p-6 space-y-4">
+                  <h2 className="text-xl font-semibold">Detalhes do Contrato</h2>
                   
-                  {client.website && (
-                    <div className="flex items-start gap-2">
-                      <ExternalLink className="w-4 h-4 text-gray-500 mt-1" />
-                      <a 
-                        href={client.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
-                      >
-                        {client.website}
-                      </a>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6 space-y-4">
-                <h2 className="text-xl font-semibold">Detalhes do Contrato</h2>
-                
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-500">Tipo de Contrato</span>
-                      <span className="font-medium">
-                        {client.contractType === 'recurring' ? 'Recorrente' : 
-                         client.contractType === 'project' ? 'Projeto' : 'Único'}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-500">Cliente Desde</span>
-                      <span className="font-medium">
-                        {new Date(client.entryDate).toLocaleDateString()}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-500">Temperatura</span>
-                      <span className="font-medium">
-                        {client.temperature === 'hot' ? 'Quente' : 
-                         client.temperature === 'warm' ? 'Morno' : 'Frio'}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-500">Gestor Responsável</span>
-                      <span className="font-medium">{client.responsibleManager}</span>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-500">Tipo de Contrato</span>
+                        <span className="font-medium">
+                          {client.contractType === 'recurring' ? 'Recorrente' : 
+                          client.contractType === 'project' ? 'Projeto' : 'Único'}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-500">Cliente Desde</span>
+                        <span className="font-medium">
+                          {new Date(client.entryDate).toLocaleDateString()}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-500">Temperatura</span>
+                        <span className="font-medium">
+                          {client.temperature === 'hot' ? 'Quente' : 
+                          client.temperature === 'warm' ? 'Morno' : 'Frio'}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-500">Gestor Responsável</span>
+                        <span className="font-medium">{client.responsibleManager}</span>
+                      </div>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Acessos Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Key className="w-5 h-5" />
+                  Acessos
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Plataforma</TableHead>
+                      <TableHead>Usuário/Email</TableHead>
+                      <TableHead>Senha</TableHead>
+                      <TableHead>Notas</TableHead>
+                      <TableHead>Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>Google Analytics</TableCell>
+                      <TableCell>cliente@empresa.com</TableCell>
+                      <TableCell>••••••••••</TableCell>
+                      <TableCell>Acesso de administrador</TableCell>
+                      <TableCell>
+                        <Button variant="ghost" size="sm">Editar</Button>
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>WordPress</TableCell>
+                      <TableCell>admin</TableCell>
+                      <TableCell>••••••••••</TableCell>
+                      <TableCell>Acesso ao painel</TableCell>
+                      <TableCell>
+                        <Button variant="ghost" size="sm">Editar</Button>
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Meta Business</TableCell>
+                      <TableCell>marketing@cliente.com</TableCell>
+                      <TableCell>••••••••••</TableCell>
+                      <TableCell>Acesso limitado</TableCell>
+                      <TableCell>
+                        <Button variant="ghost" size="sm">Editar</Button>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+                <div className="mt-4">
+                  <Button variant="outline" size="sm">
+                    <Plus className="mr-2 h-4 w-4" /> Adicionar Acesso
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -484,8 +538,97 @@ const ClientProfile = () => {
           
           <Card>
             <CardContent className="p-6">
-              <div className="space-y-6">
-                <p>Conteúdo da aba Stakeholders</p>
+              <div className="space-y-4">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>Cargo</TableHead>
+                      <TableHead>Departamento</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Telefone</TableHead>
+                      <TableHead>Importância</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell className="font-medium">Maria Silva</TableCell>
+                      <TableCell>CEO</TableCell>
+                      <TableCell>Diretoria</TableCell>
+                      <TableCell>maria@empresa.com</TableCell>
+                      <TableCell>(11) 98765-4321</TableCell>
+                      <TableCell>
+                        <Badge className="bg-red-100 text-red-800">Alta</Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>Editar</DropdownMenuItem>
+                            <DropdownMenuItem className="text-red-600">Remover</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">José Oliveira</TableCell>
+                      <TableCell>Gerente de Marketing</TableCell>
+                      <TableCell>Marketing</TableCell>
+                      <TableCell>jose@empresa.com</TableCell>
+                      <TableCell>(11) 99876-5432</TableCell>
+                      <TableCell>
+                        <Badge className="bg-yellow-100 text-yellow-800">Média</Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>Editar</DropdownMenuItem>
+                            <DropdownMenuItem className="text-red-600">Remover</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">Roberto Santos</TableCell>
+                      <TableCell>Analista de Mídia</TableCell>
+                      <TableCell>Marketing</TableCell>
+                      <TableCell>roberto@empresa.com</TableCell>
+                      <TableCell>(11) 97654-3210</TableCell>
+                      <TableCell>
+                        <Badge className="bg-green-100 text-green-800">Baixa</Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>Editar</DropdownMenuItem>
+                            <DropdownMenuItem className="text-red-600">Remover</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+                
+                <div className="flex justify-end">
+                  <Button>
+                    <Plus className="mr-2 h-4 w-4" /> Adicionar Stakeholder
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
