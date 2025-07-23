@@ -151,13 +151,16 @@ export default function ClientProfile() {
 
           <TabsContent value="history" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Histórico de Reuniões */}
+              {/* Histórico de Reuniões - Funcional com CRUD e campo Link */}
               <div className="lg:col-span-2">
                 <MeetingHistoryTable clientId={client.id} />
               </div>
 
-              {/* Tarefas Críticas Pendentes */}
+              {/* Tarefas Críticas Pendentes - Conectadas ao sistema de tarefas */}
               <CriticalTasksCard clientId={client.id} />
+
+              {/* Alertas Ativos - REMOVIDO conforme solicitado */}
+              {/* Últimos Feedbacks - REMOVIDO conforme solicitado */}
             </div>
           </TabsContent>
         </Tabs>
