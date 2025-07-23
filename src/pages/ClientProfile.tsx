@@ -35,8 +35,6 @@ import {
   Award,
   Briefcase,
   UserCheck,
-  Zap,
-  Heart,
 } from 'lucide-react';
 import { mockClients, mockProjects } from '@/data/mockData';
 import { MeetingHistorySection } from '@/components/MeetingHistorySection';
@@ -153,14 +151,13 @@ const ClientProfile = () => {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="projects">Projetos</TabsTrigger>
           <TabsTrigger value="relationship">Relacionamento</TabsTrigger>
           <TabsTrigger value="team">Equipe</TabsTrigger>
           <TabsTrigger value="pages">Páginas & Campanhas</TabsTrigger>
-          <TabsTrigger value="history">Histórico</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="stakeholders">Stakeholders</TabsTrigger>
         </TabsList>
 
         {/* Visão Geral Tab */}
@@ -346,91 +343,82 @@ const ClientProfile = () => {
           </Card>
         </TabsContent>
 
+        {/* Stakeholders Tab */}
+        <TabsContent value="stakeholders" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Stakeholders</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {/* Stakeholder content would go here */}
+                <p className="text-muted-foreground">
+                  Lista de stakeholders e contatos importantes relacionados ao cliente.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Avatar className="w-10 h-10">
+                          <AvatarImage src="https://api.dicebear.com/7.x/initials/svg?seed=João Silva" />
+                          <AvatarFallback>JS</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <h4 className="font-medium">João Silva</h4>
+                          <p className="text-sm text-muted-foreground">Diretor de Marketing</p>
+                        </div>
+                      </div>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Mail className="w-4 h-4 text-muted-foreground" />
+                          joao.silva@empresa.com
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-4 h-4 text-muted-foreground" />
+                          (11) 99999-8888
+                        </div>
+                        <Badge variant="outline">Decisor Principal</Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Avatar className="w-10 h-10">
+                          <AvatarImage src="https://api.dicebear.com/7.x/initials/svg?seed=Maria Souza" />
+                          <AvatarFallback>MS</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <h4 className="font-medium">Maria Souza</h4>
+                          <p className="text-sm text-muted-foreground">Gerente de Produto</p>
+                        </div>
+                      </div>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Mail className="w-4 h-4 text-muted-foreground" />
+                          maria.souza@empresa.com
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-4 h-4 text-muted-foreground" />
+                          (11) 98765-4321
+                        </div>
+                        <Badge variant="outline">Usuário Chave</Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* História Tab */}
         <TabsContent value="history" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <MeetingHistorySection clientId={id!} />
             <ClientNotesSection clientId={id!} />
           </div>
-        </TabsContent>
-
-        {/* Analytics Tab */}
-        <TabsContent value="analytics" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Analytics do Cliente</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Briefcase className="w-4 h-4" />
-                      Leads Gerados
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-2xl font-semibold">350</p>
-                    <p className="text-sm text-muted-foreground">Neste mês</p>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <UserCheck className="w-4 h-4" />
-                      Taxa de Conversão
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-2xl font-semibold">12%</p>
-                    <p className="text-sm text-muted-foreground">Leads convertidos em clientes</p>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Zap className="w-4 h-4" />
-                      Custo por Aquisição (CPA)
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-2xl font-semibold">R$ 50,00</p>
-                    <p className="text-sm text-muted-foreground">Custo médio por cliente adquirido</p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Heart className="w-4 h-4" />
-                      Engajamento nas Redes Sociais
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-xl font-semibold">15.000 curtidas</p>
-                    <p className="text-sm text-muted-foreground">Total de interações nas redes sociais</p>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Globe className="w-4 h-4" />
-                      Tráfego do Website
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-xl font-semibold">20.000 visitas</p>
-                    <p className="text-sm text-muted-foreground">Visitantes únicos neste mês</p>
-                  </CardContent>
-                </Card>
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
     </div>
