@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -6,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useClients } from '@/hooks/useClients';
 import { useProjects } from '@/hooks/useProjects';
-import { PersonalInfoSection } from '@/components/PersonalInfoSection';
+import PersonalInfoSection from '@/components/PersonalInfoSection';
 import { ClientNotesSection } from '@/components/ClientNotesSection';
 import { MeetingHistorySection } from '@/components/MeetingHistorySection';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -17,7 +16,8 @@ import {
   ExternalLink, 
   Mail, 
   MapPin, 
-  MoreHorizontal, 
+  MoreHorizontal,
+  Plus,
   Phone, 
   Users 
 } from 'lucide-react';

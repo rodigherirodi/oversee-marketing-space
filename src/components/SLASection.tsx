@@ -87,7 +87,14 @@ const SLASection: React.FC<SLASectionProps> = ({ clientId }) => {
     if (currentSLA) {
       updateSLAItem(currentSLA.id, data);
     } else {
-      addSLAItem(data);
+      // Fix: Explicitly cast data as required type
+      const newSLAItem: Omit<SLAItem, "id"> = {
+        title: data.title,
+        description: data.description,
+        metrics: data.metrics,
+        status: data.status
+      };
+      addSLAItem(newSLAItem);
     }
     
     setIsDialogOpen(false);
