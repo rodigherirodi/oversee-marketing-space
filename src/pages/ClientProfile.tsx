@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { ArrowLeft, Building2, Mail, Phone, Globe, MapPin, Calendar, Users, FileText, BarChart3, History } from 'lucide-react';
@@ -48,8 +49,8 @@ export default function ClientProfile() {
             <div>
               <h1 className="text-3xl font-bold text-gray-900">{client.name}</h1>
               <div className="flex items-center gap-4 mt-2">
-                <Badge variant={client.status === 'ativo' ? 'default' : 'secondary'}>
-                  {client.status === 'ativo' ? 'Ativo' : 'Inativo'}
+                <Badge variant={client.status === 'active' ? 'default' : 'secondary'}>
+                  {client.status === 'active' ? 'Ativo' : client.status === 'inactive' ? 'Inativo' : 'Onboarding'}
                 </Badge>
                 <Badge variant="outline">{client.segment}</Badge>
               </div>
@@ -86,22 +87,24 @@ export default function ClientProfile() {
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-2">
                   <Building2 className="h-4 w-4" />
-                  <span>{client.companyName}</span>
+                  <span>{client.name}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4" />
-                  <a href={`mailto:${client.email}`} className="text-blue-500 hover:underline">{client.email}</a>
+                  <a href={`mailto:${client.primaryContact.email}`} className="text-blue-500 hover:underline">{client.primaryContact.email}</a>
                 </div>
                 <div className="flex items-center gap-2">
                   <Phone className="h-4 w-4" />
-                  <span>{client.phone}</span>
+                  <span>{client.primaryContact.phone}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Globe className="h-4 w-4" />
-                  <a href={client.website} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                    {client.website}
-                  </a>
-                </div>
+                {client.website && (
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-4 w-4" />
+                    <a href={client.website} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                      {client.website}
+                    </a>
+                  </div>
+                )}
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4" />
                   <span>{client.address}</span>
@@ -118,7 +121,7 @@ export default function ClientProfile() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
-                  <span>{client.employees} funcionários</span>
+                  <span>Empresa {client.size}</span>
                 </div>
               </CardContent>
             </Card>
@@ -148,12 +151,12 @@ export default function ClientProfile() {
 
           <TabsContent value="history" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Histórico de Reuniões - Nova implementação */}
+              {/* Histórico de Reuniões */}
               <div className="lg:col-span-2">
                 <MeetingHistoryTable clientId={client.id} />
               </div>
 
-              {/* Tarefas Críticas Pendentes - Nova implementação conectada */}
+              {/* Tarefas Críticas Pendentes */}
               <CriticalTasksCard clientId={client.id} />
             </div>
           </TabsContent>
