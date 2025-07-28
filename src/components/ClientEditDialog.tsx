@@ -80,7 +80,30 @@ const ClientEditDialog: React.FC<ClientEditDialogProps> = ({
   });
 
   const handleSubmit = (data: ClientFormData) => {
-    onSave(data);
+    const updateData: Partial<Client> = {
+      name: data.name,
+      segment: data.segment,
+      status: data.status,
+      size: data.size,
+      address: data.address,
+      website: data.website,
+      primaryContact: {
+        name: data.primaryContact.name,
+        phone: data.primaryContact.phone,
+        email: data.primaryContact.email,
+      },
+      financialContact: {
+        name: data.financialContact.name,
+        phone: data.financialContact.phone,
+        email: data.financialContact.email,
+      },
+      contractType: data.contractType,
+      temperature: data.temperature,
+      entryDate: data.entryDate,
+      responsibleManager: data.responsibleManager,
+    };
+    
+    onSave(updateData);
     onOpenChange(false);
   };
 

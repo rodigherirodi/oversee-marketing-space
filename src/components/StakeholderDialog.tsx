@@ -62,7 +62,12 @@ const StakeholderDialog: React.FC<StakeholderDialogProps> = ({
 
   const handleSubmit = (data: StakeholderFormData) => {
     onSave({
-      ...data,
+      name: data.name,
+      position: data.position,
+      department: data.department,
+      email: data.email,
+      phone: data.phone,
+      importance: data.importance,
       clientId,
     });
     onOpenChange(false);

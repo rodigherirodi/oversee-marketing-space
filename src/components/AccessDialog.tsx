@@ -60,7 +60,11 @@ const AccessDialog: React.FC<AccessDialogProps> = ({
 
   const handleSubmit = (data: AccessFormData) => {
     onSave({
-      ...data,
+      platform: data.platform,
+      username: data.username,
+      password: data.password,
+      url: data.url,
+      notes: data.notes,
       clientId,
     });
     onOpenChange(false);
