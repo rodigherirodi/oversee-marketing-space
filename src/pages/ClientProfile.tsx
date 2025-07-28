@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -6,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useClients } from '@/hooks/useClients';
 import { useProjects } from '@/hooks/useProjects';
+import { useStakeholders } from '@/hooks/useStakeholders';
+import { useClientAccesses } from '@/hooks/useClientAccesses';
 import PersonalInfoSection from '@/components/PersonalInfoSection';
 import { ClientNotesSection } from '@/components/ClientNotesSection';
 import { MeetingHistorySection } from '@/components/MeetingHistorySection';
@@ -21,7 +22,9 @@ import {
   Plus,
   Phone, 
   Users,
-  Key 
+  Key,
+  Eye,
+  EyeOff 
 } from 'lucide-react';
 import { 
   DropdownMenu,
@@ -29,6 +32,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import PageLinkDialog from '@/components/PageLinkDialog';
 import { usePageLinks } from '@/hooks/usePageLinks';
@@ -36,14 +50,26 @@ import TeamMemberSelector from '@/components/TeamMemberSelector';
 import NPSHistorySection from '@/components/NPSHistorySection';
 import ImportantDatesSection from '@/components/ImportantDatesSection';
 import SLASection from '@/components/SLASection';
+import ClientEditDialog from '@/components/ClientEditDialog';
+import StakeholderDialog from '@/components/StakeholderDialog';
+import AccessDialog from '@/components/AccessDialog';
 
 const ClientProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { clients } = useClients();
+  const { clients, updateClient } = useClients();
   const { projects } = useProjects();
+  const { stakeholders, addStakeholder, updateStakeholder, deleteStakeholder } = useStakeholders(id || '');
+  const { accesses, addAccess, updateAccess, deleteAccess } = useClientAccesses(id || '');
+  
+  const [isClientEditDialogOpen, setIsClientEditDialogOpen] = useState(false);
+  const [isStakeholderDialogOpen, setIsStakeholderDialogOpen] = useState(false);
+  const [isAccessDialogOpen, setIsAccessDialogOpen] = useState(false);
+  const [currentStakeholder, setCurrentStakeholder] = useState<any | null>(null);
+  const [currentAccess, setCurrentAccess] = useState<any | null>(null);
   const [isPageLinkDialogOpen, setIsPageLinkDialogOpen] = useState(false);
   const [currentPageLink, setCurrentPageLink] = useState<any | null>(null);
+  const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
   
   const client = clients.find(c => c.id === id);
   const clientProjects = projects.filter(project => project.clientId === id);
@@ -119,7 +145,61 @@ const ClientProfile = () => {
         return 'bg-gray-100 text-gray-700';
     }
   };
-  
+
+  const getImportanceColor = (importance: string) => {
+    switch (importance) {
+      case 'high':
+        return 'bg-red-100 text-red-800';
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'low':
+        return 'bg-green-100 text-green-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getImportanceLabel = (importance: string) => {
+    switch (importance) {
+      case 'high':
+        return 'Alta';
+      case 'medium':
+        return 'Média';
+      case 'low':
+        return 'Baixa';
+      default:
+        return importance;
+    }
+  };
+
+  const handleOpenStakeholderDialog = (stakeholder = null) => {
+    setCurrentStakeholder(stakeholder);
+    setIsStakeholderDialogOpen(true);
+  };
+
+  const handleSaveStakeholder = (data: any) => {
+    if (currentStakeholder) {
+      updateStakeholder(currentStakeholder.id, data);
+    } else {
+      addStakeholder(data);
+    }
+    setCurrentStakeholder(null);
+  };
+
+  const handleOpenAccessDialog = (access = null) => {
+    setCurrentAccess(access);
+    setIsAccessDialogOpen(true);
+  };
+
+  const handleSaveAccess = (data: any) => {
+    if (currentAccess) {
+      updateAccess(currentAccess.id, data);
+    } else {
+      addAccess(data);
+    }
+    setCurrentAccess(null);
+  };
+
   const handleOpenPageLinkDialog = (pageLink = null) => {
     setCurrentPageLink(pageLink);
     setIsPageLinkDialogOpen(true);
@@ -132,9 +212,16 @@ const ClientProfile = () => {
       addPageLink(data);
     }
   };
-  
+
   const handleNavigateToProject = (projectId: string) => {
     navigate(`/projects/${projectId}`);
+  };
+
+  const togglePasswordVisibility = (accessId: string) => {
+    setVisiblePasswords(prev => ({
+      ...prev,
+      [accessId]: !prev[accessId]
+    }));
   };
 
   return (
@@ -163,7 +250,9 @@ const ClientProfile = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline">Editar Dados</Button>
+          <Button variant="outline" onClick={() => setIsClientEditDialogOpen(true)}>
+            Editar Dados
+          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -328,37 +417,51 @@ const ClientProfile = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    <TableRow>
-                      <TableCell>Google Analytics</TableCell>
-                      <TableCell>cliente@empresa.com</TableCell>
-                      <TableCell>••••••••••</TableCell>
-                      <TableCell>Acesso de administrador</TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="sm">Editar</Button>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>WordPress</TableCell>
-                      <TableCell>admin</TableCell>
-                      <TableCell>••••••••••</TableCell>
-                      <TableCell>Acesso ao painel</TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="sm">Editar</Button>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>Meta Business</TableCell>
-                      <TableCell>marketing@cliente.com</TableCell>
-                      <TableCell>••••••••••</TableCell>
-                      <TableCell>Acesso limitado</TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="sm">Editar</Button>
-                      </TableCell>
-                    </TableRow>
+                    {accesses.map((access) => (
+                      <TableRow key={access.id}>
+                        <TableCell>{access.platform}</TableCell>
+                        <TableCell>{access.username}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <span>
+                              {visiblePasswords[access.id] ? access.password : '••••••••••'}
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => togglePasswordVisibility(access.id)}
+                            >
+                              {visiblePasswords[access.id] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </Button>
+                          </div>
+                        </TableCell>
+                        <TableCell>{access.notes}</TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleOpenAccessDialog(access)}>
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                className="text-red-600"
+                                onClick={() => deleteAccess(access.id)}
+                              >
+                                Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
                   </TableBody>
                 </Table>
                 <div className="mt-4">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={() => handleOpenAccessDialog()}>
                     <Plus className="mr-2 h-4 w-4" /> Adicionar Acesso
                   </Button>
                 </div>
@@ -534,7 +637,12 @@ const ClientProfile = () => {
 
         {/* Stakeholders Tab */}
         <TabsContent value="stakeholders" className="space-y-6">
-          <h2 className="text-xl font-semibold mb-6">Stakeholders</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Stakeholders</h2>
+            <Button onClick={() => handleOpenStakeholderDialog()}>
+              <Plus className="mr-2 h-4 w-4" /> Adicionar Stakeholder
+            </Button>
+          </div>
           
           <Card>
             <CardContent className="p-6">
@@ -552,88 +660,79 @@ const ClientProfile = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    <TableRow>
-                      <TableCell className="font-medium">Maria Silva</TableCell>
-                      <TableCell>CEO</TableCell>
-                      <TableCell>Diretoria</TableCell>
-                      <TableCell>maria@empresa.com</TableCell>
-                      <TableCell>(11) 98765-4321</TableCell>
-                      <TableCell>
-                        <Badge className="bg-red-100 text-red-800">Alta</Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>Editar</DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600">Remover</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="font-medium">José Oliveira</TableCell>
-                      <TableCell>Gerente de Marketing</TableCell>
-                      <TableCell>Marketing</TableCell>
-                      <TableCell>jose@empresa.com</TableCell>
-                      <TableCell>(11) 99876-5432</TableCell>
-                      <TableCell>
-                        <Badge className="bg-yellow-100 text-yellow-800">Média</Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>Editar</DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600">Remover</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="font-medium">Roberto Santos</TableCell>
-                      <TableCell>Analista de Mídia</TableCell>
-                      <TableCell>Marketing</TableCell>
-                      <TableCell>roberto@empresa.com</TableCell>
-                      <TableCell>(11) 97654-3210</TableCell>
-                      <TableCell>
-                        <Badge className="bg-green-100 text-green-800">Baixa</Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>Editar</DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600">Remover</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
+                    {stakeholders.map((stakeholder) => (
+                      <TableRow key={stakeholder.id}>
+                        <TableCell className="font-medium">{stakeholder.name}</TableCell>
+                        <TableCell>{stakeholder.position}</TableCell>
+                        <TableCell>{stakeholder.department}</TableCell>
+                        <TableCell>{stakeholder.email}</TableCell>
+                        <TableCell>{stakeholder.phone}</TableCell>
+                        <TableCell>
+                          <Badge className={getImportanceColor(stakeholder.importance)}>
+                            {getImportanceLabel(stakeholder.importance)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleOpenStakeholderDialog(stakeholder)}>
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                className="text-red-600"
+                                onClick={() => deleteStakeholder(stakeholder.id)}
+                              >
+                                Remover
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    
+                    {stakeholders.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-6">
+                          Nenhum stakeholder encontrado para este cliente.
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
-                
-                <div className="flex justify-end">
-                  <Button>
-                    <Plus className="mr-2 h-4 w-4" /> Adicionar Stakeholder
-                  </Button>
-                </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Dialogs */}
+      <ClientEditDialog
+        open={isClientEditDialogOpen}
+        onOpenChange={setIsClientEditDialogOpen}
+        client={client}
+        onSave={(data) => updateClient(client.id, data)}
+      />
+
+      <StakeholderDialog
+        open={isStakeholderDialogOpen}
+        onOpenChange={setIsStakeholderDialogOpen}
+        stakeholder={currentStakeholder}
+        clientId={client.id}
+        onSave={handleSaveStakeholder}
+      />
+
+      <AccessDialog
+        open={isAccessDialogOpen}
+        onOpenChange={setIsAccessDialogOpen}
+        access={currentAccess}
+        clientId={client.id}
+        onSave={handleSaveAccess}
+      />
     </div>
   );
 };
