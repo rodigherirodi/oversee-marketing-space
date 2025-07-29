@@ -49,12 +49,12 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <WorkspaceProvider>
-          <TaskProvider>
-            <TrilhasProvider>
-              <ChatProvider>
-                <Toaster />
-                <BrowserRouter>
+        <Toaster />
+        <BrowserRouter>
+          <WorkspaceProvider>
+            <TaskProvider>
+              <TrilhasProvider>
+                <ChatProvider>
                   <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                   </div>}>
@@ -252,11 +252,11 @@ const App = () => (
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </Suspense>
-                </BrowserRouter>
-              </ChatProvider>
-            </TrilhasProvider>
-          </TaskProvider>
-        </WorkspaceProvider>
+                </ChatProvider>
+              </TrilhasProvider>
+            </TaskProvider>
+          </WorkspaceProvider>
+        </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
