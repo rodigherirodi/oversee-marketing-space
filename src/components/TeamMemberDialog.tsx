@@ -12,7 +12,6 @@ import PersonalInfoTab from './PersonalInfoTab';
 import ProfessionalInfoTab from './ProfessionalInfoTab';
 import ProductivityTab from './ProductivityTab';
 import GamificationTab from './GamificationTab';
-import { transformTeamMemberData } from '@/utils/teamMemberUtils';
 
 interface TeamMemberDialogProps {
   member: TeamMember;
@@ -25,15 +24,12 @@ const TeamMemberDialog: React.FC<TeamMemberDialogProps> = ({
   open,
   onOpenChange,
 }) => {
-  // Transformar os dados para garantir compatibilidade
-  const transformedMember = transformTeamMemberData(member);
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl">
-            Perfil de {transformedMember.name}
+            Perfil de {member.name}
           </DialogTitle>
         </DialogHeader>
 
@@ -42,23 +38,23 @@ const TeamMemberDialog: React.FC<TeamMemberDialogProps> = ({
             <TabsTrigger value="personal">Pessoal</TabsTrigger>
             <TabsTrigger value="professional">Profissional</TabsTrigger>
             <TabsTrigger value="productivity">Produtividade</TabsTrigger>
-            <TabsTrigger value="gamification">Cargo & Gamificação</TabsTrigger>
+            <TabsTrigger value="gamification">Gamificação</TabsTrigger>
           </TabsList>
 
           <TabsContent value="personal" className="mt-6">
-            <PersonalInfoTab member={transformedMember} />
+            <PersonalInfoTab member={member} />
           </TabsContent>
 
           <TabsContent value="professional" className="mt-6">
-            <ProfessionalInfoTab member={transformedMember} />
+            <ProfessionalInfoTab member={member} />
           </TabsContent>
 
           <TabsContent value="productivity" className="mt-6">
-            <ProductivityTab member={transformedMember} />
+            <ProductivityTab member={member} />
           </TabsContent>
 
           <TabsContent value="gamification" className="mt-6">
-            <GamificationTab member={transformedMember} />
+            <GamificationTab member={member} />
           </TabsContent>
         </Tabs>
       </DialogContent>

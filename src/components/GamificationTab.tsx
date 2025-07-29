@@ -13,7 +13,11 @@ interface GamificationTabProps {
 const GamificationTab: React.FC<GamificationTabProps> = ({ member }) => {
   const nextLevelXP = (member.level + 1) * 100;
   const currentLevelXP = member.level * 100;
-  const progressToNextLevel = ((member.points - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100;
+  const progressToNextLevel = member.points > currentLevelXP 
+    ? ((member.points - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100
+    : 0;
+
+  const badges = member.badges || ['🌟'];
 
   return (
     <div className="space-y-6">
@@ -25,7 +29,7 @@ const GamificationTab: React.FC<GamificationTabProps> = ({ member }) => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">Nível {member.level}</div>
-            <Progress value={progressToNextLevel} className="mt-2" />
+            <Progress value={Math.min(progressToNextLevel, 100)} className="mt-2" />
             <p className="text-xs text-muted-foreground mt-1">
               {member.points} / {nextLevelXP} XP
             </p>
@@ -51,7 +55,7 @@ const GamificationTab: React.FC<GamificationTabProps> = ({ member }) => {
             <Award className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{member.badges.length}</div>
+            <div className="text-2xl font-bold">{badges.length}</div>
             <p className="text-xs text-muted-foreground">
               Conquistas desbloqueadas
             </p>
@@ -68,7 +72,7 @@ const GamificationTab: React.FC<GamificationTabProps> = ({ member }) => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {member.badges.map((badge, index) => (
+            {badges.map((badge, index) => (
               <div
                 key={index}
                 className="flex flex-col items-center p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors"
@@ -92,7 +96,7 @@ const GamificationTab: React.FC<GamificationTabProps> = ({ member }) => {
                 <span>Nível {member.level}</span>
                 <span>Nível {member.level + 1}</span>
               </div>
-              <Progress value={progressToNextLevel} />
+              <Progress value={Math.min(progressToNextLevel, 100)} />
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>{currentLevelXP} XP</span>
                 <span>{nextLevelXP} XP</span>
@@ -100,7 +104,10 @@ const GamificationTab: React.FC<GamificationTabProps> = ({ member }) => {
             </div>
             
             <p className="text-sm text-muted-foreground">
-              Você precisa de {nextLevelXP - member.points} pontos para o próximo nível.
+              {member.points >= nextLevelXP 
+                ? 'Parabéns! Você atingiu o próximo nível!'
+                : `Você precisa de ${nextLevelXP - member.points} pontos para o próximo nível.`
+              }
             </p>
           </CardContent>
         </Card>
@@ -109,27 +116,52 @@ const GamificationTab: React.FC<GamificationTabProps> = ({ member }) => {
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Target className="w-5 h-5" />
+              Estatísticas de Performance
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Taxa de Conclusão</p>
+                <p className="text-lg font-semibold">{member.task_completion_rate}%</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Projetos Ativos</p>
+                <p className="text-lg font-semibold">{member.active_projects_count}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Projetos Concluídos</p>
+                <p className="text-lg font-semibold">{member.completed_projects_count}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Horas/Semana</p>
+                <p className="text-lg font-semibold">{member.hours_worked_week}h</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {member.goals && member.goals.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Target className="w-5 h-5" />
               Metas de Carreira
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {member.goals && member.goals.length > 0 ? (
-              <ul className="space-y-2">
-                {member.goals.map((goal, index) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <span className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></span>
-                    <span className="text-sm">{goal}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Nenhuma meta definida ainda.
-              </p>
-            )}
+            <ul className="space-y-2">
+              {member.goals.map((goal, index) => (
+                <li key={index} className="flex items-start gap-2">
+                  <span className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></span>
+                  <span className="text-sm">{goal}</span>
+                </li>
+              ))}
+            </ul>
           </CardContent>
         </Card>
-      </div>
+      )}
     </div>
   );
 };
