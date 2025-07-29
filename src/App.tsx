@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import Auth from '@/pages/Auth';
@@ -17,15 +17,15 @@ import Cursos from '@/pages/Cursos';
 import Briefings from '@/pages/Briefings';
 import Guias from '@/pages/Guias';
 import Cases from '@/pages/Cases';
-import { CRM } from '@/pages/comercial/CRM';
-import { LeadDetail } from '@/pages/comercial/LeadDetail';
-import { Activities } from '@/pages/comercial/Activities';
-import { Money } from '@/pages/comercial/Money';
-import { Playbooks } from '@/pages/comercial/Playbooks';
-import { Agenda } from '@/pages/cultura/Agenda';
-import { Onboarding } from '@/pages/cultura/Onboarding';
-import { Gerenciamento } from '@/pages/gestao/Gerenciamento';
-import { Admin } from '@/pages/gestao/Admin';
+import CRM from '@/pages/comercial/CRM';
+import LeadDetail from '@/pages/comercial/LeadDetail';
+import Activities from '@/pages/comercial/Activities';
+import Money from '@/pages/comercial/Money';
+import Playbooks from '@/pages/comercial/Playbooks';
+import Agenda from '@/pages/cultura/Agenda';
+import Onboarding from '@/pages/cultura/Onboarding';
+import Gerenciamento from '@/pages/gestao/Gerenciamento';
+import Admin from '@/pages/gestao/Admin';
 import Chat from '@/pages/Chat';
 import Access from '@/pages/Access';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -60,8 +60,8 @@ function App() {
                       <Route path="/404" element={<NotFound />} />
 
                       {/* Protected routes */}
-                      <Route path="/*" element={<ProtectedRoute />}>
-                        <Route path="*" element={<AuthenticatedLayout />}>
+                      <Route path="/*" element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
+                        <Route path="*" element={<AuthenticatedLayout><Outlet /></AuthenticatedLayout>}>
                           <Route path="" element={<Index />} />
                           <Route path="dashboard" element={<AnalyticalDashboard />} />
                           <Route path="productivity" element={<Productivity />} />
