@@ -149,14 +149,25 @@ const Tasks = () => {
 
       {/* Task Modal */}
       <TaskModal
-        task={selectedTask}
+        editTask={selectedTask}
         isOpen={isTaskModalOpen}
         onClose={() => {
           setIsTaskModalOpen(false);
           setSelectedTask(null);
           setIsCreatingTask(false);
         }}
-        isCreating={isCreatingTask}
+        onSubmit={(task) => {
+          if (selectedTask) {
+            updateTask(selectedTask.id, task);
+          } else {
+            // Handle new task creation through context
+          }
+          setIsTaskModalOpen(false);
+          setSelectedTask(null);
+          setIsCreatingTask(false);
+        }}
+        clients={[]}
+        projects={[]}
       />
     </div>
   );

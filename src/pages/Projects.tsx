@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, Search, Filter, LayoutGrid, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -49,10 +48,6 @@ const Projects = () => {
     return matchesSearch && matchesStatus && matchesPriority;
   });
 
-  const handleProjectAdded = (project: any) => {
-    addProject(project);
-  };
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -64,7 +59,7 @@ const Projects = () => {
           </p>
         </div>
         
-        <ProjectFormDialog onProjectAdded={handleProjectAdded}>
+        <ProjectFormDialog>
           <Button>
             <Plus className="w-4 h-4 mr-2" />
             Novo Projeto
@@ -191,7 +186,7 @@ const Projects = () => {
           <p className="text-muted-foreground mb-4">
             Crie seu primeiro projeto para começar
           </p>
-          <ProjectFormDialog onProjectAdded={handleProjectAdded}>
+          <ProjectFormDialog>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
               Criar Projeto
