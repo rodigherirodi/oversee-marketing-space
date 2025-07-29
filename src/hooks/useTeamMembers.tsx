@@ -1,4 +1,5 @@
 
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -35,10 +36,13 @@ export const useTeamMembers = () => {
 
   const addTeamMemberMutation = useMutation({
     mutationFn: async (newMember: Partial<TeamMember>) => {
-      // Create the profile data object with only the fields that exist in the profiles table
+      // Generate a UUID for the new member if not provided
+      const memberId = newMember.id || crypto.randomUUID();
+      
       const { data, error } = await supabase
         .from('profiles')
         .insert({
+          id: memberId,
           name: newMember.name!,
           email: newMember.email!,
           phone: newMember.phone || '',
@@ -184,3 +188,4 @@ export const useTeamMembers = () => {
     isLoading,
   };
 };
+
