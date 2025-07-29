@@ -36,14 +36,14 @@ export const useTeamMembers = () => {
   const addTeamMemberMutation = useMutation({
     mutationFn: async (newMember: Partial<TeamMember>) => {
       // Mapear campos para o formato do banco - apenas campos que existem na tabela profiles
-      const profileData = {
+      const profileData: Omit<any, 'id' | 'created_at' | 'updated_at'> = {
         name: newMember.name!,
         email: newMember.email!,
         phone: newMember.phone || '',
         position: newMember.position || '',
         department: newMember.department as "operacao" | "academy" | "cultura" | "comercial" | "gestao",
-        birth_date: newMember.birthDate || newMember.birth_date || '',
-        hire_date: newMember.hireDate || newMember.hire_date || '',
+        birth_date: newMember.birthDate || newMember.birth_date || null,
+        hire_date: newMember.hireDate || newMember.hire_date || null,
         address: newMember.address || '',
         status: newMember.status || 'active',
         level: newMember.level || 1,
