@@ -41,7 +41,6 @@ interface Goal {
   current_value: number;
   target_value: number;
   deadline: string;
-  target_date?: string;
 }
 
 interface Skill {
@@ -182,7 +181,7 @@ export const useProductivityData = () => {
   });
 
   return {
-    productivityData: productivity,
+    productivity,
     achievements,
     pointsHistory,
     goals,

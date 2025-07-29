@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 export const useCurrentUser = () => {
   const { user } = useAuth();
 
-  const { data: currentUser, isLoading } = useQuery({
+  const { data: currentUserProfile, isLoading } = useQuery({
     queryKey: ['current-user', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
@@ -28,7 +28,7 @@ export const useCurrentUser = () => {
   });
 
   return {
-    currentUser,
+    currentUserProfile,
     isLoading,
   };
 };

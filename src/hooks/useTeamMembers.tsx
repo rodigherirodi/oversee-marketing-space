@@ -35,7 +35,7 @@ export const useTeamMembers = () => {
 
   const addTeamMemberMutation = useMutation({
     mutationFn: async (newMember: Partial<TeamMember>) => {
-      // Mapear campos para o formato do banco - removendo id pois é gerado automaticamente
+      // Mapear campos para o formato do banco - apenas campos que existem na tabela profiles
       const profileData = {
         name: newMember.name!,
         email: newMember.email!,
@@ -55,8 +55,6 @@ export const useTeamMembers = () => {
         border_pattern: newMember.borderPattern || newMember.border_pattern || 'solid',
         border_color: newMember.borderColor || newMember.border_color || '#3B82F6',
         avatar: newMember.avatar || '/placeholder.svg',
-        supervisor: newMember.supervisor || '',
-        salary: newMember.salary || 0
       };
 
       const { data, error } = await supabase
@@ -87,7 +85,7 @@ export const useTeamMembers = () => {
 
   const updateTeamMemberMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<TeamMember> }) => {
-      // Mapear campos para o formato do banco
+      // Mapear campos para o formato do banco - apenas campos que existem na tabela profiles
       const profileUpdates: any = {};
       
       if (updates.name !== undefined) profileUpdates.name = updates.name;
@@ -116,8 +114,6 @@ export const useTeamMembers = () => {
       if (updates.borderColor !== undefined) profileUpdates.border_color = updates.borderColor;
       if (updates.border_color !== undefined) profileUpdates.border_color = updates.border_color;
       if (updates.avatar !== undefined) profileUpdates.avatar = updates.avatar;
-      if (updates.supervisor !== undefined) profileUpdates.supervisor = updates.supervisor;
-      if (updates.salary !== undefined) profileUpdates.salary = updates.salary;
 
       const { data, error } = await supabase
         .from('profiles')
