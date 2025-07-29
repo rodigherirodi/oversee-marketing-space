@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -23,23 +24,14 @@ import Auth from "./pages/Auth";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthenticatedLayout from "./components/AuthenticatedLayout";
 import NotFound from "./pages/NotFound";
-import CulturaAgenda from "./pages/CulturaAgenda";
-import CulturaOnboarding from "./pages/CulturaOnboarding";
-import CulturaPDI from "./pages/CulturaPDI";
-import CulturaReconhecimento from "./pages/CulturaReconhecimento";
-import CulturaManual from "./pages/CulturaManual";
-import CulturaFeedback from "./pages/CulturaFeedback";
-import ComercialCRM from "./pages/ComercialCRM";
-import ComercialActivities from "./pages/ComercialActivities";
-import ComercialPlaybooks from "./pages/ComercialPlaybooks";
-import ComercialMoney from "./pages/ComercialMoney";
-import GestaoGerenciamento from "./pages/GestaoGerenciamento";
-import GestaoAdmin from "./pages/GestaoAdmin";
-import GestaoRelatorios from "./pages/GestaoRelatorios";
-import GestaoConfiguracoes from "./pages/GestaoConfiguracoes";
-import GestaoAuditoria from "./pages/GestaoAuditoria";
-import GestaoRH from "./pages/GestaoRH";
-import GestaoFinanceiro from "./pages/GestaoFinanceiro";
+import CulturaAgenda from "./pages/cultura/Agenda";
+import CulturaOnboarding from "./pages/cultura/Onboarding";
+import ComercialCRM from "./pages/comercial/CRM";
+import ComercialActivities from "./pages/comercial/Activities";
+import ComercialPlaybooks from "./pages/comercial/Playbooks";
+import ComercialMoney from "./pages/comercial/Money";
+import GestaoGerenciamento from "./pages/gestao/Gerenciamento";
+import GestaoAdmin from "./pages/gestao/Admin";
 
 const queryClient = new QueryClient();
 
@@ -187,46 +179,6 @@ const App = () => (
                       }
                     />
                     <Route
-                      path="/cultura/pdi"
-                      element={
-                        <ProtectedRoute>
-                          <AuthenticatedLayout>
-                            <CulturaPDI />
-                          </AuthenticatedLayout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/cultura/reconhecimento"
-                      element={
-                        <ProtectedRoute>
-                          <AuthenticatedLayout>
-                            <CulturaReconhecimento />
-                          </AuthenticatedLayout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/cultura/manual"
-                      element={
-                        <ProtectedRoute>
-                          <AuthenticatedLayout>
-                            <CulturaManual />
-                          </AuthenticatedLayout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/cultura/feedback"
-                      element={
-                        <ProtectedRoute>
-                          <AuthenticatedLayout>
-                            <CulturaFeedback />
-                          </AuthenticatedLayout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
                       path="/comercial/crm"
                       element={
                         <ProtectedRoute>
@@ -282,56 +234,6 @@ const App = () => (
                         <ProtectedRoute>
                           <AuthenticatedLayout>
                             <GestaoAdmin />
-                          </AuthenticatedLayout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/gestao/relatorios"
-                      element={
-                        <ProtectedRoute>
-                          <AuthenticatedLayout>
-                            <GestaoRelatorios />
-                          </AuthenticatedLayout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/gestao/configuracoes"
-                      element={
-                        <ProtectedRoute>
-                          <AuthenticatedLayout>
-                            <GestaoConfiguracoes />
-                          </AuthenticatedLayout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/gestao/auditoria"
-                      element={
-                        <ProtectedRoute>
-                          <AuthenticatedLayout>
-                            <GestaoAuditoria />
-                          </AuthenticatedLayout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/gestao/rh"
-                      element={
-                        <ProtectedRoute>
-                          <AuthenticatedLayout>
-                            <GestaoRH />
-                          </AuthenticatedLayout>
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/gestao/financeiro"
-                      element={
-                        <ProtectedRoute>
-                          <AuthenticatedLayout>
-                            <GestaoFinanceiro />
                           </AuthenticatedLayout>
                         </ProtectedRoute>
                       }
