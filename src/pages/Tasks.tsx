@@ -20,7 +20,7 @@ const Tasks = () => {
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
 
-  const { tasks, currentKanban, updateTask } = useTaskContext();
+  const { tasks, taskTypes, currentKanban, updateTask, deleteTask } = useTaskContext();
 
   const handleNewTask = () => {
     setSelectedTask(null);
@@ -32,6 +32,10 @@ const Tasks = () => {
     setSelectedTask(task);
     setIsCreatingTask(false);
     setIsTaskModalOpen(true);
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    deleteTask(taskId);
   };
 
   return (
@@ -129,7 +133,9 @@ const Tasks = () => {
         <TabsContent value="list" className="mt-6">
           <TaskListView 
             tasks={tasks}
+            taskTypes={taskTypes}
             onEditTask={handleEditTask}
+            onDeleteTask={handleDeleteTask}
           />
         </TabsContent>
 
@@ -143,7 +149,7 @@ const Tasks = () => {
 
       {/* Task Modal */}
       <TaskModal
-        task={selectedTask}
+        selectedTask={selectedTask}
         isOpen={isTaskModalOpen}
         onClose={() => {
           setIsTaskModalOpen(false);

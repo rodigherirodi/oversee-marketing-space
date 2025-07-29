@@ -200,8 +200,8 @@ const Projects = () => {
 
       {/* Project Form Dialog */}
       <ProjectFormDialog
-        isOpen={isProjectFormOpen}
-        onClose={() => setIsProjectFormOpen(false)}
+        open={isProjectFormOpen}
+        onOpenChange={setIsProjectFormOpen}
         onProjectAdded={handleProjectAdded}
       />
     </div>

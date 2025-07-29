@@ -11,6 +11,7 @@ import CompactOverdueTasks from '@/components/CompactOverdueTasks';
 import MonthlyEvolutionChart from '@/components/MonthlyEvolutionChart';
 import EngagementMetrics from '@/components/EngagementMetrics';
 import { useTaskContext } from '@/contexts/TaskContext';
+import { UserProductivity } from '@/types/newEntities';
 
 const Productivity = () => {
   const { currentUserProfile, isLoading: userLoading } = useCurrentUser();
@@ -28,6 +29,88 @@ const Productivity = () => {
     if (!task.dueDate) return false;
     return new Date(task.dueDate) < new Date() && task.status !== 'completed';
   });
+
+  // Transform currentUserProfile to UserProductivity format
+  const mockUserProductivity: UserProductivity = {
+    userId: currentUserProfile?.id || 'mock-user-id',
+    user: {
+      id: currentUserProfile?.id || 'mock-user-id',
+      name: currentUserProfile?.name || 'Usuário',
+      avatar: currentUserProfile?.avatar,
+      position: currentUserProfile?.position || 'Desenvolvedor'
+    },
+    department: currentUserProfile?.department || 'operacao',
+    level: currentUserProfile?.level || 1,
+    badges: currentUserProfile?.badges || ['🌟', '🚀'],
+    borderPattern: 'solid',
+    borderColor: currentUserProfile?.border_color || '#3b82f6',
+    hireDate: currentUserProfile?.hire_date || '2024-01-01',
+    timeInCompany: '1 ano',
+    nextReview: '2024-12-31',
+    timezone: 'America/Sao_Paulo',
+    certifications: [],
+    keyProjects: ['Projeto A', 'Projeto B'],
+    activeStreak: 12,
+    punctualityIndex: 95,
+    collaborationIndex: 88,
+    innovationScore: 92,
+    clientSatisfaction: 4.7,
+    tasksCompleted: 45,
+    tasksOpen: 8,
+    tasksInProgress: 5,
+    overdueTasks: overdueTasks.length,
+    overdueTasksList: overdueTasks.map(task => ({
+      id: task.id,
+      title: task.title,
+      client: task.client.name,
+      dueDate: task.dueDate,
+      priority: task.priority,
+      daysOverdue: Math.ceil((new Date().getTime() - new Date(task.dueDate).getTime()) / (1000 * 60 * 60 * 24))
+    })),
+    todaysPriorities: todayTasks.slice(0, 5).map(task => ({
+      id: task.id,
+      title: task.title,
+      type: 'task' as const,
+      client: task.client.name,
+      status: task.status === 'completed' ? 'completed' : task.status === 'in-progress' ? 'in-progress' : 'pending',
+      estimatedTime: '2h'
+    })),
+    activeProjects: currentUserProfile?.active_projects_count || 3,
+    completedProjects: currentUserProfile?.completed_projects_count || 12,
+    hoursWorkedWeek: 40,
+    hoursWorkedMonth: 168,
+    productivityScore: 85,
+    avgCompletionTime: 2.8,
+    collaborativeProjects: 8,
+    individualProjects: 7,
+    skills: [
+      { name: 'React', level: 4 },
+      { name: 'TypeScript', level: 3 },
+      { name: 'Node.js', level: 3 }
+    ],
+    tasksByPriority: {
+      high: 3,
+      medium: 8,
+      low: 5
+    },
+    monthlyEvolution: [
+      { month: 'Jan', score: 80 },
+      { month: 'Fev', score: 82 },
+      { month: 'Mar', score: 85 }
+    ],
+    recentAchievements: [
+      { badge: '⏰', name: 'Entrega no Prazo', date: '2024-01-15' },
+      { badge: '🤝', name: 'Colaboração', date: '2024-01-10' }
+    ],
+    pointsHistory: [
+      { date: '2024-01-15', points: 50, activity: 'Tarefa concluída' },
+      { date: '2024-01-14', points: 30, activity: 'Code review' }
+    ],
+    goals: [
+      { id: '1', title: 'Concluir 5 projetos', target: 5, current: 3, deadline: '2024-03-31' },
+      { id: '2', title: 'Melhorar produtividade', target: 90, current: 85, deadline: '2024-02-28' }
+    ]
+  };
 
   if (userLoading || productivityLoading) {
     return (
@@ -105,7 +188,7 @@ const Productivity = () => {
         <div className="lg:col-span-2 space-y-6">
           <TodaysPriorities todayTasks={todayTasks} />
           <MonthlyEvolutionChart />
-          <EngagementMetrics user={currentUserProfile} />
+          <EngagementMetrics user={mockUserProductivity} />
         </div>
 
         {/* Right column */}
