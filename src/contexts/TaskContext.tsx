@@ -30,10 +30,24 @@ export const useTaskContext = () => {
 };
 
 export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [tasks, setTasks] = useState<Task[]>(mockTasks);
-  const [taskTypes, setTaskTypes] = useState<TaskType[]>(mockTaskTypes);
-  const [kanbanConfigs, setKanbanConfigs] = useState<KanbanConfig[]>(mockKanbanConfigs);
-  const [currentKanban, setCurrentKanban] = useState<KanbanConfig>(mockKanbanConfigs[0]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [taskTypes, setTaskTypes] = useState<TaskType[]>([]);
+  const [kanbanConfigs, setKanbanConfigs] = useState<KanbanConfig[]>([]);
+  const [currentKanban, setCurrentKanban] = useState<KanbanConfig | null>(null);
+
+  // Initialize with mock data
+  useEffect(() => {
+    setTasks(mockTasks);
+    setTaskTypes(mockTaskTypes);
+    setKanbanConfigs(mockKanbanConfigs);
+    setCurrentKanban(mockKanbanConfigs[0]);
+    
+    console.log('TaskContext initialized with mock data:', {
+      tasks: mockTasks.length,
+      taskTypes: mockTaskTypes.length,
+      kanbanConfigs: mockKanbanConfigs.length
+    });
+  }, []);
 
   const addTask = (taskData: Omit<Task, 'id' | 'createdAt'>) => {
     const newTask: Task = {
@@ -76,8 +90,8 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
     
     // Update currentKanban if it's the one being updated
-    if (currentKanban.id === id) {
-      setCurrentKanban(prev => ({ ...prev, ...updates }));
+    if (currentKanban?.id === id) {
+      setCurrentKanban(prev => prev ? { ...prev, ...updates } : null);
     }
   };
 
@@ -95,7 +109,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setKanbanConfigs(prev => prev.filter(config => config.id !== id));
     
     // If deleting the current kanban, switch to general
-    if (currentKanban.id === id) {
+    if (currentKanban?.id === id) {
       setCurrentKanban(kanbanConfigs.find(k => k.id === 'geral') || kanbanConfigs[0]);
     }
   };
@@ -110,6 +124,15 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     return tasks.filter(task => task.squad === kanban.department);
   };
+
+  // Don't render until we have the current kanban
+  if (!currentKanban) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <TaskContext.Provider

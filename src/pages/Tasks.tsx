@@ -10,6 +10,8 @@ import { TaskListView } from '@/components/tasks/TaskListView';
 import { TaskCalendarView } from '@/components/tasks/TaskCalendarView';
 import { TaskModal } from '@/components/TaskModal';
 import { useTaskContext } from '@/contexts/TaskContext';
+import { useClients } from '@/hooks/useClients';
+import { useProjects } from '@/hooks/useProjects';
 
 const Tasks = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -20,7 +22,21 @@ const Tasks = () => {
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
 
-  const { tasks, taskTypes, currentKanban, updateTask, deleteTask } = useTaskContext();
+  const { tasks, taskTypes, currentKanban, addTask, updateTask, deleteTask } = useTaskContext();
+  const { clients } = useClients();
+  const { projects } = useProjects();
+
+  // Filter tasks based on search and filters
+  const filteredTasks = tasks.filter(task => {
+    const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         task.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
+    const matchesPriority = priorityFilter === 'all' || task.priority === priorityFilter;
+    const matchesAssignee = assigneeFilter === 'all' || 
+                           (assigneeFilter === 'me' ? task.assignee === 'Usuário Atual' : true);
+    
+    return matchesSearch && matchesStatus && matchesPriority && matchesAssignee;
+  });
 
   const handleNewTask = () => {
     setSelectedTask(null);
@@ -36,6 +52,23 @@ const Tasks = () => {
 
   const handleDeleteTask = (taskId: string) => {
     deleteTask(taskId);
+  };
+
+  const handleTaskSubmit = (taskData: any) => {
+    if (selectedTask) {
+      updateTask(selectedTask.id, taskData);
+    } else {
+      addTask(taskData);
+    }
+    setIsTaskModalOpen(false);
+    setSelectedTask(null);
+    setIsCreatingTask(false);
+  };
+
+  const handleCloseModal = () => {
+    setIsTaskModalOpen(false);
+    setSelectedTask(null);
+    setIsCreatingTask(false);
   };
 
   return (
@@ -123,7 +156,7 @@ const Tasks = () => {
 
         <TabsContent value="kanban" className="mt-6">
           <KanbanBoard 
-            tasks={tasks}
+            tasks={filteredTasks}
             onUpdateTask={updateTask}
             onEditTask={handleEditTask}
             kanbanConfig={currentKanban}
@@ -132,7 +165,7 @@ const Tasks = () => {
 
         <TabsContent value="list" className="mt-6">
           <TaskListView 
-            tasks={tasks}
+            tasks={filteredTasks}
             taskTypes={taskTypes}
             onEditTask={handleEditTask}
             onDeleteTask={handleDeleteTask}
@@ -141,7 +174,7 @@ const Tasks = () => {
 
         <TabsContent value="calendar" className="mt-6">
           <TaskCalendarView 
-            tasks={tasks}
+            tasks={filteredTasks}
             onEditTask={handleEditTask}
           />
         </TabsContent>
@@ -151,23 +184,10 @@ const Tasks = () => {
       <TaskModal
         editTask={selectedTask}
         isOpen={isTaskModalOpen}
-        onClose={() => {
-          setIsTaskModalOpen(false);
-          setSelectedTask(null);
-          setIsCreatingTask(false);
-        }}
-        onSubmit={(task) => {
-          if (selectedTask) {
-            updateTask(selectedTask.id, task);
-          } else {
-            // Handle new task creation through context
-          }
-          setIsTaskModalOpen(false);
-          setSelectedTask(null);
-          setIsCreatingTask(false);
-        }}
-        clients={[]}
-        projects={[]}
+        onClose={handleCloseModal}
+        onSubmit={handleTaskSubmit}
+        clients={clients}
+        projects={projects}
       />
     </div>
   );

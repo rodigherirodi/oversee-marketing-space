@@ -1,46 +1,59 @@
 
 import React from 'react';
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from 'recharts';
-
-// Mock data para demonstração
-const mockData = [
-  { month: 'Jan', score: 75 },
-  { month: 'Fev', score: 78 },
-  { month: 'Mar', score: 82 },
-  { month: 'Abr', score: 80 },
-  { month: 'Mai', score: 85 },
-  { month: 'Jun', score: 88 },
-];
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { TrendingUp } from 'lucide-react';
 
 const MonthlyEvolutionChart = () => {
+  const data = [
+    { month: 'Jan', score: 75, tasks: 12 },
+    { month: 'Fev', score: 78, tasks: 15 },
+    { month: 'Mar', score: 82, tasks: 18 },
+    { month: 'Abr', score: 85, tasks: 20 },
+    { month: 'Mai', score: 88, tasks: 22 },
+    { month: 'Jun', score: 85, tasks: 19 },
+  ];
+
   return (
-    <div className="h-64">
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={mockData}>
-          <XAxis 
-            dataKey="month" 
-            axisLine={false}
-            tickLine={false}
-            fontSize={12}
-            className="text-muted-foreground"
-          />
-          <YAxis 
-            axisLine={false}
-            tickLine={false}
-            fontSize={12}
-            className="text-muted-foreground"
-          />
-          <Line 
-            type="monotone" 
-            dataKey="score" 
-            stroke="hsl(var(--primary))" 
-            strokeWidth={3}
-            dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }}
-            activeDot={{ r: 6, stroke: "hsl(var(--primary))", strokeWidth: 2 }}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <TrendingUp className="w-5 h-5" />
+          Evolução Mensal
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="h-80">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip 
+                formatter={(value, name) => [
+                  `${value}${name === 'score' ? '%' : ''}`,
+                  name === 'score' ? 'Score de Produtividade' : 'Tarefas Concluídas'
+                ]}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="score" 
+                stroke="#3b82f6" 
+                strokeWidth={2}
+                dot={{ fill: '#3b82f6' }}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="tasks" 
+                stroke="#10b981" 
+                strokeWidth={2}
+                dot={{ fill: '#10b981' }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
