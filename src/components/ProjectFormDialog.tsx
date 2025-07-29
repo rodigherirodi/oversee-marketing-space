@@ -36,7 +36,8 @@ const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({ children }) => {
     endDate: '',
     budget: '',
     teamMembers: [] as string[],
-    progress: 0
+    progress: 0,
+    tags: [] as string[]
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -55,6 +56,7 @@ const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({ children }) => {
     const newProject = {
       name: formData.name,
       description: formData.description,
+      clientId: formData.clientId,
       client,
       status: formData.status,
       priority: formData.priority,
@@ -62,7 +64,9 @@ const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({ children }) => {
       endDate: formData.endDate,
       budget: formData.budget ? parseFloat(formData.budget) : 0,
       teamMembers: formData.teamMembers,
-      progress: formData.progress
+      progress: formData.progress,
+      tags: formData.tags,
+      cover: ''
     };
 
     addProject(newProject);
@@ -83,7 +87,8 @@ const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({ children }) => {
       endDate: '',
       budget: '',
       teamMembers: [],
-      progress: 0
+      progress: 0,
+      tags: []
     });
   };
 

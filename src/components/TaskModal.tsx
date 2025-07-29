@@ -13,7 +13,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Calendar, CalendarDays, User, Building2 } from 'lucide-react';
 
 interface TaskModalProps {
   editTask?: Task | null;
@@ -42,8 +41,9 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     status: 'todo',
     type: '',
     squad: 'operacao',
-    client: { id: '', name: '' },
-    project: { id: '', name: '' }
+    clientId: '',
+    projectId: '',
+    tags: [] as string[]
   });
 
   useEffect(() => {
@@ -57,8 +57,9 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         status: editTask.status || 'todo',
         type: editTask.type || '',
         squad: editTask.squad || 'operacao',
-        client: editTask.client || { id: '', name: '' },
-        project: editTask.project || { id: '', name: '' }
+        clientId: editTask.clientId || '',
+        projectId: editTask.projectId || '',
+        tags: editTask.tags || []
       });
     } else {
       setFormData({
@@ -70,15 +71,37 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         status: 'todo',
         type: '',
         squad: 'operacao',
-        client: { id: '', name: '' },
-        project: { id: '', name: '' }
+        clientId: '',
+        projectId: '',
+        tags: []
       });
     }
   }, [editTask, isOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    const client = clients.find(c => c.id === formData.clientId);
+    const project = projects.find(p => p.id === formData.projectId);
+    
+    const taskData: Partial<Task> = {
+      title: formData.title,
+      description: formData.description,
+      priority: formData.priority,
+      assignee: formData.assignee,
+      dueDate: formData.dueDate,
+      status: formData.status,
+      type: formData.type,
+      squad: formData.squad,
+      clientId: formData.clientId,
+      client: client || undefined,
+      projectId: formData.projectId,
+      project: project || undefined,
+      tags: formData.tags,
+      watchers: []
+    };
+    
+    onSubmit(taskData);
   };
 
   const handleInputChange = (field: string, value: any) => {
@@ -213,11 +236,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             <div className="space-y-2">
               <Label>Cliente</Label>
               <Select 
-                value={formData.client.id} 
-                onValueChange={(value) => {
-                  const client = clients.find(c => c.id === value);
-                  handleInputChange('client', client || { id: '', name: '' });
-                }}
+                value={formData.clientId} 
+                onValueChange={(value) => handleInputChange('clientId', value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o cliente" />
@@ -235,11 +255,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             <div className="space-y-2">
               <Label>Projeto</Label>
               <Select 
-                value={formData.project.id} 
-                onValueChange={(value) => {
-                  const project = projects.find(p => p.id === value);
-                  handleInputChange('project', project || { id: '', name: '' });
-                }}
+                value={formData.projectId} 
+                onValueChange={(value) => handleInputChange('projectId', value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o projeto" />
