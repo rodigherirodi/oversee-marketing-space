@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { Outlet } from 'react-router-dom';
 import {
   Sidebar,
   SidebarContent,
@@ -24,7 +23,11 @@ import { useWorkspace } from '@/contexts/WorkspaceContext';
 import ToolbarShortcuts from './ToolbarShortcuts';
 import WorkspaceBreadcrumb from './WorkspaceBreadcrumb';
 
-const AppLayout = () => {
+interface AppLayoutProps {
+  children: React.ReactNode;
+}
+
+const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const location = useLocation();
   const currentPath = location.pathname;
   const { activeWorkspace, workspaces, setActiveWorkspace } = useWorkspace();
@@ -127,7 +130,7 @@ const AppLayout = () => {
             <ToolbarShortcuts />
           </header>
           <main className="flex-1 p-6 overflow-auto">
-            <Outlet />
+            {children}
           </main>
         </SidebarInset>
       </div>

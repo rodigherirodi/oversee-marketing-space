@@ -23,7 +23,7 @@ const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({ children }) =
     return <Navigate to="/auth" replace />;
   }
 
-  return <AppLayout />;
+  return <AppLayout>{children}</AppLayout>;
 };
 
 export default AuthenticatedLayout;

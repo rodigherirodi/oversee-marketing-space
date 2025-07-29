@@ -105,7 +105,9 @@ const mockBadges = [
 export const useProductivityData = () => {
   const { user } = useAuth();
 
-  // Always return mock data with minimal queries
+  console.log('useProductivityData: Returning mock data');
+  
+  // Always return mock data immediately, no loading state
   return {
     productivity: mockProductivityData,
     achievements: mockAchievements,
