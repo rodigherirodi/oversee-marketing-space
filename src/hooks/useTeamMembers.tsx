@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -34,31 +35,29 @@ export const useTeamMembers = () => {
 
   const addTeamMemberMutation = useMutation({
     mutationFn: async (newMember: Partial<TeamMember>) => {
-      // Mapear campos para o formato do banco - apenas campos que existem na tabela profiles
-      const profileData = {
-        name: newMember.name!,
-        email: newMember.email!,
-        phone: newMember.phone || '',
-        position: newMember.position || '',
-        department: newMember.department as "operacao" | "academy" | "cultura" | "comercial" | "gestao",
-        birth_date: newMember.birthDate || newMember.birth_date || null,
-        hire_date: newMember.hireDate || newMember.hire_date || null,
-        address: newMember.address || '',
-        status: newMember.status || 'active',
-        level: newMember.level || 1,
-        points: newMember.points || 0,
-        task_completion_rate: newMember.taskCompletionRate || newMember.task_completion_rate || 0,
-        active_projects_count: newMember.activeProjectsCount || newMember.active_projects_count || 0,
-        completed_projects_count: newMember.completedProjectsCount || newMember.completed_projects_count || 0,
-        hours_worked_week: newMember.hoursWorkedWeek || newMember.hours_worked_week || 40,
-        border_pattern: newMember.borderPattern || newMember.border_pattern || 'solid',
-        border_color: newMember.borderColor || newMember.border_color || '#3B82F6',
-        avatar: newMember.avatar || '/placeholder.svg',
-      };
-
+      // Create the profile data object with only the fields that exist in the profiles table
       const { data, error } = await supabase
         .from('profiles')
-        .insert(profileData)
+        .insert({
+          name: newMember.name!,
+          email: newMember.email!,
+          phone: newMember.phone || '',
+          position: newMember.position || '',
+          department: newMember.department as "operacao" | "academy" | "cultura" | "comercial" | "gestao",
+          birth_date: newMember.birthDate || newMember.birth_date || null,
+          hire_date: newMember.hireDate || newMember.hire_date || null,
+          address: newMember.address || '',
+          status: newMember.status || 'active',
+          level: newMember.level || 1,
+          points: newMember.points || 0,
+          task_completion_rate: newMember.taskCompletionRate || newMember.task_completion_rate || 0,
+          active_projects_count: newMember.activeProjectsCount || newMember.active_projects_count || 0,
+          completed_projects_count: newMember.completedProjectsCount || newMember.completed_projects_count || 0,
+          hours_worked_week: newMember.hoursWorkedWeek || newMember.hours_worked_week || 40,
+          border_pattern: newMember.borderPattern || newMember.border_pattern || 'solid',
+          border_color: newMember.borderColor || newMember.border_color || '#3B82F6',
+          avatar: newMember.avatar || '/placeholder.svg',
+        })
         .select()
         .single();
 
