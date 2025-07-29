@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -26,9 +25,9 @@ import EngagementMetrics from '@/components/EngagementMetrics';
 import BorderPattern from '@/components/BorderPattern';
 
 const Productivity = () => {
-  const { currentUser, isLoading: userLoading } = useCurrentUser();
+  const { currentUser: currentUserProfile, isLoading: userLoading } = useCurrentUser();
   const { 
-    productivityData, 
+    productivityData: productivity, 
     achievements, 
     pointsHistory, 
     goals, 
@@ -45,7 +44,7 @@ const Productivity = () => {
     );
   }
 
-  if (!currentUser) {
+  if (!currentUserProfile) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -55,47 +54,47 @@ const Productivity = () => {
     );
   }
 
-  const borderPattern = (currentUser.border_pattern || 'solid') as 'solid' | 'stripes' | 'dots' | 'gradient';
+  const borderPattern = (currentUserProfile.border_pattern || 'solid') as 'solid' | 'stripes' | 'dots' | 'gradient';
   const userBadges = badges.map(badge => typeof badge === 'string' ? badge : badge.badge || '🌟');
 
   const userProductivity = {
-    userId: currentUser.id,
+    userId: currentUserProfile.id,
     user: {
-      id: currentUser.id,
-      name: currentUser.name,
-      avatar: currentUser.avatar,
-      position: currentUser.position || 'Sem cargo',
+      id: currentUserProfile.id,
+      name: currentUserProfile.name,
+      avatar: currentUserProfile.avatar,
+      position: currentUserProfile.position || 'Sem cargo',
     },
-    department: currentUser.department || 'operacao',
-    level: currentUser.level || 1,
+    department: currentUserProfile.department || 'operacao',
+    level: currentUserProfile.level || 1,
     badges: userBadges,
     borderPattern,
-    borderColor: currentUser.border_color || '#3B82F6',
-    hireDate: currentUser.hire_date || '',
+    borderColor: currentUserProfile.border_color || '#3B82F6',
+    hireDate: currentUserProfile.hire_date || '',
     timeInCompany: '1 ano',
     nextReview: '2024-06-15',
     timezone: 'America/Sao_Paulo',
     certifications: [],
     keyProjects: [],
-    activeStreak: productivityData?.active_streak || 0,
-    punctualityIndex: productivityData?.punctuality_index || 0,
-    collaborationIndex: productivityData?.collaboration_index || 0,
-    innovationScore: productivityData?.innovation_score || 0,
-    clientSatisfaction: productivityData?.client_satisfaction || 0,
+    activeStreak: productivity?.active_streak || 0,
+    punctualityIndex: productivity?.punctuality_index || 0,
+    collaborationIndex: productivity?.collaboration_index || 0,
+    innovationScore: productivity?.innovation_score || 0,
+    clientSatisfaction: productivity?.client_satisfaction || 0,
     tasksCompleted: 0,
     tasksOpen: 0,
     tasksInProgress: 0,
     overdueTasks: 0,
     overdueTasksList: [],
     todaysPriorities: [],
-    activeProjects: productivityData?.active_projects || 0,
-    completedProjects: productivityData?.completed_projects || 0,
-    hoursWorkedWeek: currentUser.hours_worked_week || 40,
-    hoursWorkedMonth: productivityData?.hours_worked_month || 160,
-    productivityScore: productivityData?.productivity_score || 75,
-    avgCompletionTime: productivityData?.avg_completion_time || 3.5,
-    collaborativeProjects: productivityData?.collaborative_projects || 0,
-    individualProjects: productivityData?.individual_projects || 0,
+    activeProjects: productivity?.active_projects || 0,
+    completedProjects: productivity?.completed_projects || 0,
+    hoursWorkedWeek: currentUserProfile.hours_worked_week || 40,
+    hoursWorkedMonth: productivity?.hours_worked_month || 160,
+    productivityScore: productivity?.productivity_score || 75,
+    avgCompletionTime: productivity?.avg_completion_time || 3.5,
+    collaborativeProjects: productivity?.collaborative_projects || 0,
+    individualProjects: productivity?.individual_projects || 0,
     skills: skills.map(skill => ({
       name: skill.skill,
       level: skill.level || 1,
@@ -127,10 +126,10 @@ const Productivity = () => {
   };
 
   const engagementMetrics = {
-    punctualityIndex: productivityData?.punctuality_index || 0,
-    collaborationIndex: productivityData?.collaboration_index || 0,
-    innovationScore: productivityData?.innovation_score || 0,
-    clientSatisfaction: productivityData?.client_satisfaction || 0,
+    punctualityIndex: productivity?.punctuality_index || 0,
+    collaborationIndex: productivity?.collaboration_index || 0,
+    innovationScore: productivity?.innovation_score || 0,
+    clientSatisfaction: productivity?.client_satisfaction || 0,
   };
 
   return (
@@ -142,23 +141,23 @@ const Productivity = () => {
             <div className="relative">
               <div className="w-16 h-16 rounded-full overflow-hidden">
                 <img
-                  src={currentUser.avatar || '/placeholder.svg'}
-                  alt={currentUser.name}
+                  src={currentUserProfile.avatar || '/placeholder.svg'}
+                  alt={currentUserProfile.name}
                   className="w-full h-full object-cover"
                 />
                 <BorderPattern
                   pattern={borderPattern}
-                  color={currentUser.border_color || '#3B82F6'}
+                  color={currentUserProfile.border_color || '#3B82F6'}
                   className="absolute inset-0 rounded-full"
                 />
               </div>
             </div>
             <div>
-              <h1 className="text-2xl font-bold">{currentUser.name}</h1>
-              <p className="text-muted-foreground">{currentUser.position}</p>
+              <h1 className="text-2xl font-bold">{currentUserProfile.name}</h1>
+              <p className="text-muted-foreground">{currentUserProfile.position}</p>
               <div className="flex items-center gap-2 mt-2">
-                <Badge variant="secondary">Level {currentUser.level}</Badge>
-                <Badge variant="outline">{currentUser.points || 0} pontos</Badge>
+                <Badge variant="secondary">Level {currentUserProfile.level}</Badge>
+                <Badge variant="outline">{currentUserProfile.points || 0} pontos</Badge>
               </div>
             </div>
           </div>
@@ -173,7 +172,7 @@ const Productivity = () => {
         </div>
         
         <div className="flex-1">
-          <TodaysPriorities />
+          <TodaysPriorities todayTasks={[]} />
         </div>
       </div>
 
@@ -185,8 +184,8 @@ const Productivity = () => {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{productivityData?.productivity_score || 0}</div>
-            <Progress value={productivityData?.productivity_score || 0} className="mt-2" />
+            <div className="text-2xl font-bold">{productivity?.productivity_score || 0}</div>
+            <Progress value={productivity?.productivity_score || 0} className="mt-2" />
           </CardContent>
         </Card>
 
@@ -196,7 +195,7 @@ const Productivity = () => {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{productivityData?.hours_worked_month || 0}h</div>
+            <div className="text-2xl font-bold">{productivity?.hours_worked_month || 0}h</div>
             <p className="text-xs text-muted-foreground">
               Este mês
             </p>
@@ -209,9 +208,9 @@ const Productivity = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{productivityData?.active_projects || 0}</div>
+            <div className="text-2xl font-bold">{productivity?.active_projects || 0}</div>
             <p className="text-xs text-muted-foreground">
-              {productivityData?.completed_projects || 0} concluídos
+              {productivity?.completed_projects || 0} concluídos
             </p>
           </CardContent>
         </Card>
@@ -222,7 +221,7 @@ const Productivity = () => {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{productivityData?.active_streak || 0}</div>
+            <div className="text-2xl font-bold">{productivity?.active_streak || 0}</div>
             <p className="text-xs text-muted-foreground">
               dias consecutivos
             </p>
@@ -242,8 +241,15 @@ const Productivity = () => {
         </Card>
 
         <div className="space-y-4">
-          <CompactOverdueTasks />
-          <EngagementMetrics />
+          <CompactOverdueTasks overdueTasks={[]} />
+          <EngagementMetrics 
+            user={{
+              punctualityIndex: productivity?.punctuality_index || 0,
+              collaborationIndex: productivity?.collaboration_index || 0,
+              innovationScore: productivity?.innovation_score || 0,
+              clientSatisfaction: productivity?.client_satisfaction || 0,
+            }}
+          />
         </div>
       </div>
 
@@ -295,9 +301,9 @@ const Productivity = () => {
                       <Badge variant="outline">{goal.current_value || 0}/{goal.target_value || 100}</Badge>
                     </div>
                     <Progress value={((goal.current_value || 0) / (goal.target_value || 100)) * 100} />
-                    {goal.deadline && (
+                    {(goal.deadline || goal.target_date) && (
                       <p className="text-xs text-muted-foreground">
-                        Prazo: {goal.deadline}
+                        Prazo: {goal.deadline || goal.target_date}
                       </p>
                     )}
                   </div>

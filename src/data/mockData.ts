@@ -285,7 +285,7 @@ export const mockTeamMembers: TeamMember[] = [
     badges: ['🏆', '⭐', '💎', '🚀'],
     borderColor: 'hsl(217, 91%, 60%)',
     borderPattern: 'gradient',
-    department: 'Gestão',
+    department: 'operacao',
     status: 'active',
     createdAt: '2022-01-15',
     phone: '(11) 99999-1234',
@@ -297,7 +297,18 @@ export const mockTeamMembers: TeamMember[] = [
     taskCompletionRate: 95,
     hoursWorkedWeek: 40,
     goals: ['Certificação PMP', 'Aumentar eficiência da equipe em 20%'],
-    points: 2400
+    points: 2400,
+    // Required database fields
+    task_completion_rate: 95,
+    active_projects_count: 8,
+    completed_projects_count: 24,
+    hours_worked_week: 40,
+    birth_date: '1990-05-15',
+    hire_date: '2022-01-15',
+    border_pattern: 'gradient',
+    border_color: 'hsl(217, 91%, 60%)',
+    created_at: '2022-01-15',
+    updated_at: '2022-01-15'
   },
   {
     id: '2',
@@ -312,7 +323,7 @@ export const mockTeamMembers: TeamMember[] = [
     badges: ['💻', '⚡', '🔥'],
     borderColor: 'hsl(142, 76%, 36%)',
     borderPattern: 'stripes',
-    department: 'Tecnologia',
+    department: 'operacao',
     status: 'active',
     createdAt: '2021-05-20',
     phone: '(11) 99999-5678',
@@ -324,7 +335,18 @@ export const mockTeamMembers: TeamMember[] = [
     taskCompletionRate: 92,
     hoursWorkedWeek: 44,
     goals: ['Aprender GraphQL', 'Liderar projeto de arquitetura'],
-    points: 1950
+    points: 1950,
+    // Required database fields
+    task_completion_rate: 92,
+    active_projects_count: 5,
+    completed_projects_count: 18,
+    hours_worked_week: 44,
+    birth_date: '1988-03-22',
+    hire_date: '2021-05-20',
+    border_pattern: 'stripes',
+    border_color: 'hsl(142, 76%, 36%)',
+    created_at: '2021-05-20',
+    updated_at: '2021-05-20'
   },
   {
     id: '3',
@@ -339,7 +361,7 @@ export const mockTeamMembers: TeamMember[] = [
     badges: ['🎨', '✨', '🏅'],
     borderColor: 'hsl(280, 100%, 70%)',
     borderPattern: 'dots',
-    department: 'Design',
+    department: 'operacao',
     status: 'active',
     createdAt: '2023-03-10',
     phone: '(11) 99999-9012',
@@ -351,7 +373,18 @@ export const mockTeamMembers: TeamMember[] = [
     taskCompletionRate: 88,
     hoursWorkedWeek: 40,
     goals: ['Criar design system completo', 'Curso de UX Research'],
-    points: 1420
+    points: 1420,
+    // Required database fields
+    task_completion_rate: 88,
+    active_projects_count: 6,
+    completed_projects_count: 15,
+    hours_worked_week: 40,
+    birth_date: '1995-08-30',
+    hire_date: '2023-03-10',
+    border_pattern: 'dots',
+    border_color: 'hsl(280, 100%, 70%)',
+    created_at: '2023-03-10',
+    updated_at: '2023-03-10'
   },
   {
     id: '4',
@@ -366,7 +399,7 @@ export const mockTeamMembers: TeamMember[] = [
     badges: ['📊', '🧮', '📈'],
     borderColor: 'hsl(25, 95%, 53%)',
     borderPattern: 'solid',
-    department: 'Análise',
+    department: 'operacao',
     status: 'active',
     createdAt: '2022-08-05',
     phone: '(11) 99999-3456',
@@ -378,7 +411,18 @@ export const mockTeamMembers: TeamMember[] = [
     taskCompletionRate: 90,
     hoursWorkedWeek: 42,
     goals: ['Certificação em Data Science', 'Automatizar relatórios'],
-    points: 1280
+    points: 1280,
+    // Required database fields
+    task_completion_rate: 90,
+    active_projects_count: 3,
+    completed_projects_count: 12,
+    hours_worked_week: 42,
+    birth_date: '1992-12-10',
+    hire_date: '2022-08-05',
+    border_pattern: 'solid',
+    border_color: 'hsl(25, 95%, 53%)',
+    created_at: '2022-08-05',
+    updated_at: '2022-08-05'
   },
   {
     id: '5',
@@ -393,7 +437,7 @@ export const mockTeamMembers: TeamMember[] = [
     badges: ['✍️', '📝', '💡'],
     borderColor: 'hsl(340, 82%, 52%)',
     borderPattern: 'gradient',
-    department: 'Conteúdo',
+    department: 'operacao',
     status: 'active',
     createdAt: '2023-01-12',
     phone: '(11) 99999-7890',
@@ -405,7 +449,18 @@ export const mockTeamMembers: TeamMember[] = [
     taskCompletionRate: 87,
     hoursWorkedWeek: 40,
     goals: ['Aumentar conversão em 15%', 'Curso de Growth Hacking'],
-    points: 950
+    points: 950,
+    // Required database fields
+    task_completion_rate: 87,
+    active_projects_count: 4,
+    completed_projects_count: 9,
+    hours_worked_week: 40,
+    birth_date: '1993-07-18',
+    hire_date: '2023-01-12',
+    border_pattern: 'gradient',
+    border_color: 'hsl(340, 82%, 52%)',
+    created_at: '2023-01-12',
+    updated_at: '2023-01-12'
   },
   {
     id: '6',
@@ -420,8 +475,8 @@ export const mockTeamMembers: TeamMember[] = [
     badges: ['🖌️', '🎨', '⭐'],
     borderColor: 'hsl(197, 37%, 24%)',
     borderPattern: 'stripes',
-    department: 'Design',
-    status: 'vacation',
+    department: 'operacao',
+    status: 'active',
     createdAt: '2023-06-18',
     phone: '(11) 99999-2468',
     birthDate: '1991-11-25',
@@ -432,7 +487,18 @@ export const mockTeamMembers: TeamMember[] = [
     taskCompletionRate: 85,
     hoursWorkedWeek: 40,
     goals: ['Especialização em motion graphics', 'Criar identidade visual própria'],
-    points: 1180
+    points: 1180,
+    // Required database fields
+    task_completion_rate: 85,
+    active_projects_count: 7,
+    completed_projects_count: 11,
+    hours_worked_week: 40,
+    birth_date: '1991-11-25',
+    hire_date: '2023-06-18',
+    border_pattern: 'stripes',
+    border_color: 'hsl(197, 37%, 24%)',
+    created_at: '2023-06-18',
+    updated_at: '2023-06-18'
   },
   {
     id: '7',
@@ -447,7 +513,7 @@ export const mockTeamMembers: TeamMember[] = [
     badges: ['📱', '📈', '💫', '🌟'],
     borderColor: 'hsl(262, 83%, 58%)',
     borderPattern: 'dots',
-    department: 'Marketing',
+    department: 'operacao',
     status: 'active',
     createdAt: '2022-11-30',
     phone: '(11) 99999-1357',
@@ -459,7 +525,18 @@ export const mockTeamMembers: TeamMember[] = [
     taskCompletionRate: 93,
     hoursWorkedWeek: 38,
     goals: ['Aumentar engagement em 25%', 'Criar campanha viral'],
-    points: 1850
+    points: 1850,
+    // Required database fields
+    task_completion_rate: 93,
+    active_projects_count: 9,
+    completed_projects_count: 22,
+    hours_worked_week: 38,
+    birth_date: '1989-04-12',
+    hire_date: '2022-11-30',
+    border_pattern: 'dots',
+    border_color: 'hsl(262, 83%, 58%)',
+    created_at: '2022-11-30',
+    updated_at: '2022-11-30'
   },
   {
     id: '8',
@@ -474,7 +551,7 @@ export const mockTeamMembers: TeamMember[] = [
     badges: ['⚛️', '🌐'],
     borderColor: 'hsl(43, 96%, 56%)',
     borderPattern: 'solid',
-    department: 'Tecnologia',
+    department: 'operacao',
     status: 'active',
     createdAt: '2023-09-01',
     phone: '(11) 99999-8024',
@@ -486,6 +563,17 @@ export const mockTeamMembers: TeamMember[] = [
     taskCompletionRate: 82,
     hoursWorkedWeek: 40,
     goals: ['Aprender TypeScript', 'Contribuir em projeto open source'],
-    points: 650
+    points: 650,
+    // Required database fields
+    task_completion_rate: 82,
+    active_projects_count: 2,
+    completed_projects_count: 5,
+    hours_worked_week: 40,
+    birth_date: '1996-01-14',
+    hire_date: '2023-09-01',
+    border_pattern: 'solid',
+    border_color: 'hsl(43, 96%, 56%)',
+    created_at: '2023-09-01',
+    updated_at: '2023-09-01'
   }
 ];
