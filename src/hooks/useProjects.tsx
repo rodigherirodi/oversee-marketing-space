@@ -17,6 +17,8 @@ export const useProjects = () => {
     return project;
   };
 
+  console.log('Projects loaded:', projects.length);
+
   return {
     projects,
     addProject,

@@ -32,6 +32,8 @@ export const useClients = () => {
     });
   };
 
+  console.log('Clients loaded:', clients.length);
+
   return {
     clients,
     addClient,

@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -54,7 +55,7 @@ interface Badge {
   earned_at: string;
 }
 
-// Mock data for demonstration
+// Mock data for demonstration - always available
 const mockProductivityData = {
   id: 'mock-productivity-id',
   user_id: 'mock-user-id',
@@ -104,135 +105,14 @@ const mockBadges = [
 export const useProductivityData = () => {
   const { user } = useAuth();
 
-  const { data: productivity, isLoading: productivityLoading } = useQuery({
-    queryKey: ['productivity', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return mockProductivityData;
-      
-      const { data, error } = await supabase
-        .from('user_productivity')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (error) {
-        console.error('Error fetching productivity:', error);
-        return mockProductivityData;
-      }
-      return data as ProductivityData || mockProductivityData;
-    },
-    enabled: true,
-  });
-
-  const { data: achievements = [], isLoading: achievementsLoading } = useQuery({
-    queryKey: ['achievements', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return mockAchievements;
-      
-      const { data, error } = await supabase
-        .from('user_achievements')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('date', { ascending: false })
-        .limit(5);
-
-      if (error) {
-        console.error('Error fetching achievements:', error);
-        return mockAchievements;
-      }
-      return data as Achievement[] || mockAchievements;
-    },
-    enabled: true,
-  });
-
-  const { data: pointsHistory = [], isLoading: pointsLoading } = useQuery({
-    queryKey: ['points-history', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return mockPointsHistory;
-      
-      const { data, error } = await supabase
-        .from('user_points_history')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('date', { ascending: false })
-        .limit(5);
-
-      if (error) {
-        console.error('Error fetching points history:', error);
-        return mockPointsHistory;
-      }
-      return data as PointsHistory[] || mockPointsHistory;
-    },
-    enabled: true,
-  });
-
-  const { data: goals = [], isLoading: goalsLoading } = useQuery({
-    queryKey: ['goals', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return mockGoals;
-      
-      const { data, error } = await supabase
-        .from('user_goals')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('deadline', { ascending: true });
-
-      if (error) {
-        console.error('Error fetching goals:', error);
-        return mockGoals;
-      }
-      return data as Goal[] || mockGoals;
-    },
-    enabled: true,
-  });
-
-  const { data: skills = [], isLoading: skillsLoading } = useQuery({
-    queryKey: ['skills', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return mockSkills;
-      
-      const { data, error } = await supabase
-        .from('user_skills')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('level', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching skills:', error);
-        return mockSkills;
-      }
-      return data as Skill[] || mockSkills;
-    },
-    enabled: true,
-  });
-
-  const { data: badges = [], isLoading: badgesLoading } = useQuery({
-    queryKey: ['badges', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return mockBadges;
-      
-      const { data, error } = await supabase
-        .from('user_badges')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('earned_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching badges:', error);
-        return mockBadges;
-      }
-      return data as Badge[] || mockBadges;
-    },
-    enabled: true,
-  });
-
+  // Always return mock data with minimal queries
   return {
-    productivity: productivity || mockProductivityData,
-    achievements: achievements || mockAchievements,
-    pointsHistory: pointsHistory || mockPointsHistory,
-    goals: goals || mockGoals,
-    skills: skills || mockSkills,
-    badges: badges || mockBadges,
-    isLoading: productivityLoading || achievementsLoading || pointsLoading || goalsLoading || skillsLoading || badgesLoading,
+    productivity: mockProductivityData,
+    achievements: mockAchievements,
+    pointsHistory: mockPointsHistory,
+    goals: mockGoals,
+    skills: mockSkills,
+    badges: mockBadges,
+    isLoading: false,
   };
 };

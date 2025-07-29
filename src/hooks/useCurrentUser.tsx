@@ -25,7 +25,8 @@ const mockUserProfile = {
   border_color: '#3B82F6',
   avatar: '/placeholder.svg',
   created_at: '2023-01-01T00:00:00Z',
-  updated_at: '2024-01-01T00:00:00Z'
+  updated_at: '2024-01-01T00:00:00Z',
+  badges: ['🌟', '🚀'] // Add badges here
 };
 
 export const useCurrentUser = () => {
@@ -36,25 +37,31 @@ export const useCurrentUser = () => {
     queryFn: async () => {
       if (!user?.id) return mockUserProfile;
       
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
 
-      if (error) {
-        console.error('Error fetching current user:', error);
-        // Return mock data instead of null when there's an error
+        if (error) {
+          console.log('Error fetching current user, using mock data:', error);
+          return mockUserProfile;
+        }
+        
+        return { ...data, badges: ['🌟', '🚀'] } || mockUserProfile;
+      } catch (error) {
+        console.log('Connection error, using mock data:', error);
         return mockUserProfile;
       }
-      
-      return data || mockUserProfile;
     },
-    enabled: true, // Always enable to return mock data
+    enabled: true,
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 
   return {
     currentUserProfile: currentUserProfile || mockUserProfile,
-    isLoading,
+    isLoading: false, // Set to false to prevent loading states
   };
 };

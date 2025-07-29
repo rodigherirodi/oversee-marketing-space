@@ -10,25 +10,32 @@ export const useTeamMembers = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: teamMembers = [], isLoading } = useQuery({
+  const { data: teamMembers = mockTeamMembers, isLoading } = useQuery({
     queryKey: ['team-members'],
     queryFn: async () => {
-      // Always try to fetch from Supabase first
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('name', { ascending: true });
+      try {
+        // Always try to fetch from Supabase first
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .order('name', { ascending: true });
 
-      if (error) {
-        console.error('Error fetching team members:', error);
-        // Return mock data when there's an error or no data
+        if (error) {
+          console.log('Supabase error, using mock data:', error);
+          return mockTeamMembers;
+        }
+        
+        // If we have data from Supabase, return it, otherwise return mock data
+        return data?.length > 0 ? data as TeamMember[] : mockTeamMembers;
+      } catch (error) {
+        console.log('Connection error, using mock data:', error);
         return mockTeamMembers;
       }
-      
-      // If we have data from Supabase, return it, otherwise return mock data
-      return data?.length > 0 ? data as TeamMember[] : mockTeamMembers;
     },
-    enabled: true, // Always enable to show mock data
+    enabled: true,
+    // Always return mock data if query fails
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 
   const addTeamMemberMutation = useMutation({
