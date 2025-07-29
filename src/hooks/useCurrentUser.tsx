@@ -49,7 +49,7 @@ export const useCurrentUser = () => {
           return mockUserProfile;
         }
         
-        return { ...data, badges: ['🌟', '🚀'] } || mockUserProfile;
+        return data ? { ...data, badges: ['🌟', '🚀'] } : mockUserProfile;
       } catch (error) {
         console.log('Connection error, using mock data:', error);
         return mockUserProfile;
