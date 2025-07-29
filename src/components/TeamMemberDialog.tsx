@@ -12,6 +12,7 @@ import PersonalInfoTab from './PersonalInfoTab';
 import ProfessionalInfoTab from './ProfessionalInfoTab';
 import ProductivityTab from './ProductivityTab';
 import GamificationTab from './GamificationTab';
+import { transformTeamMemberData } from '@/utils/teamMemberUtils';
 
 interface TeamMemberDialogProps {
   member: TeamMember;
@@ -24,12 +25,15 @@ const TeamMemberDialog: React.FC<TeamMemberDialogProps> = ({
   open,
   onOpenChange,
 }) => {
+  // Transformar os dados para garantir compatibilidade
+  const transformedMember = transformTeamMemberData(member);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl">
-            Perfil de {member.name}
+            Perfil de {transformedMember.name}
           </DialogTitle>
         </DialogHeader>
 
@@ -42,19 +46,19 @@ const TeamMemberDialog: React.FC<TeamMemberDialogProps> = ({
           </TabsList>
 
           <TabsContent value="personal" className="mt-6">
-            <PersonalInfoTab member={member} />
+            <PersonalInfoTab member={transformedMember} />
           </TabsContent>
 
           <TabsContent value="professional" className="mt-6">
-            <ProfessionalInfoTab member={member} />
+            <ProfessionalInfoTab member={transformedMember} />
           </TabsContent>
 
           <TabsContent value="productivity" className="mt-6">
-            <ProductivityTab member={member} />
+            <ProductivityTab member={transformedMember} />
           </TabsContent>
 
           <TabsContent value="gamification" className="mt-6">
-            <GamificationTab member={member} />
+            <GamificationTab member={transformedMember} />
           </TabsContent>
         </Tabs>
       </DialogContent>

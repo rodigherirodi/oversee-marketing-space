@@ -78,23 +78,19 @@ const TeamMemberForm: React.FC<TeamMemberFormProps> = ({
         phone: data.phone,
         position: data.position,
         department: data.department,
-        hireDate: data.hireDate,
-        birthDate: data.birthDate,
+        birth_date: data.birthDate,
+        hire_date: data.hireDate,
         address: data.address,
-        supervisor: data.supervisor,
-        salary: data.salary || 0,
-        activeProjectsCount: 0,
-        completedProjectsCount: 0,
+        status: 'active',
         level: 1,
-        badges: ['🌟'],
-        borderColor: 'hsl(217, 91%, 60%)',
-        borderPattern: 'solid' as const,
-        status: 'active' as const,
-        skills: [],
-        taskCompletionRate: 0,
-        hoursWorkedWeek: 40,
-        goals: [],
         points: 100,
+        task_completion_rate: 0,
+        active_projects_count: 0,
+        completed_projects_count: 0,
+        hours_worked_week: 40,
+        border_pattern: 'solid',
+        border_color: '#3B82F6',
+        avatar: undefined,
       };
 
       addTeamMember(newMember);
@@ -194,12 +190,11 @@ const TeamMemberForm: React.FC<TeamMemberFormProps> = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Tecnologia">Tecnologia</SelectItem>
-                        <SelectItem value="Design">Design</SelectItem>
-                        <SelectItem value="Marketing">Marketing</SelectItem>
-                        <SelectItem value="Gestão">Gestão</SelectItem>
-                        <SelectItem value="Análise">Análise</SelectItem>
-                        <SelectItem value="Conteúdo">Conteúdo</SelectItem>
+                        <SelectItem value="operacao">Operação</SelectItem>
+                        <SelectItem value="academy">Academy</SelectItem>
+                        <SelectItem value="cultura">Cultura</SelectItem>
+                        <SelectItem value="comercial">Comercial</SelectItem>
+                        <SelectItem value="gestao">Gestão</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

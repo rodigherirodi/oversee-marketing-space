@@ -3,29 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-
-interface TeamMember {
-  id: string;
-  name: string;
-  email: string;
-  position: string;
-  department: string;
-  avatar: string;
-  phone: string;
-  birth_date: string;
-  hire_date: string;
-  status: string;
-  level: number;
-  points: number;
-  task_completion_rate: number;
-  active_projects_count: number;
-  completed_projects_count: number;
-  hours_worked_week: number;
-  border_pattern: string;
-  border_color: string;
-  address: string;
-  created_at: string;
-}
+import { TeamMember } from '@/types/entities';
 
 export const useTeamMembers = () => {
   const { user, isAdmin } = useAuth();
@@ -56,10 +34,32 @@ export const useTeamMembers = () => {
   });
 
   const addTeamMemberMutation = useMutation({
-    mutationFn: async (newMember: Omit<TeamMember, 'id' | 'created_at'>) => {
+    mutationFn: async (newMember: Partial<TeamMember>) => {
+      // Mapear campos para o formato do banco
+      const profileData = {
+        name: newMember.name,
+        email: newMember.email,
+        phone: newMember.phone,
+        position: newMember.position,
+        department: newMember.department as "operacao" | "academy" | "cultura" | "comercial" | "gestao",
+        birth_date: newMember.birthDate || newMember.birth_date,
+        hire_date: newMember.hireDate || newMember.hire_date,
+        address: newMember.address,
+        status: newMember.status || 'active',
+        level: newMember.level || 1,
+        points: newMember.points || 0,
+        task_completion_rate: newMember.taskCompletionRate || newMember.task_completion_rate || 0,
+        active_projects_count: newMember.activeProjectsCount || newMember.active_projects_count || 0,
+        completed_projects_count: newMember.completedProjectsCount || newMember.completed_projects_count || 0,
+        hours_worked_week: newMember.hoursWorkedWeek || newMember.hours_worked_week || 40,
+        border_pattern: newMember.borderPattern || newMember.border_pattern || 'solid',
+        border_color: newMember.borderColor || newMember.border_color || '#3B82F6',
+        avatar: newMember.avatar
+      };
+
       const { data, error } = await supabase
         .from('profiles')
-        .insert([newMember])
+        .insert([profileData])
         .select()
         .single();
 
@@ -85,9 +85,39 @@ export const useTeamMembers = () => {
 
   const updateTeamMemberMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<TeamMember> }) => {
+      // Mapear campos para o formato do banco
+      const profileUpdates: any = {};
+      
+      if (updates.name !== undefined) profileUpdates.name = updates.name;
+      if (updates.email !== undefined) profileUpdates.email = updates.email;
+      if (updates.phone !== undefined) profileUpdates.phone = updates.phone;
+      if (updates.position !== undefined) profileUpdates.position = updates.position;
+      if (updates.department !== undefined) profileUpdates.department = updates.department;
+      if (updates.birthDate !== undefined) profileUpdates.birth_date = updates.birthDate;
+      if (updates.birth_date !== undefined) profileUpdates.birth_date = updates.birth_date;
+      if (updates.hireDate !== undefined) profileUpdates.hire_date = updates.hireDate;
+      if (updates.hire_date !== undefined) profileUpdates.hire_date = updates.hire_date;
+      if (updates.address !== undefined) profileUpdates.address = updates.address;
+      if (updates.status !== undefined) profileUpdates.status = updates.status;
+      if (updates.level !== undefined) profileUpdates.level = updates.level;
+      if (updates.points !== undefined) profileUpdates.points = updates.points;
+      if (updates.taskCompletionRate !== undefined) profileUpdates.task_completion_rate = updates.taskCompletionRate;
+      if (updates.task_completion_rate !== undefined) profileUpdates.task_completion_rate = updates.task_completion_rate;
+      if (updates.activeProjectsCount !== undefined) profileUpdates.active_projects_count = updates.activeProjectsCount;
+      if (updates.active_projects_count !== undefined) profileUpdates.active_projects_count = updates.active_projects_count;
+      if (updates.completedProjectsCount !== undefined) profileUpdates.completed_projects_count = updates.completedProjectsCount;
+      if (updates.completed_projects_count !== undefined) profileUpdates.completed_projects_count = updates.completed_projects_count;
+      if (updates.hoursWorkedWeek !== undefined) profileUpdates.hours_worked_week = updates.hoursWorkedWeek;
+      if (updates.hours_worked_week !== undefined) profileUpdates.hours_worked_week = updates.hours_worked_week;
+      if (updates.borderPattern !== undefined) profileUpdates.border_pattern = updates.borderPattern;
+      if (updates.border_pattern !== undefined) profileUpdates.border_pattern = updates.border_pattern;
+      if (updates.borderColor !== undefined) profileUpdates.border_color = updates.borderColor;
+      if (updates.border_color !== undefined) profileUpdates.border_color = updates.border_color;
+      if (updates.avatar !== undefined) profileUpdates.avatar = updates.avatar;
+
       const { data, error } = await supabase
         .from('profiles')
-        .update(updates)
+        .update(profileUpdates)
         .eq('id', id)
         .select()
         .single();
@@ -112,7 +142,7 @@ export const useTeamMembers = () => {
     },
   });
 
-  const addTeamMember = (newMember: Omit<TeamMember, 'id' | 'created_at'>) => {
+  const addTeamMember = (newMember: Partial<TeamMember>) => {
     if (!isAdmin) {
       toast({
         title: "Acesso negado",

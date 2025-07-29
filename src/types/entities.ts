@@ -1,3 +1,4 @@
+
 export interface Client {
   id: string;
   name: string;
@@ -111,38 +112,43 @@ export interface TaskAttachment {
   uploadedBy: string;
 }
 
+// Atualizado para corresponder aos dados do Supabase
 export interface TeamMember {
   id: string;
   name: string;
   email: string;
-  position: string;
-  hireDate: string;
-  avatar?: string;
-  activeProjectsCount: number;
-  completedProjectsCount: number;
-  level: number;
-  badges: string[];
-  borderColor: string;
-  borderPattern: 'solid' | 'stripes' | 'dots' | 'gradient';
+  position?: string;
   department: string;
-  status: 'active' | 'vacation' | 'inactive';
-  createdAt: string;
-  
-  // Novas informações pessoais
+  avatar?: string;
   phone?: string;
-  birthDate?: string;
+  birth_date?: string;
+  hire_date?: string;
   address?: string;
-  
-  // Novas informações profissionais
-  supervisor?: string;
-  salary?: number;
-  skills: string[];
-  
-  // Novas informações de produtividade
-  taskCompletionRate: number;
-  hoursWorkedWeek: number;
-  goals: string[];
+  status?: string;
+  level: number;
   points: number;
+  task_completion_rate: number;
+  active_projects_count: number;
+  completed_projects_count: number;
+  hours_worked_week: number;
+  border_pattern?: string;
+  border_color?: string;
+  created_at: string;
+  updated_at?: string;
+  
+  // Campos calculados/transformados para compatibilidade
+  hireDate?: string;
+  birthDate?: string;
+  activeProjectsCount?: number;
+  completedProjectsCount?: number;
+  taskCompletionRate?: number;
+  hoursWorkedWeek?: number;
+  borderPattern?: 'solid' | 'stripes' | 'dots' | 'gradient';
+  borderColor?: string;
+  badges?: string[];
+  skills?: string[];
+  goals?: string[];
+  createdAt?: string;
 }
 
 export interface DashboardMetrics {

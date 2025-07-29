@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { CheckCircle, Plus, Search, X } from 'lucide-react';
 import { TeamMember } from '@/types/entities';
+import { transformTeamMemberData } from '@/utils/teamMemberUtils';
 
 interface TeamMemberSelectorProps {
   clientId: string;
@@ -34,30 +35,33 @@ const TeamMemberSelector: React.FC<TeamMemberSelectorProps> = ({ clientId }) => 
       </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {clientTeamMembers.map((member) => (
-          <div
-            key={member.id}
-            className="border rounded-lg p-4 flex items-start justify-between space-x-4 hover:border-primary transition-colors"
-          >
-            <div className="flex items-center space-x-4">
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={member.avatar} alt={member.name} />
-                <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <div>
-                <h4 className="font-medium">{member.name}</h4>
-                <p className="text-sm text-gray-500">{member.position}</p>
-              </div>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => removeTeamMember(member.id)}
+        {clientTeamMembers.map((member) => {
+          const transformedMember = transformTeamMemberData(member);
+          return (
+            <div
+              key={member.id}
+              className="border rounded-lg p-4 flex items-start justify-between space-x-4 hover:border-primary transition-colors"
             >
-              <X className="h-4 w-4 text-gray-500 hover:text-red-500" />
-            </Button>
-          </div>
-        ))}
+              <div className="flex items-center space-x-4">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={transformedMember.avatar} alt={transformedMember.name} />
+                  <AvatarFallback>{transformedMember.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <h4 className="font-medium">{transformedMember.name}</h4>
+                  <p className="text-sm text-gray-500">{transformedMember.position}</p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => removeTeamMember(member.id)}
+              >
+                <X className="h-4 w-4 text-gray-500 hover:text-red-500" />
+              </Button>
+            </div>
+          );
+        })}
         
         {clientTeamMembers.length === 0 && (
           <div className="col-span-full text-center py-8">
@@ -89,7 +93,7 @@ const TeamMemberSelector: React.FC<TeamMemberSelectorProps> = ({ clientId }) => 
               filteredTeamMembers.map((member) => (
                 <TeamMemberItem 
                   key={member.id} 
-                  member={member} 
+                  member={transformTeamMemberData(member)} 
                   onAdd={() => {
                     addTeamMember(member.id);
                     setSearchQuery('');

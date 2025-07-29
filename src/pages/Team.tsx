@@ -10,6 +10,7 @@ import TeamMemberDialog from '@/components/TeamMemberDialog';
 import TeamMemberForm from '@/components/TeamMemberForm';
 import { useTeamMembers } from '@/hooks/useTeamMembers';
 import { useAuth } from '@/contexts/AuthContext';
+import { transformTeamMemberData } from '@/utils/teamMemberUtils';
 
 const Team = () => {
   const { teamMembers, searchMembers, isLoading } = useTeamMembers();
@@ -30,7 +31,7 @@ const Team = () => {
     }
     
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(member => member.status === statusFilter);
+      filtered = filtered.filter(member => (member.status || 'active') === statusFilter);
     }
     
     return filtered;
@@ -123,34 +124,16 @@ const Team = () => {
 
         {/* Team Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 justify-items-center">
-          {filteredMembers.map((member) => (
-            <TeamMemberCard
-              key={member.id}
-              member={{
-                id: member.id,
-                name: member.name,
-                email: member.email,
-                position: member.position || 'Sem cargo',
-                department: member.department || 'Sem departamento',
-                avatar: member.avatar || '/placeholder.svg',
-                status: member.status || 'active',
-                level: member.level || 1,
-                points: member.points || 0,
-                taskCompletionRate: member.task_completion_rate || 0,
-                activeProjectsCount: member.active_projects_count || 0,
-                completedProjectsCount: member.completed_projects_count || 0,
-                hoursWorkedWeek: member.hours_worked_week || 0,
-                createdAt: member.created_at,
-                phone: member.phone || '',
-                birthDate: member.birth_date || '',
-                hireDate: member.hire_date || '',
-                address: member.address || '',
-                borderPattern: member.border_pattern || 'solid',
-                borderColor: member.border_color || '#3B82F6',
-              }}
-              onClick={() => handleMemberClick(member)}
-            />
-          ))}
+          {filteredMembers.map((member) => {
+            const transformedMember = transformTeamMemberData(member);
+            return (
+              <TeamMemberCard
+                key={member.id}
+                member={transformedMember}
+                onClick={() => handleMemberClick(member)}
+              />
+            );
+          })}
         </div>
 
         {/* Empty State */}
@@ -178,28 +161,7 @@ const Team = () => {
         {/* Team Member Profile Dialog */}
         {selectedMember && (
           <TeamMemberDialog
-            member={{
-              id: selectedMember.id,
-              name: selectedMember.name,
-              email: selectedMember.email,
-              position: selectedMember.position || 'Sem cargo',
-              department: selectedMember.department || 'Sem departamento',
-              avatar: selectedMember.avatar || '/placeholder.svg',
-              status: selectedMember.status || 'active',
-              level: selectedMember.level || 1,
-              points: selectedMember.points || 0,
-              taskCompletionRate: selectedMember.task_completion_rate || 0,
-              activeProjectsCount: selectedMember.active_projects_count || 0,
-              completedProjectsCount: selectedMember.completed_projects_count || 0,
-              hoursWorkedWeek: selectedMember.hours_worked_week || 0,
-              createdAt: selectedMember.created_at,
-              phone: selectedMember.phone || '',
-              birthDate: selectedMember.birth_date || '',
-              hireDate: selectedMember.hire_date || '',
-              address: selectedMember.address || '',
-              borderPattern: selectedMember.border_pattern || 'solid',
-              borderColor: selectedMember.border_color || '#3B82F6',
-            }}
+            member={transformTeamMemberData(selectedMember)}
             open={isProfileOpen}
             onOpenChange={setIsProfileOpen}
           />

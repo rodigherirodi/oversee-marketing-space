@@ -3,37 +3,13 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Clock, CheckCircle, FolderOpen, Target } from 'lucide-react';
-import { useProductivityData } from '@/hooks/useProductivityData';
+import { TeamMember } from '@/types/entities';
 
 interface ProductivityTabProps {
-  member: {
-    id: string;
-    name: string;
-    email: string;
-    position: string;
-    department: string;
-    avatar: string;
-    status: string;
-    level: number;
-    points: number;
-    taskCompletionRate: number;
-    activeProjectsCount: number;
-    completedProjectsCount: number;
-    hoursWorkedWeek: number;
-    createdAt: string;
-    phone: string;
-    birthDate: string;
-    hireDate: string;
-    address: string;
-    borderPattern: string;
-    borderColor: string;
-  };
+  member: TeamMember;
 }
 
 const ProductivityTab: React.FC<ProductivityTabProps> = ({ member }) => {
-  // Para demonstração, vamos usar dados básicos do membro
-  // Em um cenário real, você poderia criar um hook específico para buscar dados de produtividade de outros usuários
-  
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -43,7 +19,7 @@ const ProductivityTab: React.FC<ProductivityTabProps> = ({ member }) => {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{member.hoursWorkedWeek}h</div>
+            <div className="text-2xl font-bold">{member.hours_worked_week || member.hoursWorkedWeek || 40}h</div>
             <p className="text-xs text-muted-foreground">
               Média semanal
             </p>
@@ -56,8 +32,8 @@ const ProductivityTab: React.FC<ProductivityTabProps> = ({ member }) => {
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{member.taskCompletionRate}%</div>
-            <Progress value={member.taskCompletionRate} className="mt-2" />
+            <div className="text-2xl font-bold">{member.task_completion_rate || member.taskCompletionRate || 0}%</div>
+            <Progress value={member.task_completion_rate || member.taskCompletionRate || 0} className="mt-2" />
           </CardContent>
         </Card>
 
@@ -67,7 +43,7 @@ const ProductivityTab: React.FC<ProductivityTabProps> = ({ member }) => {
             <FolderOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{member.activeProjectsCount}</div>
+            <div className="text-2xl font-bold">{member.active_projects_count || member.activeProjectsCount || 0}</div>
             <p className="text-xs text-muted-foreground">
               Em andamento
             </p>
@@ -80,7 +56,7 @@ const ProductivityTab: React.FC<ProductivityTabProps> = ({ member }) => {
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{member.completedProjectsCount}</div>
+            <div className="text-2xl font-bold">{member.completed_projects_count || member.completedProjectsCount || 0}</div>
             <p className="text-xs text-muted-foreground">
               Finalizados
             </p>
@@ -97,17 +73,17 @@ const ProductivityTab: React.FC<ProductivityTabProps> = ({ member }) => {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>Taxa de Conclusão de Tarefas</span>
-                <span>{member.taskCompletionRate}%</span>
+                <span>{member.task_completion_rate || member.taskCompletionRate || 0}%</span>
               </div>
-              <Progress value={member.taskCompletionRate} />
+              <Progress value={member.task_completion_rate || member.taskCompletionRate || 0} />
             </div>
             
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>Carga Horária Semanal</span>
-                <span>{member.hoursWorkedWeek}/40h</span>
+                <span>{member.hours_worked_week || member.hoursWorkedWeek || 40}/40h</span>
               </div>
-              <Progress value={(member.hoursWorkedWeek / 40) * 100} />
+              <Progress value={((member.hours_worked_week || member.hoursWorkedWeek || 40) / 40) * 100} />
             </div>
           </CardContent>
         </Card>
@@ -126,7 +102,7 @@ const ProductivityTab: React.FC<ProductivityTabProps> = ({ member }) => {
                     <p className="text-sm text-muted-foreground">Em andamento</p>
                   </div>
                 </div>
-                <span className="text-2xl font-bold">{member.activeProjectsCount}</span>
+                <span className="text-2xl font-bold">{member.active_projects_count || member.activeProjectsCount || 0}</span>
               </div>
               
               <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
@@ -137,7 +113,7 @@ const ProductivityTab: React.FC<ProductivityTabProps> = ({ member }) => {
                     <p className="text-sm text-muted-foreground">Finalizados com sucesso</p>
                   </div>
                 </div>
-                <span className="text-2xl font-bold">{member.completedProjectsCount}</span>
+                <span className="text-2xl font-bold">{member.completed_projects_count || member.completedProjectsCount || 0}</span>
               </div>
             </div>
           </CardContent>
