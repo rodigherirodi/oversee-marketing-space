@@ -35,16 +35,16 @@ export const useTeamMembers = () => {
 
   const addTeamMemberMutation = useMutation({
     mutationFn: async (newMember: Partial<TeamMember>) => {
-      // Mapear campos para o formato do banco
+      // Mapear campos para o formato do banco - removendo id pois é gerado automaticamente
       const profileData = {
         name: newMember.name!,
         email: newMember.email!,
-        phone: newMember.phone,
-        position: newMember.position,
+        phone: newMember.phone || '',
+        position: newMember.position || '',
         department: newMember.department as "operacao" | "academy" | "cultura" | "comercial" | "gestao",
-        birth_date: newMember.birthDate || newMember.birth_date,
-        hire_date: newMember.hireDate || newMember.hire_date,
-        address: newMember.address,
+        birth_date: newMember.birthDate || newMember.birth_date || '',
+        hire_date: newMember.hireDate || newMember.hire_date || '',
+        address: newMember.address || '',
         status: newMember.status || 'active',
         level: newMember.level || 1,
         points: newMember.points || 0,
@@ -54,7 +54,9 @@ export const useTeamMembers = () => {
         hours_worked_week: newMember.hoursWorkedWeek || newMember.hours_worked_week || 40,
         border_pattern: newMember.borderPattern || newMember.border_pattern || 'solid',
         border_color: newMember.borderColor || newMember.border_color || '#3B82F6',
-        avatar: newMember.avatar
+        avatar: newMember.avatar || '/placeholder.svg',
+        supervisor: newMember.supervisor || '',
+        salary: newMember.salary || 0
       };
 
       const { data, error } = await supabase
@@ -114,6 +116,8 @@ export const useTeamMembers = () => {
       if (updates.borderColor !== undefined) profileUpdates.border_color = updates.borderColor;
       if (updates.border_color !== undefined) profileUpdates.border_color = updates.border_color;
       if (updates.avatar !== undefined) profileUpdates.avatar = updates.avatar;
+      if (updates.supervisor !== undefined) profileUpdates.supervisor = updates.supervisor;
+      if (updates.salary !== undefined) profileUpdates.salary = updates.salary;
 
       const { data, error } = await supabase
         .from('profiles')

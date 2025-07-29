@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,9 +26,9 @@ import EngagementMetrics from '@/components/EngagementMetrics';
 import BorderPattern from '@/components/BorderPattern';
 
 const Productivity = () => {
-  const { currentUser: currentUserProfile, isLoading: userLoading } = useCurrentUser();
+  const { currentUserProfile, isLoading: userLoading } = useCurrentUser();
   const { 
-    productivityData: productivity, 
+    productivity, 
     achievements, 
     pointsHistory, 
     goals, 
@@ -120,16 +121,9 @@ const Productivity = () => {
       title: goal.title || goal.description,
       target: goal.target_value || 100,
       current: goal.current_value || 0,
-      deadline: goal.deadline || goal.target_date || '',
+      deadline: goal.deadline || '',
     })),
     lastPromotion: undefined,
-  };
-
-  const engagementMetrics = {
-    punctualityIndex: productivity?.punctuality_index || 0,
-    collaborationIndex: productivity?.collaboration_index || 0,
-    innovationScore: productivity?.innovation_score || 0,
-    clientSatisfaction: productivity?.client_satisfaction || 0,
   };
 
   return (
@@ -242,14 +236,7 @@ const Productivity = () => {
 
         <div className="space-y-4">
           <CompactOverdueTasks overdueTasks={[]} />
-          <EngagementMetrics 
-            user={{
-              punctualityIndex: productivity?.punctuality_index || 0,
-              collaborationIndex: productivity?.collaboration_index || 0,
-              innovationScore: productivity?.innovation_score || 0,
-              clientSatisfaction: productivity?.client_satisfaction || 0,
-            }}
-          />
+          <EngagementMetrics user={userProductivity} />
         </div>
       </div>
 
@@ -301,9 +288,9 @@ const Productivity = () => {
                       <Badge variant="outline">{goal.current_value || 0}/{goal.target_value || 100}</Badge>
                     </div>
                     <Progress value={((goal.current_value || 0) / (goal.target_value || 100)) * 100} />
-                    {(goal.deadline || goal.target_date) && (
+                    {goal.deadline && (
                       <p className="text-xs text-muted-foreground">
-                        Prazo: {goal.deadline || goal.target_date}
+                        Prazo: {goal.deadline}
                       </p>
                     )}
                   </div>
