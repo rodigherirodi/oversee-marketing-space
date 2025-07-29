@@ -1,395 +1,164 @@
+
 import React, { useState } from 'react';
-import { KanbanBoard } from '@/components/KanbanBoard';
-import { TaskListView } from '@/components/tasks/TaskListView';
-import { TaskCalendarGrid } from '@/components/tasks/TaskCalendarGrid';
-import { KanbanSelector } from '@/components/tasks/KanbanSelector';
-import { TaskConfigDialog } from '@/components/tasks/TaskConfigDialog';
-import { TaskModal } from '@/components/TaskModal';
-import { TaskProvider, useTaskContext } from '@/contexts/TaskContext';
-import { mockClients, mockProjects, mockTeamMembers } from '@/data/mockData';
-import { Task } from '@/types/entities';
-import { Search, Filter, Plus, List, Calendar, Kanban, Settings2 } from 'lucide-react';
+import { Plus, Filter, Calendar, List, LayoutGrid } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import KanbanBoard from '@/components/KanbanBoard';
+import TaskListView from '@/components/tasks/TaskListView';
+import TaskCalendarView from '@/components/tasks/TaskCalendarView';
+import TaskModal from '@/components/TaskModal';
+import { useTaskContext } from '@/contexts/TaskContext';
 
-type ViewMode = 'kanban' | 'list' | 'calendar';
-
-const TasksContent = () => {
-  const { 
-    tasks, 
-    taskTypes, 
-    currentKanban, 
-    addTask, 
-    updateTask, 
-    deleteTask, 
-    getTasksByKanban 
-  } = useTaskContext();
-  
-  const [viewMode, setViewMode] = useState<ViewMode>('kanban');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedClient, setSelectedClient] = useState('all');
-  const [selectedProject, setSelectedProject] = useState('all');
-  const [selectedAssignee, setSelectedAssignee] = useState('all');
-  const [selectedSquad, setSelectedSquad] = useState('all');
-  const [selectedType, setSelectedType] = useState('all');
-  const [selectedPriority, setSelectedPriority] = useState('all');
-  const [dateFilter, setDateFilter] = useState('all');
+const Tasks = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [assigneeFilter, setAssigneeFilter] = useState<string>('all');
+  const [selectedTask, setSelectedTask] = useState<any>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
-  const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [isCreatingTask, setIsCreatingTask] = useState(false);
 
-  // Get filtered tasks
-  const getFilteredTasks = () => {
-    let results = getTasksByKanban(currentKanban.id);
+  const { tasks, isLoading } = useTaskContext();
 
-    if (searchTerm) {
-      results = results.filter(task =>
-        task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        task.description.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    if (selectedClient && selectedClient !== 'all') {
-      results = results.filter(task => task.clientId === selectedClient);
-    }
-
-    if (selectedProject && selectedProject !== 'all') {
-      results = results.filter(task => task.projectId === selectedProject);
-    }
-
-    if (selectedAssignee && selectedAssignee !== 'all') {
-      results = results.filter(task => task.assignee === selectedAssignee);
-    }
-
-    if (selectedSquad && selectedSquad !== 'all') {
-      results = results.filter(task => task.squad === selectedSquad);
-    }
-
-    if (selectedType && selectedType !== 'all') {
-      results = results.filter(task => task.type === selectedType);
-    }
-
-    if (selectedPriority && selectedPriority !== 'all') {
-      results = results.filter(task => task.priority === selectedPriority);
-    }
-
-    if (dateFilter && dateFilter !== 'all') {
-      const now = new Date();
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      
-      results = results.filter(task => {
-        const dueDate = new Date(task.dueDate);
-        const taskDate = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
-        
-        switch (dateFilter) {
-          case 'today':
-            return taskDate.getTime() === today.getTime();
-          case 'week':
-            const weekEnd = new Date(today);
-            weekEnd.setDate(today.getDate() + 7);
-            return taskDate >= today && taskDate <= weekEnd;
-          case 'overdue':
-            return taskDate < today;
-          default:
-            return true;
-        }
-      });
-    }
-
-    return results;
-  };
-
-  const filteredTasks = getFilteredTasks();
-
-  const handleAddTask = (taskData: Omit<Task, 'id' | 'createdAt'>) => {
-    // If a date was selected, use it as the due date
-    if (selectedDate) {
-      taskData.dueDate = selectedDate.toISOString().split('T')[0];
-    }
-    addTask(taskData);
-    setIsTaskModalOpen(false);
-    setSelectedDate(null);
-  };
-
-  const handleUpdateTask = (taskData: Task) => {
-    updateTask(taskData.id, taskData);
-    setIsTaskModalOpen(false);
-    setEditingTask(null);
-  };
-
-  const handleEditTask = (task: Task) => {
-    setEditingTask(task);
+  const handleNewTask = () => {
+    setSelectedTask(null);
+    setIsCreatingTask(true);
     setIsTaskModalOpen(true);
   };
 
-  const handleDeleteTask = (taskId: string) => {
-    if (confirm('Tem certeza que deseja excluir esta tarefa?')) {
-      deleteTask(taskId);
-    }
-  };
-
-  const handleCalendarDateClick = (date: Date) => {
-    setSelectedDate(date);
+  const handleEditTask = (task: any) => {
+    setSelectedTask(task);
+    setIsCreatingTask(false);
     setIsTaskModalOpen(true);
   };
 
-  const clearFilters = () => {
-    setSearchTerm('');
-    setSelectedClient('all');
-    setSelectedProject('all');
-    setSelectedAssignee('all');
-    setSelectedSquad('all');
-    setSelectedType('all');
-    setSelectedPriority('all');
-    setDateFilter('all');
-  };
-
-  const activeFiltersCount = [
-    searchTerm,
-    selectedClient !== 'all' ? selectedClient : '',
-    selectedProject !== 'all' ? selectedProject : '',
-    selectedAssignee !== 'all' ? selectedAssignee : '',
-    selectedSquad !== 'all' ? selectedSquad : '',
-    selectedType !== 'all' ? selectedType : '',
-    selectedPriority !== 'all' ? selectedPriority : '',
-    dateFilter !== 'all' ? dateFilter : ''
-  ].filter(Boolean).length;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Tarefas</h1>
-          <p className="text-gray-600">Gerencie todas as suas tarefas</p>
+          <h1 className="text-3xl font-bold text-foreground">Tarefas</h1>
+          <p className="text-muted-foreground mt-1">
+            Gerencie suas tarefas e acompanhe o progresso dos projetos
+          </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            onClick={() => setIsConfigModalOpen(true)}
-          >
-            <Settings2 className="w-4 h-4 mr-2" />
-            Configurações
-          </Button>
-          <Button onClick={() => setIsTaskModalOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Nova Tarefa
-          </Button>
-        </div>
+        
+        <Button onClick={handleNewTask}>
+          <Plus className="w-4 h-4 mr-2" />
+          Nova Tarefa
+        </Button>
       </div>
 
-      {/* Controls */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white rounded-lg border">
-        <div className="flex items-center gap-4">
-          <KanbanSelector />
+      {/* Filters */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-center">
+        <div className="relative flex-1 max-w-md">
+          <Input
+            placeholder="Buscar tarefas..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        
+        <div className="flex gap-2 flex-wrap">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-40">
+              <Filter className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os Status</SelectItem>
+              <SelectItem value="todo">A Fazer</SelectItem>
+              <SelectItem value="in-progress">Em Progresso</SelectItem>
+              <SelectItem value="review">Em Revisão</SelectItem>
+              <SelectItem value="done">Concluído</SelectItem>
+            </SelectContent>
+          </Select>
           
-          {/* View Mode Selector */}
-          <div className="flex items-center border rounded-lg p-1">
-            <Button
-              variant={viewMode === 'kanban' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('kanban')}
-            >
-              <Kanban className="w-4 h-4 mr-1" />
-              Kanban
-            </Button>
-            <Button
-              variant={viewMode === 'list' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('list')}
-            >
-              <List className="w-4 h-4 mr-1" />
-              Lista
-            </Button>
-            <Button
-              variant={viewMode === 'calendar' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('calendar')}
-            >
-              <Calendar className="w-4 h-4 mr-1" />
-              Calendário
-            </Button>
-          </div>
-        </div>
-
-        {/* Task Count and Filters Badge */}
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600">
-            {filteredTasks.length} tarefa{filteredTasks.length !== 1 ? 's' : ''}
-          </span>
-          {activeFiltersCount > 0 && (
-            <Badge variant="secondary" onClick={clearFilters} className="cursor-pointer">
-              {activeFiltersCount} filtro{activeFiltersCount !== 1 ? 's' : ''}
-            </Badge>
-          )}
-        </div>
-      </div>
-
-      {/* Filters - Hide for calendar view to save space */}
-      {viewMode !== 'calendar' && (
-        <div className="flex flex-wrap gap-4 p-4 bg-white rounded-lg border">
-          {/* Search */}
-          <div className="relative min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Buscar tarefas..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          {/* Type Filter */}
-          <Select value={selectedType} onValueChange={setSelectedType}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Todos os tipos" />
+          <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="Prioridade" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos os tipos</SelectItem>
-              {taskTypes.map((type) => (
-                <SelectItem key={type.id} value={type.id}>
-                  <div className="flex items-center gap-2">
-                    <span>{type.icon}</span>
-                    <span>{type.name}</span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Assignee Filter */}
-          <Select value={selectedAssignee} onValueChange={setSelectedAssignee}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Todos os responsáveis" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os responsáveis</SelectItem>
-              {mockTeamMembers.map((member) => (
-                <SelectItem key={member.id} value={member.name}>
-                  {member.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Squad Filter */}
-          <Select value={selectedSquad} onValueChange={setSelectedSquad}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Todos os squads" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os squads</SelectItem>
-              <SelectItem value="Design">Design</SelectItem>
-              <SelectItem value="Tecnologia">Tecnologia</SelectItem>
-              <SelectItem value="Conteúdo">Conteúdo</SelectItem>
-              <SelectItem value="Marketing">Marketing</SelectItem>
-              <SelectItem value="Análise">Análise</SelectItem>
-              <SelectItem value="Gestão">Gestão</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {/* Priority Filter */}
-          <Select value={selectedPriority} onValueChange={setSelectedPriority}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Todas as prioridades" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas as prioridades</SelectItem>
+              <SelectItem value="all">Todas</SelectItem>
               <SelectItem value="high">Alta</SelectItem>
               <SelectItem value="medium">Média</SelectItem>
               <SelectItem value="low">Baixa</SelectItem>
             </SelectContent>
           </Select>
-
-          {/* Date Filter */}
-          <Select value={dateFilter} onValueChange={setDateFilter}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Filtrar por data" />
+          
+          <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Responsável" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todas as datas</SelectItem>
-              <SelectItem value="today">Hoje</SelectItem>
-              <SelectItem value="week">Esta semana</SelectItem>
-              <SelectItem value="overdue">Em atraso</SelectItem>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="me">Minhas Tarefas</SelectItem>
             </SelectContent>
           </Select>
-
-          {/* Clear Filters */}
-          {activeFiltersCount > 0 && (
-            <Button variant="outline" onClick={clearFilters}>
-              Limpar Filtros
-            </Button>
-          )}
         </div>
-      )}
-
-      {/* Content based on view mode */}
-      <div className={viewMode === 'calendar' ? 'h-[calc(100vh-300px)]' : ''}>
-        {viewMode === 'kanban' && (
-          <KanbanBoard 
-            tasks={filteredTasks} 
-            onUpdateTask={updateTask}
-            onEditTask={handleEditTask}
-            kanbanConfig={currentKanban}
-          />
-        )}
-
-        {viewMode === 'list' && (
-          <TaskListView
-            tasks={filteredTasks}
-            taskTypes={taskTypes}
-            onEditTask={handleEditTask}
-            onDeleteTask={handleDeleteTask}
-          />
-        )}
-
-        {viewMode === 'calendar' && (
-          <TaskCalendarGrid
-            tasks={filteredTasks}
-            onEditTask={handleEditTask}
-            onDateClick={handleCalendarDateClick}
-          />
-        )}
       </div>
+
+      {/* Views */}
+      <Tabs defaultValue="kanban" className="w-full">
+        <TabsList>
+          <TabsTrigger value="kanban" className="flex items-center gap-2">
+            <LayoutGrid className="w-4 h-4" />
+            Kanban
+          </TabsTrigger>
+          <TabsTrigger value="list" className="flex items-center gap-2">
+            <List className="w-4 h-4" />
+            Lista
+          </TabsTrigger>
+          <TabsTrigger value="calendar" className="flex items-center gap-2">
+            <Calendar className="w-4 h-4" />
+            Calendário
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="kanban" className="mt-6">
+          <KanbanBoard 
+            tasks={tasks}
+            onEditTask={handleEditTask}
+          />
+        </TabsContent>
+
+        <TabsContent value="list" className="mt-6">
+          <TaskListView 
+            tasks={tasks}
+            onEditTask={handleEditTask}
+          />
+        </TabsContent>
+
+        <TabsContent value="calendar" className="mt-6">
+          <TaskCalendarView 
+            tasks={tasks}
+            onEditTask={handleEditTask}
+          />
+        </TabsContent>
+      </Tabs>
 
       {/* Task Modal */}
       <TaskModal
+        task={selectedTask}
         isOpen={isTaskModalOpen}
         onClose={() => {
           setIsTaskModalOpen(false);
-          setEditingTask(null);
-          setSelectedDate(null);
+          setSelectedTask(null);
+          setIsCreatingTask(false);
         }}
-        onSubmit={editingTask ? handleUpdateTask : handleAddTask}
-        clients={mockClients}
-        projects={mockProjects}
-        editTask={editingTask}
-      />
-
-      {/* Config Modal */}
-      <TaskConfigDialog
-        isOpen={isConfigModalOpen}
-        onClose={() => setIsConfigModalOpen(false)}
+        isCreating={isCreatingTask}
       />
     </div>
-  );
-};
-
-const Tasks = () => {
-  return (
-    <TaskProvider>
-      <TasksContent />
-    </TaskProvider>
   );
 };
 

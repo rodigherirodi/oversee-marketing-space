@@ -1,295 +1,203 @@
+
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Project } from '@/types/entities';
-import { Search, Grid, List, Plus, Calendar, Users } from 'lucide-react';
+import { Plus, Search, Filter, LayoutGrid, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { useProjects } from '@/hooks/useProjects';
-import { useClients } from '@/hooks/useClients';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ProjectFormDialog from '@/components/ProjectFormDialog';
+import { useProjects } from '@/hooks/useProjects';
+import { useNavigate } from 'react-router-dom';
 
 const Projects = () => {
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedClient, setSelectedClient] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
-  const [selectedResponsible, setSelectedResponsible] = useState('');
-
+  const navigate = useNavigate();
   const { projects } = useProjects();
-  const { clients } = useClients();
-  const [filteredProjects, setFilteredProjects] = useState(projects);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
 
-  // Função para extrair responsáveis únicos
-  const getUniqueResponsibles = () => {
-    const responsibles = projects.map(project => project.client.responsibleManager);
-    return [...new Set(responsibles)];
-  };
-
-  // Função para gerar iniciais dos nomes
-  const getInitials = (name: string) => {
-    return name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2);
-  };
-
-  // Componente para avatares da equipe
-  const TeamAvatars = ({ teamMembers }: { teamMembers: string[] }) => {
-    const displayMembers = teamMembers.slice(0, 3);
-    const extraCount = teamMembers.length - 3;
-
-    return (
-      <div className="flex -space-x-2">
-        {displayMembers.map((member, index) => (
-          <Avatar key={index} className="w-6 h-6 border-2 border-white">
-            <AvatarFallback className="text-xs bg-blue-100 text-blue-700">
-              {getInitials(member)}
-            </AvatarFallback>
-          </Avatar>
-        ))}
-        {extraCount > 0 && (
-          <div className="w-6 h-6 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-xs text-gray-600">
-            +{extraCount}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const filterProjects = () => {
-    let filtered = projects.filter(project =>
-      project.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    if (selectedClient) {
-      filtered = filtered.filter(project => project.clientId === selectedClient);
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'planning': return 'bg-yellow-100 text-yellow-800';
+      case 'in-progress': return 'bg-blue-100 text-blue-800';
+      case 'review': return 'bg-purple-100 text-purple-800';
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'paused': return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
-
-    if (selectedStatus) {
-      filtered = filtered.filter(project => project.status === selectedStatus);
-    }
-
-    if (selectedResponsible) {
-      filtered = filtered.filter(project => project.client.responsibleManager === selectedResponsible);
-    }
-
-    setFilteredProjects(filtered);
   };
 
-  React.useEffect(() => {
-    filterProjects();
-  }, [searchTerm, selectedClient, selectedStatus, selectedResponsible, projects]);
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'bg-red-100 text-red-800';
+      case 'medium': return 'bg-orange-100 text-orange-800';
+      case 'low': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const filteredProjects = projects.filter(project => {
+    const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         project.client.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
+    const matchesPriority = priorityFilter === 'all' || project.priority === priorityFilter;
+    
+    return matchesSearch && matchesStatus && matchesPriority;
+  });
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Projetos</h1>
-          <p className="text-gray-600">Gerencie todos os seus projetos</p>
+          <h1 className="text-3xl font-bold text-foreground">Projetos</h1>
+          <p className="text-muted-foreground mt-1">
+            Gerencie seus projetos e acompanhe o progresso de cada um
+          </p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center border rounded-lg">
-            <Button
-              variant={viewMode === 'grid' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('grid')}
-              className="rounded-r-none"
-            >
-              <Grid className="w-4 h-4" />
-            </Button>
-            <Button
-              variant={viewMode === 'list' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('list')}
-              className="rounded-l-none"
-            >
-              <List className="w-4 h-4" />
-            </Button>
-          </div>
-          <ProjectFormDialog>
-            <Button className="flex items-center gap-2">
-              <Plus className="w-4 h-4" />
-              Novo Projeto
-            </Button>
-          </ProjectFormDialog>
-        </div>
+        
+        <Button onClick={() => setIsProjectFormOpen(true)}>
+          <Plus className="w-4 h-4 mr-2" />
+          Novo Projeto
+        </Button>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-4 p-4 bg-white rounded-lg border">
-        <div className="relative min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <input
-            type="text"
+      <div className="flex flex-col gap-4 md:flex-row md:items-center">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+          <Input
             placeholder="Buscar projetos..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
           />
         </div>
-
-        <select
-          value={selectedClient}
-          onChange={(e) => setSelectedClient(e.target.value)}
-          className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">Todos os clientes</option>
-          {clients.map((client) => (
-            <option key={client.id} value={client.id}>
-              {client.name}
-            </option>
-          ))}
-        </select>
-
-        <select
-          value={selectedStatus}
-          onChange={(e) => setSelectedStatus(e.target.value)}
-          className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">Todos os status</option>
-          <option value="planning">Planejamento</option>
-          <option value="in-progress">Em Progresso</option>
-          <option value="review">Em Revisão</option>
-          <option value="completed">Concluído</option>
-          <option value="paused">Em Pausa</option>
-        </select>
-
-        <select
-          value={selectedResponsible}
-          onChange={(e) => setSelectedResponsible(e.target.value)}
-          className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">Todos os responsáveis</option>
-          {getUniqueResponsibles().map(responsible => (
-            <option key={responsible} value={responsible}>
-              {responsible}
-            </option>
-          ))}
-        </select>
+        
+        <div className="flex gap-2">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-40">
+              <Filter className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os Status</SelectItem>
+              <SelectItem value="planning">Planejamento</SelectItem>
+              <SelectItem value="in-progress">Em Progresso</SelectItem>
+              <SelectItem value="review">Em Revisão</SelectItem>
+              <SelectItem value="completed">Concluído</SelectItem>
+              <SelectItem value="paused">Pausado</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="Prioridade" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas</SelectItem>
+              <SelectItem value="high">Alta</SelectItem>
+              <SelectItem value="medium">Média</SelectItem>
+              <SelectItem value="low">Baixa</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
-      {/* Content */}
-      {viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProjects.map((project) => (
-            <Link
-              key={project.id}
-              to={`/projects/${project.id}`}
-              className="bg-white rounded-lg border shadow-sm overflow-hidden hover:shadow-md transition-shadow block"
-            >
-              <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">{project.name}</h3>
-                <p className="text-sm text-blue-600 font-medium mb-3">{project.client.name}</p>
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">{project.description}</p>
-                
-                <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
-                    <span>
-                      {new Date(project.startDate).toLocaleDateString('pt-BR')} - {new Date(project.endDate).toLocaleDateString('pt-BR')}
-                    </span>
-                  </div>
+      {/* Projects Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredProjects.map((project) => (
+          <Card key={project.id} className="cursor-pointer hover:shadow-lg transition-shadow"
+                onClick={() => navigate(`/projects/${project.id}`)}>
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <CardTitle className="text-lg mb-2">{project.name}</CardTitle>
+                  <p className="text-sm text-muted-foreground mb-3">{project.client.name}</p>
                 </div>
-
-                <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4" />
-                    <TeamAvatars teamMembers={project.teamMembers} />
-                    <span className="ml-1">{project.teamMembers.length}</span>
+              </div>
+              
+              <div className="flex gap-2 flex-wrap">
+                <Badge className={getStatusColor(project.status)}>
+                  {project.status === 'planning' && 'Planejamento'}
+                  {project.status === 'in-progress' && 'Em Progresso'}
+                  {project.status === 'review' && 'Em Revisão'}
+                  {project.status === 'completed' && 'Concluído'}
+                  {project.status === 'paused' && 'Pausado'}
+                </Badge>
+                <Badge variant="outline" className={getPriorityColor(project.priority)}>
+                  {project.priority === 'high' && 'Alta'}
+                  {project.priority === 'medium' && 'Média'}
+                  {project.priority === 'low' && 'Baixa'}
+                </Badge>
+              </div>
+            </CardHeader>
+            
+            <CardContent className="pt-0">
+              <div className="space-y-3">
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-muted-foreground">Progresso</span>
+                    <span className="text-sm font-medium">{project.progress}%</span>
                   </div>
+                  <Progress value={project.progress} className="h-2" />
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    project.status === 'in-progress' ? 'bg-green-100 text-green-700' :
-                    project.status === 'planning' ? 'bg-blue-100 text-blue-700' :
-                    project.status === 'review' ? 'bg-yellow-100 text-yellow-700' :
-                    project.status === 'paused' ? 'bg-red-100 text-red-700' :
-                    'bg-gray-100 text-gray-700'
-                  }`}>
-                    {project.status === 'in-progress' ? 'Em Progresso' :
-                     project.status === 'planning' ? 'Planejamento' :
-                     project.status === 'review' ? 'Em Revisão' :
-                     project.status === 'paused' ? 'Em Pausa' : 'Concluído'}
-                  </span>
                   <div className="flex items-center gap-2">
-                    <div className="w-16 bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-blue-500 h-2 rounded-full" 
-                        style={{ width: `${project.progress}%` }}
-                      ></div>
-                    </div>
-                    <span className="text-xs text-gray-600 min-w-[30px]">{project.progress}%</span>
+                    <span className="text-sm text-muted-foreground">Prazo:</span>
+                    <span className="text-sm">
+                      {new Date(project.endDate).toLocaleDateString('pt-BR')}
+                    </span>
+                  </div>
+                  
+                  <div className="flex -space-x-2">
+                    {project.teamMembers.slice(0, 3).map((member, index) => (
+                      <Avatar key={index} className="w-6 h-6 border-2 border-background">
+                        <AvatarFallback className="text-xs">
+                          {member.slice(0, 2)}
+                        </AvatarFallback>
+                      </Avatar>
+                    ))}
+                    {project.teamMembers.length > 3 && (
+                      <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs">
+                        +{project.teamMembers.length - 3}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
-            </Link>
-          ))}
-        </div>
-      ) : (
-        <div className="bg-white rounded-lg border">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Projeto</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Responsável</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progresso</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Período</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Equipe</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredProjects.map((project) => (
-                  <tr key={project.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Link to={`/projects/${project.id}`} className="block hover:text-blue-600">
-                        <div className="text-sm font-medium text-gray-900">{project.name}</div>
-                        <div className="text-sm text-gray-500 truncate max-w-xs">{project.description}</div>
-                      </Link>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{project.client.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{project.client.responsibleManager}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        project.status === 'in-progress' ? 'bg-green-100 text-green-700' :
-                        project.status === 'planning' ? 'bg-blue-100 text-blue-700' :
-                        project.status === 'review' ? 'bg-yellow-100 text-yellow-700' :
-                        project.status === 'paused' ? 'bg-red-100 text-red-700' :
-                        'bg-gray-100 text-gray-700'
-                      }`}>
-                        {project.status === 'in-progress' ? 'Em Progresso' :
-                         project.status === 'planning' ? 'Planejamento' :
-                         project.status === 'review' ? 'Em Revisão' :
-                         project.status === 'paused' ? 'Em Pausa' : 'Concluído'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
-                          <div 
-                            className="bg-blue-500 h-2 rounded-full" 
-                            style={{ width: `${project.progress}%` }}
-                          ></div>
-                        </div>
-                        <span className="text-sm text-gray-600">{project.progress}%</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(project.startDate).toLocaleDateString('pt-BR')} - {new Date(project.endDate).toLocaleDateString('pt-BR')}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <TeamAvatars teamMembers={project.teamMembers} />
-                        <span className="text-sm text-gray-600">{project.teamMembers.length}</span>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Empty State */}
+      {filteredProjects.length === 0 && (
+        <div className="text-center py-12">
+          <h3 className="text-lg font-semibold text-foreground mb-2">
+            Nenhum projeto encontrado
+          </h3>
+          <p className="text-muted-foreground mb-4">
+            Crie seu primeiro projeto para começar
+          </p>
+          <Button onClick={() => setIsProjectFormOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Criar Projeto
+          </Button>
         </div>
       )}
+
+      {/* Project Form Dialog */}
+      <ProjectFormDialog
+        open={isProjectFormOpen}
+        onOpenChange={setIsProjectFormOpen}
+      />
     </div>
   );
 };
