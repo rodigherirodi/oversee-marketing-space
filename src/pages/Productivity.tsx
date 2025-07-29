@@ -10,10 +10,24 @@ import TodaysPriorities from '@/components/TodaysPriorities';
 import CompactOverdueTasks from '@/components/CompactOverdueTasks';
 import MonthlyEvolutionChart from '@/components/MonthlyEvolutionChart';
 import EngagementMetrics from '@/components/EngagementMetrics';
+import { useTaskContext } from '@/contexts/TaskContext';
 
 const Productivity = () => {
   const { currentUserProfile, isLoading: userLoading } = useCurrentUser();
   const { productivity, achievements, pointsHistory, goals, isLoading: productivityLoading } = useProductivityData();
+  const { tasks } = useTaskContext();
+
+  // Get today's tasks
+  const today = new Date().toISOString().split('T')[0];
+  const todayTasks = tasks.filter(task => 
+    task.dueDate && task.dueDate.startsWith(today)
+  );
+
+  // Get overdue tasks
+  const overdueTasks = tasks.filter(task => {
+    if (!task.dueDate) return false;
+    return new Date(task.dueDate) < new Date() && task.status !== 'completed';
+  });
 
   if (userLoading || productivityLoading) {
     return (
@@ -89,14 +103,14 @@ const Productivity = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left column */}
         <div className="lg:col-span-2 space-y-6">
-          <TodaysPriorities />
+          <TodaysPriorities todayTasks={todayTasks} />
           <MonthlyEvolutionChart />
-          <EngagementMetrics />
+          <EngagementMetrics user={currentUserProfile} />
         </div>
 
         {/* Right column */}
         <div className="space-y-6">
-          <CompactOverdueTasks />
+          <CompactOverdueTasks overdueTasks={overdueTasks} />
           
           {/* Recent Achievements */}
           <Card>

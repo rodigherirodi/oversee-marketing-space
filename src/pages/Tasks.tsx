@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import KanbanBoard from '@/components/KanbanBoard';
-import TaskListView from '@/components/tasks/TaskListView';
-import TaskCalendarView from '@/components/tasks/TaskCalendarView';
-import TaskModal from '@/components/TaskModal';
+import { KanbanBoard } from '@/components/KanbanBoard';
+import { TaskListView } from '@/components/tasks/TaskListView';
+import { TaskCalendarView } from '@/components/tasks/TaskCalendarView';
+import { TaskModal } from '@/components/TaskModal';
 import { useTaskContext } from '@/contexts/TaskContext';
 
 const Tasks = () => {
@@ -20,7 +20,7 @@ const Tasks = () => {
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
 
-  const { tasks, isLoading } = useTaskContext();
+  const { tasks, currentKanban, updateTask } = useTaskContext();
 
   const handleNewTask = () => {
     setSelectedTask(null);
@@ -33,14 +33,6 @@ const Tasks = () => {
     setIsCreatingTask(false);
     setIsTaskModalOpen(true);
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -128,7 +120,9 @@ const Tasks = () => {
         <TabsContent value="kanban" className="mt-6">
           <KanbanBoard 
             tasks={tasks}
+            onUpdateTask={updateTask}
             onEditTask={handleEditTask}
+            kanbanConfig={currentKanban}
           />
         </TabsContent>
 

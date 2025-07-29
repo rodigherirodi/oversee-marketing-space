@@ -13,7 +13,7 @@ import { useNavigate } from 'react-router-dom';
 
 const Clients = () => {
   const navigate = useNavigate();
-  const { clients } = useClients();
+  const { clients, addClient } = useClients();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sizeFilter, setSizeFilter] = useState<string>('all');
@@ -45,6 +45,11 @@ const Clients = () => {
     
     return matchesSearch && matchesStatus && matchesSize;
   });
+
+  const handleClientAdded = (client: any) => {
+    addClient(client);
+    setIsClientFormOpen(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -196,6 +201,7 @@ const Clients = () => {
       <ClientFormDialog
         open={isClientFormOpen}
         onOpenChange={setIsClientFormOpen}
+        onClientAdded={handleClientAdded}
       />
     </div>
   );

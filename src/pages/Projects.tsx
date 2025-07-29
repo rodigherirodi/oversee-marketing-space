@@ -15,7 +15,7 @@ import { useNavigate } from 'react-router-dom';
 
 const Projects = () => {
   const navigate = useNavigate();
-  const { projects } = useProjects();
+  const { projects, addProject } = useProjects();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
@@ -49,6 +49,11 @@ const Projects = () => {
     
     return matchesSearch && matchesStatus && matchesPriority;
   });
+
+  const handleProjectAdded = (project: any) => {
+    addProject(project);
+    setIsProjectFormOpen(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -195,8 +200,9 @@ const Projects = () => {
 
       {/* Project Form Dialog */}
       <ProjectFormDialog
-        open={isProjectFormOpen}
-        onOpenChange={setIsProjectFormOpen}
+        isOpen={isProjectFormOpen}
+        onClose={() => setIsProjectFormOpen(false)}
+        onProjectAdded={handleProjectAdded}
       />
     </div>
   );
