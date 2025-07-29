@@ -1,15 +1,39 @@
 
 import React from 'react';
-import { TeamMember } from '@/types/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Clock, CheckCircle, FolderOpen, Target } from 'lucide-react';
+import { useProductivityData } from '@/hooks/useProductivityData';
 
 interface ProductivityTabProps {
-  member: TeamMember;
+  member: {
+    id: string;
+    name: string;
+    email: string;
+    position: string;
+    department: string;
+    avatar: string;
+    status: string;
+    level: number;
+    points: number;
+    taskCompletionRate: number;
+    activeProjectsCount: number;
+    completedProjectsCount: number;
+    hoursWorkedWeek: number;
+    createdAt: string;
+    phone: string;
+    birthDate: string;
+    hireDate: string;
+    address: string;
+    borderPattern: string;
+    borderColor: string;
+  };
 }
 
 const ProductivityTab: React.FC<ProductivityTabProps> = ({ member }) => {
+  // Para demonstração, vamos usar dados básicos do membro
+  // Em um cenário real, você poderia criar um hook específico para buscar dados de produtividade de outros usuários
+  
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

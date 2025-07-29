@@ -9,14 +9,15 @@ import TeamMemberCard from '@/components/TeamMemberCard';
 import TeamMemberDialog from '@/components/TeamMemberDialog';
 import TeamMemberForm from '@/components/TeamMemberForm';
 import { useTeamMembers } from '@/hooks/useTeamMembers';
-import { TeamMember } from '@/types/entities';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Team = () => {
-  const { teamMembers, searchMembers } = useTeamMembers();
+  const { teamMembers, searchMembers, isLoading } = useTeamMembers();
+  const { isAdmin } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
+  const [selectedMember, setSelectedMember] = useState<any>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isCreateFormOpen, setIsCreateFormOpen] = useState(false);
 
@@ -38,16 +39,27 @@ const Team = () => {
   const filteredMembers = getFilteredMembers();
   
   // Get unique departments for filter
-  const departments = Array.from(new Set(teamMembers.map(member => member.department)));
+  const departments = Array.from(new Set(teamMembers.map(member => member.department).filter(Boolean)));
 
-  const handleMemberClick = (member: TeamMember) => {
+  const handleMemberClick = (member: any) => {
     setSelectedMember(member);
     setIsProfileOpen(true);
   };
 
   const handleNewMember = () => {
+    if (!isAdmin) {
+      return;
+    }
     setIsCreateFormOpen(true);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <TooltipProvider>
@@ -61,10 +73,12 @@ const Team = () => {
             </p>
           </div>
           
-          <Button onClick={handleNewMember}>
-            <Plus className="w-4 h-4 mr-2" />
-            Novo Membro
-          </Button>
+          {isAdmin && (
+            <Button onClick={handleNewMember}>
+              <Plus className="w-4 h-4 mr-2" />
+              Novo Membro
+            </Button>
+          )}
         </div>
 
         {/* Filters */}
@@ -112,7 +126,28 @@ const Team = () => {
           {filteredMembers.map((member) => (
             <TeamMemberCard
               key={member.id}
-              member={member}
+              member={{
+                id: member.id,
+                name: member.name,
+                email: member.email,
+                position: member.position || 'Sem cargo',
+                department: member.department || 'Sem departamento',
+                avatar: member.avatar || '/placeholder.svg',
+                status: member.status || 'active',
+                level: member.level || 1,
+                points: member.points || 0,
+                taskCompletionRate: member.task_completion_rate || 0,
+                activeProjectsCount: member.active_projects_count || 0,
+                completedProjectsCount: member.completed_projects_count || 0,
+                hoursWorkedWeek: member.hours_worked_week || 0,
+                createdAt: member.created_at,
+                phone: member.phone || '',
+                birthDate: member.birth_date || '',
+                hireDate: member.hire_date || '',
+                address: member.address || '',
+                borderPattern: member.border_pattern || 'solid',
+                borderColor: member.border_color || '#3B82F6',
+              }}
               onClick={() => handleMemberClick(member)}
             />
           ))}
@@ -131,7 +166,7 @@ const Team = () => {
                 : 'Adicione o primeiro membro da sua equipe para começar.'
               }
             </p>
-            {(!searchQuery && departmentFilter === 'all' && statusFilter === 'all') && (
+            {(!searchQuery && departmentFilter === 'all' && statusFilter === 'all' && isAdmin) && (
               <Button onClick={handleNewMember}>
                 <Plus className="w-4 h-4 mr-2" />
                 Adicionar Primeiro Membro
@@ -143,17 +178,40 @@ const Team = () => {
         {/* Team Member Profile Dialog */}
         {selectedMember && (
           <TeamMemberDialog
-            member={selectedMember}
+            member={{
+              id: selectedMember.id,
+              name: selectedMember.name,
+              email: selectedMember.email,
+              position: selectedMember.position || 'Sem cargo',
+              department: selectedMember.department || 'Sem departamento',
+              avatar: selectedMember.avatar || '/placeholder.svg',
+              status: selectedMember.status || 'active',
+              level: selectedMember.level || 1,
+              points: selectedMember.points || 0,
+              taskCompletionRate: selectedMember.task_completion_rate || 0,
+              activeProjectsCount: selectedMember.active_projects_count || 0,
+              completedProjectsCount: selectedMember.completed_projects_count || 0,
+              hoursWorkedWeek: selectedMember.hours_worked_week || 0,
+              createdAt: selectedMember.created_at,
+              phone: selectedMember.phone || '',
+              birthDate: selectedMember.birth_date || '',
+              hireDate: selectedMember.hire_date || '',
+              address: selectedMember.address || '',
+              borderPattern: selectedMember.border_pattern || 'solid',
+              borderColor: selectedMember.border_color || '#3B82F6',
+            }}
             open={isProfileOpen}
             onOpenChange={setIsProfileOpen}
           />
         )}
 
         {/* Team Member Creation Form */}
-        <TeamMemberForm
-          open={isCreateFormOpen}
-          onOpenChange={setIsCreateFormOpen}
-        />
+        {isAdmin && (
+          <TeamMemberForm
+            open={isCreateFormOpen}
+            onOpenChange={setIsCreateFormOpen}
+          />
+        )}
       </div>
     </TooltipProvider>
   );

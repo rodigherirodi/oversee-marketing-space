@@ -121,6 +121,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_achievements: {
+        Row: {
+          badge: string
+          created_at: string | null
+          date: string | null
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          badge: string
+          created_at?: string | null
+          date?: string | null
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          badge?: string
+          created_at?: string | null
+          date?: string | null
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_badges: {
         Row: {
           badge: string
@@ -154,25 +181,37 @@ export type Database = {
         Row: {
           completed: boolean | null
           created_at: string
-          goal: string
+          current_value: number | null
+          deadline: string | null
+          description: string
           id: string
           target_date: string | null
+          target_value: number | null
+          title: string | null
           user_id: string
         }
         Insert: {
           completed?: boolean | null
           created_at?: string
-          goal: string
+          current_value?: number | null
+          deadline?: string | null
+          description: string
           id?: string
           target_date?: string | null
+          target_value?: number | null
+          title?: string | null
           user_id: string
         }
         Update: {
           completed?: boolean | null
           created_at?: string
-          goal?: string
+          current_value?: number | null
+          deadline?: string | null
+          description?: string
           id?: string
           target_date?: string | null
+          target_value?: number | null
+          title?: string | null
           user_id?: string
         }
         Relationships: [
@@ -184,6 +223,90 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_points_history: {
+        Row: {
+          activity: string
+          created_at: string | null
+          date: string | null
+          id: string
+          points: number
+          user_id: string
+        }
+        Insert: {
+          activity: string
+          created_at?: string | null
+          date?: string | null
+          id?: string
+          points: number
+          user_id: string
+        }
+        Update: {
+          activity?: string
+          created_at?: string | null
+          date?: string | null
+          id?: string
+          points?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_productivity: {
+        Row: {
+          active_projects: number | null
+          active_streak: number | null
+          avg_completion_time: number | null
+          client_satisfaction: number | null
+          collaboration_index: number | null
+          collaborative_projects: number | null
+          completed_projects: number | null
+          created_at: string | null
+          hours_worked_month: number | null
+          id: string
+          individual_projects: number | null
+          innovation_score: number | null
+          productivity_score: number | null
+          punctuality_index: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          active_projects?: number | null
+          active_streak?: number | null
+          avg_completion_time?: number | null
+          client_satisfaction?: number | null
+          collaboration_index?: number | null
+          collaborative_projects?: number | null
+          completed_projects?: number | null
+          created_at?: string | null
+          hours_worked_month?: number | null
+          id?: string
+          individual_projects?: number | null
+          innovation_score?: number | null
+          productivity_score?: number | null
+          punctuality_index?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          active_projects?: number | null
+          active_streak?: number | null
+          avg_completion_time?: number | null
+          client_satisfaction?: number | null
+          collaboration_index?: number | null
+          collaborative_projects?: number | null
+          completed_projects?: number | null
+          created_at?: string | null
+          hours_worked_month?: number | null
+          id?: string
+          individual_projects?: number | null
+          innovation_score?: number | null
+          productivity_score?: number | null
+          punctuality_index?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

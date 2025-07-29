@@ -13,22 +13,32 @@ import {
   Calendar,
   Zap
 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { mockCurrentUser } from '../data/newMockData';
 import { TaskProvider } from '@/contexts/TaskContext';
 import { useUserTasks } from '@/hooks/useUserTasks';
+import { useProductivityData } from '@/hooks/useProductivityData';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 import BorderPattern from '@/components/BorderPattern';
 import PersonalInfoSection from '@/components/PersonalInfoSection';
 import EngagementMetrics from '@/components/EngagementMetrics';
 import CompactOverdueTasks from '@/components/CompactOverdueTasks';
 import TodaysPriorities from '@/components/TodaysPriorities';
-import MonthlyEvolutionChart from '@/components/MonthlyEvolutionChart';
 import BadgeDisplay from '@/components/BadgeDisplay';
 
 const ProductivityContent = () => {
-  const user = mockCurrentUser;
+  const { currentUserProfile, isLoading: profileLoading } = useCurrentUser();
+  const { 
+    productivity, 
+    achievements, 
+    pointsHistory, 
+    goals, 
+    skills, 
+    badges, 
+    isLoading: productivityLoading 
+  } = useProductivityData();
+  
   const { 
     overdueTasks, 
     todayTasks, 
@@ -36,9 +46,28 @@ const ProductivityContent = () => {
     openTasks, 
     inProgressTasks, 
     totalTasks 
-  } = useUserTasks(user.user.name);
+  } = useUserTasks(currentUserProfile?.name || '');
   
   const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+  if (profileLoading || productivityLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!currentUserProfile) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Perfil não encontrado</h2>
+          <p className="text-gray-600">Não foi possível carregar seus dados de produtividade.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -48,48 +77,57 @@ const ProductivityContent = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Produtividade</h1>
         </div>
 
-        {/* Clean User Profile Card */}
+        {/* User Profile Card */}
         <Card className="bg-gradient-to-r from-blue-50 to-purple-50 overflow-hidden relative">
           <BorderPattern 
-            pattern={user.borderPattern} 
-            color={user.borderColor}
+            pattern={currentUserProfile.border_pattern || 'solid'} 
+            color={currentUserProfile.border_color || '#3B82F6'}
           />
           
           <div className="absolute top-1 right-2 z-10">
-            <BadgeDisplay badges={user.badges} maxVisible={6} />
+            <BadgeDisplay badges={badges || []} maxVisible={6} />
           </div>
           
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-6">
                 <img 
-                  src={user.user.avatar} 
-                  alt={user.user.name}
+                  src={currentUserProfile.avatar || '/placeholder.svg'} 
+                  alt={currentUserProfile.name}
                   className="w-20 h-20 rounded-full border-4 border-white shadow-lg"
                 />
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">{user.user.name}</h2>
-                  <p className="text-lg text-gray-600">{user.user.position} - {user.department}</p>
+                  <h2 className="text-2xl font-bold text-gray-900">{currentUserProfile.name}</h2>
+                  <p className="text-lg text-gray-600">{currentUserProfile.position} - {currentUserProfile.department}</p>
                   <div className="flex items-center gap-3 mt-2">
                     <Badge variant="secondary" className="flex items-center gap-1">
                       <Target className="w-3 h-3" />
-                      Nível {user.level}
+                      Nível {currentUserProfile.level || 1}
                     </Badge>
                     <Badge variant="outline" className="text-xs">
-                      Streak: {user.activeStreak} dias 🔥
+                      Streak: {productivity?.active_streak || 0} dias 🔥
                     </Badge>
                   </div>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-blue-600">{user.productivityScore}%</div>
+                <div className="text-2xl font-bold text-blue-600">{productivity?.productivity_score || 0}%</div>
                 <div className="text-sm text-gray-500">Score de Produtividade</div>
-                <Progress value={user.productivityScore} className="w-32 mt-2" />
+                <Progress value={productivity?.productivity_score || 0} className="w-32 mt-2" />
               </div>
             </div>
             
             <div className="mt-6 pt-4 border-t border-gray-200">
-              <PersonalInfoSection user={user} />
+              <PersonalInfoSection user={{
+                user: currentUserProfile,
+                department: currentUserProfile.department,
+                level: currentUserProfile.level || 1,
+                productivityScore: productivity?.productivity_score || 0,
+                activeStreak: productivity?.active_streak || 0,
+                badges: badges || [],
+                borderPattern: currentUserProfile.border_pattern || 'solid',
+                borderColor: currentUserProfile.border_color || '#3B82F6'
+              }} />
             </div>
           </CardHeader>
         </Card>
@@ -97,7 +135,12 @@ const ProductivityContent = () => {
         {/* Engagement Metrics */}
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Métricas de Engajamento</h3>
-          <EngagementMetrics user={user} />
+          <EngagementMetrics user={{
+            punctualityIndex: productivity?.punctuality_index || 0,
+            collaborationIndex: productivity?.collaboration_index || 0,
+            innovationScore: productivity?.innovation_score || 0,
+            clientSatisfaction: productivity?.client_satisfaction || 0,
+          }} />
         </div>
 
         {/* Task Metrics */}
@@ -110,9 +153,9 @@ const ProductivityContent = () => {
             <CardContent>
               <div className="text-2xl font-bold text-green-600">{completedTasks}</div>
               <p className="text-xs text-gray-600 mt-1">
-                {totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0}% do total
+                {completionRate}% do total
               </p>
-              <Progress value={totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0} className="mt-2 h-2" />
+              <Progress value={completionRate} className="mt-2 h-2" />
             </CardContent>
           </Card>
 
@@ -157,7 +200,7 @@ const ProductivityContent = () => {
           <TodaysPriorities todayTasks={todayTasks} />
         </div>
 
-        {/* Performance and Projects (moved to where Monthly Evolution was) */}
+        {/* Performance and Projects */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
@@ -169,25 +212,25 @@ const ProductivityContent = () => {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">{user.hoursWorkedWeek}h</div>
+                  <div className="text-2xl font-bold text-blue-600">{currentUserProfile.hours_worked_week || 0}h</div>
                   <div className="text-sm text-gray-600">Horas/Semana</div>
                 </div>
                 <div className="text-center p-4 bg-purple-50 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">{user.hoursWorkedMonth}h</div>
+                  <div className="text-2xl font-bold text-purple-600">{productivity?.hours_worked_month || 0}h</div>
                   <div className="text-sm text-gray-600">Horas/Mês</div>
                 </div>
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Score de Produtividade</span>
-                  <span className="font-bold">{user.productivityScore}%</span>
+                  <span className="font-bold">{productivity?.productivity_score || 0}%</span>
                 </div>
-                <Progress value={user.productivityScore} />
+                <Progress value={productivity?.productivity_score || 0} />
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Tempo Médio de Conclusão</span>
-                  <span className="font-bold">{user.avgCompletionTime} dias</span>
+                  <span className="font-bold">{productivity?.avg_completion_time || 0} dias</span>
                 </div>
               </div>
             </CardContent>
@@ -203,11 +246,11 @@ const ProductivityContent = () => {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">{user.activeProjects}</div>
+                  <div className="text-2xl font-bold text-green-600">{productivity?.active_projects || 0}</div>
                   <div className="text-sm text-gray-600">Ativos</div>
                 </div>
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-gray-600">{user.completedProjects}</div>
+                  <div className="text-2xl font-bold text-gray-600">{productivity?.completed_projects || 0}</div>
                   <div className="text-sm text-gray-600">Concluídos</div>
                 </div>
               </div>
@@ -217,24 +260,21 @@ const ProductivityContent = () => {
                     <Users className="w-4 h-4 text-blue-600" />
                     <span className="text-sm">Colaborativos</span>
                   </div>
-                  <span className="font-bold">{user.collaborativeProjects}</span>
+                  <span className="font-bold">{productivity?.collaborative_projects || 0}</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4 text-purple-600" />
                     <span className="text-sm">Individuais</span>
                   </div>
-                  <span className="font-bold">{user.individualProjects}</span>
+                  <span className="font-bold">{productivity?.individual_projects || 0}</span>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Monthly Evolution Chart (moved to where Performance was) */}
-        <MonthlyEvolutionChart user={user} />
-
-        {/* Additional Metrics - Removed Priority Distribution */}
+        {/* Additional Metrics */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
@@ -244,17 +284,23 @@ const ProductivityContent = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {user.recentAchievements.map((achievement, index) => (
-                <div key={index} className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
-                  <span className="text-xl">{achievement.badge}</span>
-                  <div>
-                    <p className="text-sm font-medium">{achievement.name}</p>
-                    <p className="text-xs text-gray-500">
-                      {new Date(achievement.date).toLocaleDateString('pt-BR')}
-                    </p>
+              {achievements && achievements.length > 0 ? (
+                achievements.map((achievement, index) => (
+                  <div key={index} className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
+                    <span className="text-xl">{achievement.badge}</span>
+                    <div>
+                      <p className="text-sm font-medium">{achievement.name}</p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(achievement.date).toLocaleDateString('pt-BR')}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-sm text-gray-500 text-center py-4">
+                  Nenhuma conquista ainda. Continue trabalhando para desbloquear conquistas!
+                </p>
+              )}
             </CardContent>
           </Card>
 
@@ -266,41 +312,52 @@ const ProductivityContent = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {user.pointsHistory.map((entry, index) => (
-                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                  <div>
-                    <p className="text-sm font-medium">+{entry.points} pts</p>
-                    <p className="text-xs text-gray-500">{entry.activity}</p>
+              {pointsHistory && pointsHistory.length > 0 ? (
+                pointsHistory.map((entry, index) => (
+                  <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="text-sm font-medium">+{entry.points} pts</p>
+                      <p className="text-xs text-gray-500">{entry.activity}</p>
+                    </div>
+                    <span className="text-xs text-gray-400">
+                      {new Date(entry.date).toLocaleDateString('pt-BR')}
+                    </span>
                   </div>
-                  <span className="text-xs text-gray-400">
-                    {new Date(entry.date).toLocaleDateString('pt-BR')}
-                  </span>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-sm text-gray-500 text-center py-4">
+                  Nenhum ponto registrado ainda.
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>
 
-        {/* Skills and Highlighted Monthly Goals */}
+        {/* Skills and Goals */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Skills & Competências</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {user.skills.map((skill, index) => (
-                <div key={index} className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">{skill.name}</span>
-                    <span className="text-sm text-gray-500">{skill.level}%</span>
+              {skills && skills.length > 0 ? (
+                skills.map((skill, index) => (
+                  <div key={index} className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">{skill.skill}</span>
+                      <span className="text-sm text-gray-500">{skill.level}%</span>
+                    </div>
+                    <Progress value={skill.level} className="h-2" />
                   </div>
-                  <Progress value={skill.level} className="h-2" />
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-sm text-gray-500 text-center py-4">
+                  Nenhuma skill registrada ainda.
+                </p>
+              )}
             </CardContent>
           </Card>
 
-          {/* Highlighted Monthly Goals */}
           <Card className="border-l-4 border-l-purple-500 bg-gradient-to-r from-purple-50 to-blue-50 shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-purple-700 text-xl">
@@ -309,25 +366,31 @@ const ProductivityContent = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {user.goals.map((goal) => (
-                <div key={goal.id} className="space-y-3 p-4 bg-white rounded-lg border border-purple-200">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-bold text-gray-900">{goal.title}</span>
-                    <span className="text-sm text-purple-600 font-bold">
-                      {goal.current}/{goal.target}
-                    </span>
+              {goals && goals.length > 0 ? (
+                goals.map((goal) => (
+                  <div key={goal.id} className="space-y-3 p-4 bg-white rounded-lg border border-purple-200">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-bold text-gray-900">{goal.title}</span>
+                      <span className="text-sm text-purple-600 font-bold">
+                        {goal.current_value}/{goal.target_value}
+                      </span>
+                    </div>
+                    <Progress value={(goal.current_value / goal.target_value) * 100} className="h-3" />
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-gray-500">
+                        Prazo: {new Date(goal.deadline).toLocaleDateString('pt-BR')}
+                      </span>
+                      <span className="text-purple-600 font-medium">
+                        {Math.round((goal.current_value / goal.target_value) * 100)}% concluído
+                      </span>
+                    </div>
                   </div>
-                  <Progress value={(goal.current / goal.target) * 100} className="h-3" />
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-gray-500">
-                      Prazo: {new Date(goal.deadline).toLocaleDateString('pt-BR')}
-                    </span>
-                    <span className="text-purple-600 font-medium">
-                      {Math.round((goal.current / goal.target) * 100)}% concluído
-                    </span>
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-sm text-gray-500 text-center py-4">
+                  Nenhuma meta definida ainda.
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>

@@ -4,10 +4,11 @@ import { TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, ReferenceLine, Line, ComposedChart } from 'recharts';
-import { UserProductivity } from '@/types/newEntities';
 
 interface MonthlyEvolutionChartProps {
-  user: UserProductivity;
+  user: {
+    productivityScore: number;
+  };
 }
 
 const MonthlyEvolutionChart: React.FC<MonthlyEvolutionChartProps> = ({ user }) => {
@@ -24,7 +25,18 @@ const MonthlyEvolutionChart: React.FC<MonthlyEvolutionChartProps> = ({ user }) =
     },
   };
 
-  const chartData = user.monthlyEvolution.map((item, index, array) => ({
+  // Gerar dados de exemplo para os últimos 6 meses
+  const generateMonthlyData = () => {
+    const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'];
+    const currentScore = user.productivityScore || 75;
+    
+    return months.map((month, index) => ({
+      month,
+      score: Math.max(70, Math.min(100, currentScore + (Math.random() - 0.5) * 10)),
+    }));
+  };
+
+  const chartData = generateMonthlyData().map((item, index, array) => ({
     ...item,
     trend: index > 0 ? array[index - 1].score : item.score
   }));
