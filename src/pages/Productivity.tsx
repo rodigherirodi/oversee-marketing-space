@@ -173,7 +173,7 @@ const Productivity = () => {
         </div>
         
         <div className="flex-1">
-          <TodaysPriorities data={userProductivity} />
+          <TodaysPriorities />
         </div>
       </div>
 
@@ -237,13 +237,13 @@ const Productivity = () => {
             <CardTitle>Evolução Mensal</CardTitle>
           </CardHeader>
           <CardContent>
-            <MonthlyEvolutionChart data={userProductivity.monthlyEvolution} />
+            <MonthlyEvolutionChart />
           </CardContent>
         </Card>
 
         <div className="space-y-4">
-          <CompactOverdueTasks data={userProductivity} />
-          <EngagementMetrics data={engagementMetrics} />
+          <CompactOverdueTasks />
+          <EngagementMetrics />
         </div>
       </div>
 

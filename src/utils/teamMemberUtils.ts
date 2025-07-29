@@ -38,5 +38,7 @@ export const transformTeamMemberData = (member: any): TeamMember => {
     skills: [], // Valor padrão
     goals: [], // Valor padrão
     createdAt: member.created_at,
+    supervisor: 'Não informado', // Valor padrão
+    salary: undefined, // Campo opcional
   };
 };

@@ -6,8 +6,8 @@ import { useAuth } from '@/contexts/AuthContext';
 export const useCurrentUser = () => {
   const { user } = useAuth();
 
-  const { data: currentUserProfile, isLoading } = useQuery({
-    queryKey: ['current-user-profile', user?.id],
+  const { data: currentUser, isLoading } = useQuery({
+    queryKey: ['current-user', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
       
@@ -18,7 +18,7 @@ export const useCurrentUser = () => {
         .single();
 
       if (error) {
-        console.error('Error fetching current user profile:', error);
+        console.error('Error fetching current user:', error);
         return null;
       }
       
@@ -28,7 +28,7 @@ export const useCurrentUser = () => {
   });
 
   return {
-    currentUserProfile,
+    currentUser,
     isLoading,
   };
 };

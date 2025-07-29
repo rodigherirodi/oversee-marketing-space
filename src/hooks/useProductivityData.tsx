@@ -41,6 +41,7 @@ interface Goal {
   current_value: number;
   target_value: number;
   deadline: string;
+  target_date?: string;
 }
 
 interface Skill {
@@ -78,7 +79,7 @@ export const useProductivityData = () => {
     enabled: !!user?.id,
   });
 
-  const { data: achievements, isLoading: achievementsLoading } = useQuery({
+  const { data: achievements = [], isLoading: achievementsLoading } = useQuery({
     queryKey: ['achievements', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
@@ -99,7 +100,7 @@ export const useProductivityData = () => {
     enabled: !!user?.id,
   });
 
-  const { data: pointsHistory, isLoading: pointsLoading } = useQuery({
+  const { data: pointsHistory = [], isLoading: pointsLoading } = useQuery({
     queryKey: ['points-history', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
@@ -120,7 +121,7 @@ export const useProductivityData = () => {
     enabled: !!user?.id,
   });
 
-  const { data: goals, isLoading: goalsLoading } = useQuery({
+  const { data: goals = [], isLoading: goalsLoading } = useQuery({
     queryKey: ['goals', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
@@ -140,7 +141,7 @@ export const useProductivityData = () => {
     enabled: !!user?.id,
   });
 
-  const { data: skills, isLoading: skillsLoading } = useQuery({
+  const { data: skills = [], isLoading: skillsLoading } = useQuery({
     queryKey: ['skills', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
@@ -160,7 +161,7 @@ export const useProductivityData = () => {
     enabled: !!user?.id,
   });
 
-  const { data: badges, isLoading: badgesLoading } = useQuery({
+  const { data: badges = [], isLoading: badgesLoading } = useQuery({
     queryKey: ['badges', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
@@ -181,7 +182,7 @@ export const useProductivityData = () => {
   });
 
   return {
-    productivity,
+    productivityData: productivity,
     achievements,
     pointsHistory,
     goals,

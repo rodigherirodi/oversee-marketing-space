@@ -37,8 +37,8 @@ export const useTeamMembers = () => {
     mutationFn: async (newMember: Partial<TeamMember>) => {
       // Mapear campos para o formato do banco
       const profileData = {
-        name: newMember.name,
-        email: newMember.email,
+        name: newMember.name!,
+        email: newMember.email!,
         phone: newMember.phone,
         position: newMember.position,
         department: newMember.department as "operacao" | "academy" | "cultura" | "comercial" | "gestao",
@@ -59,7 +59,7 @@ export const useTeamMembers = () => {
 
       const { data, error } = await supabase
         .from('profiles')
-        .insert([profileData])
+        .insert(profileData)
         .select()
         .single();
 

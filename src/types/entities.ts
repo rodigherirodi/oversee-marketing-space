@@ -149,6 +149,8 @@ export interface TeamMember {
   skills?: string[];
   goals?: string[];
   createdAt?: string;
+  supervisor?: string;
+  salary?: number;
 }
 
 export interface DashboardMetrics {
