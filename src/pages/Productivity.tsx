@@ -41,7 +41,7 @@ const Productivity = () => {
     },
     department: currentUserProfile?.department || 'operacao',
     level: currentUserProfile?.level || 1,
-    badges: currentUserProfile?.badges || ['🌟', '🚀'],
+    badges: ['🌟', '🚀'], // Default badges since they don't exist in the profile
     borderPattern: 'solid',
     borderColor: currentUserProfile?.border_color || '#3b82f6',
     hireDate: currentUserProfile?.hire_date || '2024-01-01',

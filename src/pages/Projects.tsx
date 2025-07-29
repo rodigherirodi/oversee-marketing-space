@@ -19,7 +19,6 @@ const Projects = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
-  const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -52,7 +51,6 @@ const Projects = () => {
 
   const handleProjectAdded = (project: any) => {
     addProject(project);
-    setIsProjectFormOpen(false);
   };
 
   return (
@@ -66,10 +64,12 @@ const Projects = () => {
           </p>
         </div>
         
-        <Button onClick={() => setIsProjectFormOpen(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Projeto
-        </Button>
+        <ProjectFormDialog onProjectAdded={handleProjectAdded}>
+          <Button>
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Projeto
+          </Button>
+        </ProjectFormDialog>
       </div>
 
       {/* Filters */}
@@ -191,19 +191,14 @@ const Projects = () => {
           <p className="text-muted-foreground mb-4">
             Crie seu primeiro projeto para começar
           </p>
-          <Button onClick={() => setIsProjectFormOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Criar Projeto
-          </Button>
+          <ProjectFormDialog onProjectAdded={handleProjectAdded}>
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              Criar Projeto
+            </Button>
+          </ProjectFormDialog>
         </div>
       )}
-
-      {/* Project Form Dialog */}
-      <ProjectFormDialog
-        open={isProjectFormOpen}
-        onOpenChange={setIsProjectFormOpen}
-        onProjectAdded={handleProjectAdded}
-      />
     </div>
   );
 };

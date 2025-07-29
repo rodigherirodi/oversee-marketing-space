@@ -149,7 +149,7 @@ const Tasks = () => {
 
       {/* Task Modal */}
       <TaskModal
-        selectedTask={selectedTask}
+        task={selectedTask}
         isOpen={isTaskModalOpen}
         onClose={() => {
           setIsTaskModalOpen(false);
