@@ -2,28 +2,10 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import type { Database } from '@/integrations/supabase/types';
 
-interface Profile {
-  id: string;
-  name: string;
-  email: string;
-  position?: string;
-  avatar?: string;
-  phone?: string;
-  birth_date?: string;
-  address?: string;
-  hire_date?: string;
-  department: string;
-  status: string;
-  level: number;
-  points: number;
-  task_completion_rate: number;
-  hours_worked_week: number;
-  active_projects_count: number;
-  completed_projects_count: number;
-  border_color: string;
-  border_pattern: string;
-}
+type Profile = Database['public']['Tables']['profiles']['Row'];
+type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
 
 export const useProfile = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -59,7 +41,7 @@ export const useProfile = () => {
     }
   };
 
-  const updateProfile = async (updates: Partial<Profile>) => {
+  const updateProfile = async (updates: ProfileUpdate) => {
     try {
       const { error } = await supabase
         .from('profiles')
