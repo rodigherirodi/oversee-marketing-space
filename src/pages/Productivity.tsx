@@ -6,29 +6,19 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, Target, Trophy, Users, TrendingUp } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useProductivityData } from '@/hooks/useProductivityData';
+import { useUserTasks } from '@/hooks/useUserTasks';
 import TodaysPriorities from '@/components/TodaysPriorities';
 import CompactOverdueTasks from '@/components/CompactOverdueTasks';
 import MonthlyEvolutionChart from '@/components/MonthlyEvolutionChart';
 import EngagementMetrics from '@/components/EngagementMetrics';
-import { useTaskContext } from '@/contexts/TaskContext';
 import { UserProductivity } from '@/types/newEntities';
 
 const Productivity = () => {
   const { currentUserProfile, isLoading: userLoading } = useCurrentUser();
   const { productivity, achievements, pointsHistory, goals, isLoading: productivityLoading } = useProductivityData();
-  const { tasks } = useTaskContext();
-
-  // Get today's tasks
-  const today = new Date().toISOString().split('T')[0];
-  const todayTasks = tasks.filter(task => 
-    task.dueDate && task.dueDate.startsWith(today)
-  );
-
-  // Get overdue tasks
-  const overdueTasks = tasks.filter(task => {
-    if (!task.dueDate) return false;
-    return new Date(task.dueDate) < new Date() && task.status !== 'completed';
-  });
+  
+  // Use the useUserTasks hook to get task data
+  const { overdueTasks, todayTasks } = useUserTasks(currentUserProfile?.name || 'Usuário Atual');
 
   // Transform currentUserProfile to UserProductivity format
   const mockUserProductivity: UserProductivity = {

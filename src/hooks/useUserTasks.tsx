@@ -1,9 +1,20 @@
 
 import { useTaskContext } from '@/contexts/TaskContext';
 import { Task } from '@/types/entities';
+import { mockTasks } from '@/data/mockData';
 
 export const useUserTasks = (userName: string) => {
-  const { tasks } = useTaskContext();
+  let tasks: Task[] = [];
+  
+  try {
+    // Try to use TaskContext if available
+    const { tasks: contextTasks } = useTaskContext();
+    tasks = contextTasks;
+  } catch (error) {
+    // If TaskContext is not available, use mock data
+    console.log('TaskContext not available, using mock data');
+    tasks = mockTasks;
+  }
   
   const userTasks = tasks.filter(task => task.assignee === userName);
   
@@ -11,6 +22,7 @@ export const useUserTasks = (userName: string) => {
   const todayStr = today.toISOString().split('T')[0];
   
   const overdueTasks = userTasks.filter(task => {
+    if (!task.dueDate) return false;
     const dueDate = new Date(task.dueDate);
     return dueDate < today && task.status !== 'completed';
   });
