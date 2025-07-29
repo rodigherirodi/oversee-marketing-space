@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
@@ -58,7 +59,7 @@ const workspaces: Workspace[] = [
     icon: Factory,
     color: 'bg-blue-100 text-blue-700',
     pages: [
-      { name: 'Produtividade', path: '/', icon: Target },
+      { name: 'Produtividade', path: '/productivity', icon: Target },
       { name: 'Tarefas', path: '/tasks', icon: CheckSquare },
       { name: 'Projetos', path: '/projects', icon: FolderOpen },
       { name: 'Clientes', path: '/clients', icon: Users },
@@ -124,7 +125,7 @@ const workspaces: Workspace[] = [
 
 // Mapeamento de workspaces para páginas padrão
 const defaultPages = {
-  'operacao': '/',
+  'operacao': '/productivity',
   'academy': '/trilhas',
   'cultura': '/cultura/agenda',
   'comercial': '/comercial/crm',
@@ -161,6 +162,12 @@ export const WorkspaceProvider: React.FC<WorkspaceProviderProps> = ({ children }
   useEffect(() => {
     const currentPath = location.pathname;
     
+    // Mapear rota raiz para produtividade
+    if (currentPath === '/') {
+      navigate('/productivity');
+      return;
+    }
+    
     // Encontrar o workspace baseado na rota atual
     for (const workspace of workspaces) {
       const isWorkspacePage = workspace.pages.some(page => page.path === currentPath);
@@ -169,7 +176,7 @@ export const WorkspaceProvider: React.FC<WorkspaceProviderProps> = ({ children }
         return;
       }
     }
-  }, [location.pathname]);
+  }, [location.pathname, navigate]);
 
   // Função para trocar workspace e navegar para página padrão
   const handleWorkspaceChange = (workspace: Workspace) => {

@@ -1,9 +1,16 @@
 
-import React from 'react';
-import Productivity from './Productivity';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
-  return <Productivity />;
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Redirect to productivity page
+    navigate('/productivity');
+  }, [navigate]);
+
+  return null;
 };
 
 export default Index;
