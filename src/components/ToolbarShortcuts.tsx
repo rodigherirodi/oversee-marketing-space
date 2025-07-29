@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   Mail, 
@@ -5,9 +6,7 @@ import {
   MessageCircle, 
   FileText, 
   Clock, 
-  User,
-  Bell,
-  ChevronDown
+  Bell
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -16,13 +15,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import UserProfile from './UserProfile';
 
 const ToolbarShortcuts = () => {
   const [notifications, setNotifications] = useState(3);
@@ -103,31 +96,8 @@ const ToolbarShortcuts = () => {
         </TooltipContent>
       </Tooltip>
 
-      {/* Profile Dropdown */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="flex items-center gap-2 h-8">
-            <div className="h-6 w-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-medium">
-              U
-            </div>
-            <span className="hidden sm:inline text-sm">Usuário</span>
-            <ChevronDown className="h-3 w-3" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuItem>
-            <User className="h-4 w-4 mr-2" />
-            Meu Perfil
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            Configurações
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem>
-            Sair
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {/* User Profile */}
+      <UserProfile />
     </div>
   );
 };

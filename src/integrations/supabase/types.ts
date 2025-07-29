@@ -14,16 +14,298 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      departments: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          manager_id: string | null
+          name: string
+          type: Database["public"]["Enums"]["department_type"]
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          manager_id?: string | null
+          name: string
+          type: Database["public"]["Enums"]["department_type"]
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          manager_id?: string | null
+          name?: string
+          type?: Database["public"]["Enums"]["department_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "departments_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          active_projects_count: number | null
+          address: string | null
+          avatar: string | null
+          birth_date: string | null
+          border_color: string | null
+          border_pattern: string | null
+          completed_projects_count: number | null
+          created_at: string
+          department: Database["public"]["Enums"]["department_type"]
+          email: string
+          hire_date: string | null
+          hours_worked_week: number | null
+          id: string
+          level: number | null
+          name: string
+          phone: string | null
+          points: number | null
+          position: string | null
+          status: string | null
+          task_completion_rate: number | null
+          updated_at: string
+        }
+        Insert: {
+          active_projects_count?: number | null
+          address?: string | null
+          avatar?: string | null
+          birth_date?: string | null
+          border_color?: string | null
+          border_pattern?: string | null
+          completed_projects_count?: number | null
+          created_at?: string
+          department?: Database["public"]["Enums"]["department_type"]
+          email: string
+          hire_date?: string | null
+          hours_worked_week?: number | null
+          id: string
+          level?: number | null
+          name: string
+          phone?: string | null
+          points?: number | null
+          position?: string | null
+          status?: string | null
+          task_completion_rate?: number | null
+          updated_at?: string
+        }
+        Update: {
+          active_projects_count?: number | null
+          address?: string | null
+          avatar?: string | null
+          birth_date?: string | null
+          border_color?: string | null
+          border_pattern?: string | null
+          completed_projects_count?: number | null
+          created_at?: string
+          department?: Database["public"]["Enums"]["department_type"]
+          email?: string
+          hire_date?: string | null
+          hours_worked_week?: number | null
+          id?: string
+          level?: number | null
+          name?: string
+          phone?: string | null
+          points?: number | null
+          position?: string | null
+          status?: string | null
+          task_completion_rate?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_badges: {
+        Row: {
+          badge: string
+          earned_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge: string
+          earned_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge?: string
+          earned_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_badges_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_goals: {
+        Row: {
+          completed: boolean | null
+          created_at: string
+          goal: string
+          id: string
+          target_date: string | null
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean | null
+          created_at?: string
+          goal: string
+          id?: string
+          target_date?: string | null
+          user_id: string
+        }
+        Update: {
+          completed?: boolean | null
+          created_at?: string
+          goal?: string
+          id?: string
+          target_date?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_goals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_skills: {
+        Row: {
+          created_at: string
+          id: string
+          level: number | null
+          skill: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          level?: number | null
+          skill: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          level?: number | null
+          skill?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_skills_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_permissions: {
+        Row: {
+          can_access: boolean | null
+          can_admin: boolean | null
+          created_at: string
+          id: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          can_access?: boolean | null
+          can_admin?: boolean | null
+          created_at?: string
+          id?: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          can_access?: boolean | null
+          can_admin?: boolean | null
+          created_at?: string
+          id?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_permissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "manager" | "team_lead" | "user"
+      department_type:
+        | "operacao"
+        | "academy"
+        | "cultura"
+        | "comercial"
+        | "gestao"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +432,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "manager", "team_lead", "user"],
+      department_type: [
+        "operacao",
+        "academy",
+        "cultura",
+        "comercial",
+        "gestao",
+      ],
+    },
   },
 } as const
