@@ -1,47 +1,51 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
-import { Auth } from '@/pages/Auth';
-import { Index } from '@/pages/Index';
-import { Tasks } from '@/pages/Tasks';
-import { Projects } from '@/pages/Projects';
-import { ProjectDetail } from '@/pages/ProjectDetail';
-import { Team } from '@/pages/Team';
-import { Clients } from '@/pages/Clients';
-import { ClientProfile } from '@/pages/ClientProfile';
-import { Trilhas } from '@/pages/Trilhas';
-import { TrilhaDetail } from '@/pages/TrilhaDetail';
-import { Cursos } from '@/pages/Cursos';
-import { Briefings } from '@/pages/Briefings';
-import { Guias } from '@/pages/Guias';
-import { Cases } from '@/pages/Cases';
-import { CRM } from '@/pages/CRM';
-import { LeadDetail } from '@/pages/LeadDetail';
-import { Activities } from '@/pages/Activities';
-import { Money } from '@/pages/Money';
-import { Playbooks } from '@/pages/Playbooks';
-import { Agenda } from '@/pages/Agenda';
-import { Onboarding } from '@/pages/Onboarding';
-import { Gerenciamento } from '@/pages/Gerenciamento';
-import { Admin } from '@/pages/Admin';
-import { Chat } from '@/pages/Chat';
-import { Access } from '@/pages/Access';
+import Auth from '@/pages/Auth';
+import Index from '@/pages/Index';
+import Tasks from '@/pages/Tasks';
+import Projects from '@/pages/Projects';
+import ProjectDetail from '@/pages/ProjectDetail';
+import Team from '@/pages/Team';
+import Clients from '@/pages/Clients';
+import ClientProfile from '@/pages/ClientProfile';
+import Trilhas from '@/pages/Trilhas';
+import TrilhaDetail from '@/pages/TrilhaDetail';
+import Cursos from '@/pages/Cursos';
+import Briefings from '@/pages/Briefings';
+import Guias from '@/pages/Guias';
+import Cases from '@/pages/Cases';
+import { CRM } from '@/pages/comercial/CRM';
+import { LeadDetail } from '@/pages/comercial/LeadDetail';
+import { Activities } from '@/pages/comercial/Activities';
+import { Money } from '@/pages/comercial/Money';
+import { Playbooks } from '@/pages/comercial/Playbooks';
+import { Agenda } from '@/pages/cultura/Agenda';
+import { Onboarding } from '@/pages/cultura/Onboarding';
+import { Gerenciamento } from '@/pages/gestao/Gerenciamento';
+import { Admin } from '@/pages/gestao/Admin';
+import Chat from '@/pages/Chat';
+import Access from '@/pages/Access';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { AuthenticatedLayout } from '@/layouts/AuthenticatedLayout';
-import { NotFound } from '@/pages/NotFound';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import AuthenticatedLayout from '@/components/AuthenticatedLayout';
+import NotFound from '@/pages/NotFound';
 import { TaskProvider } from '@/contexts/TaskContext';
 import { TrilhasProvider } from '@/contexts/TrilhasContext';
 import { ChatProvider } from '@/contexts/ChatContext';
 import { WorkspaceProvider } from '@/contexts/WorkspaceContext';
-import { QueryClient } from '@tanstack/react-query';
-import { AnalyticalDashboard } from './pages/AnalyticalDashboard';
-import { Productivity } from './pages/Productivity';
+import AnalyticalDashboard from './pages/AnalyticalDashboard';
+import Productivity from './pages/Productivity';
 import TeamMemberProfile from './pages/TeamMemberProfile';
+
+// Create a client
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <QueryClient>
+    <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
           <WorkspaceProvider>
@@ -118,7 +122,7 @@ function App() {
           </WorkspaceProvider>
         </AuthProvider>
       </BrowserRouter>
-    </QueryClient>
+    </QueryClientProvider>
   );
 }
 
