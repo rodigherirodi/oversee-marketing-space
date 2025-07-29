@@ -1,12 +1,12 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Plus, Users, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import TeamMemberCard from '@/components/TeamMemberCard';
-import TeamMemberDialog from '@/components/TeamMemberDialog';
 import TeamMemberForm from '@/components/TeamMemberForm';
 import { useTeamMembers } from '@/hooks/useTeamMembers';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,11 +15,10 @@ import { transformTeamMemberData } from '@/utils/teamMemberUtils';
 const Team = () => {
   const { teamMembers, searchMembers, isLoading } = useTeamMembers();
   const { isAdmin } = useAuth();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [selectedMember, setSelectedMember] = useState<any>(null);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isCreateFormOpen, setIsCreateFormOpen] = useState(false);
 
   // Get filtered members
@@ -43,8 +42,7 @@ const Team = () => {
   const departments = Array.from(new Set(teamMembers.map(member => member.department).filter(Boolean)));
 
   const handleMemberClick = (member: any) => {
-    setSelectedMember(member);
-    setIsProfileOpen(true);
+    navigate(`/team/${member.id}`);
   };
 
   const handleNewMember = () => {
@@ -156,15 +154,6 @@ const Team = () => {
               </Button>
             )}
           </div>
-        )}
-
-        {/* Team Member Profile Dialog */}
-        {selectedMember && (
-          <TeamMemberDialog
-            member={transformTeamMemberData(selectedMember)}
-            open={isProfileOpen}
-            onOpenChange={setIsProfileOpen}
-          />
         )}
 
         {/* Team Member Creation Form */}

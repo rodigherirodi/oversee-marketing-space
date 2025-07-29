@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Building, User, DollarSign, Award, Edit2, Save, X } from 'lucide-react';
+import { Building, User, Calendar, Award, Edit2, Save, X } from 'lucide-react';
 import { useTeamMembers } from '@/hooks/useTeamMembers';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -31,8 +31,12 @@ const ProfessionalInfoTab: React.FC<ProfessionalInfoTabProps> = ({ member }) => 
   const canEdit = isAdmin || user?.id === member.id;
 
   const handleSave = async () => {
-    await updateTeamMember(member.id, editData);
-    setIsEditing(false);
+    try {
+      await updateTeamMember(member.id, editData);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error saving profile:', error);
+    }
   };
 
   const handleCancel = () => {
@@ -79,7 +83,7 @@ const ProfessionalInfoTab: React.FC<ProfessionalInfoTabProps> = ({ member }) => 
             <div className="flex items-center gap-3">
               <Building className="w-5 h-5 text-muted-foreground" />
               <div className="flex-1">
-                <p className="font-medium">Cargo Atual</p>
+                <Label className="font-medium">Cargo Atual</Label>
                 {isEditing ? (
                   <Input
                     value={editData.position}
@@ -88,7 +92,7 @@ const ProfessionalInfoTab: React.FC<ProfessionalInfoTabProps> = ({ member }) => 
                     className="mt-1"
                   />
                 ) : (
-                  <p className="text-sm text-muted-foreground">{member.position || 'Não informado'}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{member.position || 'Não informado'}</p>
                 )}
               </div>
             </div>
@@ -96,7 +100,7 @@ const ProfessionalInfoTab: React.FC<ProfessionalInfoTabProps> = ({ member }) => 
             <div className="flex items-center gap-3">
               <Building className="w-5 h-5 text-muted-foreground" />
               <div className="flex-1">
-                <p className="font-medium">Departamento</p>
+                <Label className="font-medium">Departamento</Label>
                 {isEditing ? (
                   <Select 
                     value={editData.department} 
@@ -114,7 +118,7 @@ const ProfessionalInfoTab: React.FC<ProfessionalInfoTabProps> = ({ member }) => 
                     </SelectContent>
                   </Select>
                 ) : (
-                  <p className="text-sm text-muted-foreground">{member.department}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{member.department}</p>
                 )}
               </div>
             </div>
@@ -122,7 +126,7 @@ const ProfessionalInfoTab: React.FC<ProfessionalInfoTabProps> = ({ member }) => 
             <div className="flex items-center gap-3">
               <User className="w-5 h-5 text-muted-foreground" />
               <div className="flex-1">
-                <p className="font-medium">Status</p>
+                <Label className="font-medium">Status</Label>
                 {isEditing ? (
                   <Select 
                     value={editData.status} 
@@ -138,10 +142,12 @@ const ProfessionalInfoTab: React.FC<ProfessionalInfoTabProps> = ({ member }) => 
                     </SelectContent>
                   </Select>
                 ) : (
-                  <Badge variant={member.status === 'active' ? 'default' : 'secondary'}>
-                    {member.status === 'active' ? 'Ativo' : 
-                     member.status === 'vacation' ? 'Férias' : 'Inativo'}
-                  </Badge>
+                  <div className="mt-1">
+                    <Badge variant={member.status === 'active' ? 'default' : 'secondary'}>
+                      {member.status === 'active' ? 'Ativo' : 
+                       member.status === 'vacation' ? 'Férias' : 'Inativo'}
+                    </Badge>
+                  </div>
                 )}
               </div>
             </div>
@@ -154,9 +160,9 @@ const ProfessionalInfoTab: React.FC<ProfessionalInfoTabProps> = ({ member }) => 
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-3">
-              <User className="w-5 h-5 text-muted-foreground" />
+              <Calendar className="w-5 h-5 text-muted-foreground" />
               <div className="flex-1">
-                <p className="font-medium">Data de Contratação</p>
+                <Label className="font-medium">Data de Contratação</Label>
                 {isEditing ? (
                   <Input
                     type="date"
@@ -165,7 +171,7 @@ const ProfessionalInfoTab: React.FC<ProfessionalInfoTabProps> = ({ member }) => 
                     className="mt-1"
                   />
                 ) : (
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground mt-1">
                     {member.hire_date ? new Date(member.hire_date).toLocaleDateString('pt-BR') : 'Não informado'}
                   </p>
                 )}
@@ -175,7 +181,7 @@ const ProfessionalInfoTab: React.FC<ProfessionalInfoTabProps> = ({ member }) => 
             <div className="flex items-center gap-3">
               <Award className="w-5 h-5 text-muted-foreground" />
               <div className="flex-1">
-                <p className="font-medium">Nível</p>
+                <Label className="font-medium">Nível</Label>
                 {isEditing ? (
                   <Input
                     type="number"
@@ -186,7 +192,7 @@ const ProfessionalInfoTab: React.FC<ProfessionalInfoTabProps> = ({ member }) => 
                     className="mt-1"
                   />
                 ) : (
-                  <p className="text-sm text-muted-foreground">Nível {member.level}</p>
+                  <p className="text-sm text-muted-foreground mt-1">Nível {member.level}</p>
                 )}
               </div>
             </div>

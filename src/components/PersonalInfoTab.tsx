@@ -8,9 +8,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Mail, Phone, MapPin, Calendar, Edit2, Save, X } from 'lucide-react';
+import { Mail, Phone, MapPin, Calendar, Edit2, Save, X, Upload, User } from 'lucide-react';
 import { useTeamMembers } from '@/hooks/useTeamMembers';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PersonalInfoTabProps {
   member: TeamMember;
@@ -18,22 +20,32 @@ interface PersonalInfoTabProps {
 
 const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({ member }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [editData, setEditData] = useState({
     name: member.name,
     email: member.email,
     phone: member.phone || '',
     address: member.address || '',
     birth_date: member.birth_date || '',
+    emergency_contact_name: member.emergency_contact_name || '',
+    emergency_contact_phone: member.emergency_contact_phone || '',
+    emergency_contact_relationship: member.emergency_contact_relationship || '',
+    avatar: member.avatar || '',
   });
 
   const { updateTeamMember } = useTeamMembers();
   const { user, isAdmin } = useAuth();
+  const { toast } = useToast();
 
   const canEdit = isAdmin || user?.id === member.id;
 
   const handleSave = async () => {
-    await updateTeamMember(member.id, editData);
-    setIsEditing(false);
+    try {
+      await updateTeamMember(member.id, editData);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error saving profile:', error);
+    }
   };
 
   const handleCancel = () => {
@@ -43,19 +55,112 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({ member }) => {
       phone: member.phone || '',
       address: member.address || '',
       birth_date: member.birth_date || '',
+      emergency_contact_name: member.emergency_contact_name || '',
+      emergency_contact_phone: member.emergency_contact_phone || '',
+      emergency_contact_relationship: member.emergency_contact_relationship || '',
+      avatar: member.avatar || '',
     });
     setIsEditing(false);
+  };
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    if (!validTypes.includes(file.type)) {
+      toast({
+        title: "Tipo de arquivo inválido",
+        description: "Por favor, selecione um arquivo de imagem válido (JPG, PNG, GIF)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Arquivo muito grande",
+        description: "O arquivo deve ter no máximo 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${member.id}/${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      const avatarUrl = data.publicUrl;
+      
+      // Update avatar in database
+      await updateTeamMember(member.id, { avatar: avatarUrl });
+      
+      setEditData(prev => ({ ...prev, avatar: avatarUrl }));
+      
+      toast({
+        title: "Avatar atualizado",
+        description: "Sua foto de perfil foi atualizada com sucesso.",
+      });
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      toast({
+        title: "Erro no upload",
+        description: "Não foi possível fazer upload da imagem.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-6">
-        <Avatar className="w-24 h-24">
-          <AvatarImage src={member.avatar} alt={member.name} />
-          <AvatarFallback className="text-2xl">
-            {member.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-          </AvatarFallback>
-        </Avatar>
+        <div className="relative">
+          <Avatar className="w-24 h-24">
+            <AvatarImage src={editData.avatar || member.avatar} alt={member.name} />
+            <AvatarFallback className="text-2xl">
+              {member.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+            </AvatarFallback>
+          </Avatar>
+          
+          {canEdit && (
+            <div className="absolute -bottom-2 -right-2">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarUpload}
+                className="hidden"
+                id="avatar-upload"
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                className="rounded-full w-8 h-8 p-0"
+                onClick={() => document.getElementById('avatar-upload')?.click()}
+                disabled={isUploading}
+              >
+                <Upload className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
+        </div>
         
         <div className="flex-1">
           {isEditing ? (
@@ -82,7 +187,7 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({ member }) => {
           <div className="flex gap-2">
             {isEditing ? (
               <>
-                <Button size="sm" onClick={handleSave}>
+                <Button size="sm" onClick={handleSave} disabled={isUploading}>
                   <Save className="w-4 h-4 mr-1" />
                   Salvar
                 </Button>
@@ -195,6 +300,66 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({ member }) => {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Contato de Emergência</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="emergency_name" className="text-sm font-medium">Nome</Label>
+              {isEditing ? (
+                <Input
+                  id="emergency_name"
+                  value={editData.emergency_contact_name}
+                  onChange={(e) => setEditData(prev => ({ ...prev, emergency_contact_name: e.target.value }))}
+                  placeholder="Nome completo"
+                  className="mt-1"
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground mt-1">
+                  {member.emergency_contact_name || 'Não informado'}
+                </p>
+              )}
+            </div>
+            
+            <div>
+              <Label htmlFor="emergency_phone" className="text-sm font-medium">Telefone</Label>
+              {isEditing ? (
+                <Input
+                  id="emergency_phone"
+                  value={editData.emergency_contact_phone}
+                  onChange={(e) => setEditData(prev => ({ ...prev, emergency_contact_phone: e.target.value }))}
+                  placeholder="(11) 99999-9999"
+                  className="mt-1"
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground mt-1">
+                  {member.emergency_contact_phone || 'Não informado'}
+                </p>
+              )}
+            </div>
+            
+            <div>
+              <Label htmlFor="emergency_relationship" className="text-sm font-medium">Parentesco</Label>
+              {isEditing ? (
+                <Input
+                  id="emergency_relationship"
+                  value={editData.emergency_contact_relationship}
+                  onChange={(e) => setEditData(prev => ({ ...prev, emergency_contact_relationship: e.target.value }))}
+                  placeholder="Ex: Mãe, Esposo(a)"
+                  className="mt-1"
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground mt-1">
+                  {member.emergency_contact_relationship || 'Não informado'}
+                </p>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

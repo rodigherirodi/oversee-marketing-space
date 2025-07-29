@@ -133,6 +133,9 @@ export interface TeamMember {
   hours_worked_week: number;
   border_pattern?: string;
   border_color?: string;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
+  emergency_contact_relationship?: string;
   created_at: string;
   updated_at?: string;
   

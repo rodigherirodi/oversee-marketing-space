@@ -54,6 +54,9 @@ export const useProfile = () => {
           border_pattern: 'solid',
           border_color: '#3B82F6',
           avatar: null,
+          emergency_contact_name: null,
+          emergency_contact_phone: null,
+          emergency_contact_relationship: null,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         });
@@ -64,6 +67,30 @@ export const useProfile = () => {
       console.error('Error fetching profile:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const uploadAvatar = async (file: File) => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user?.id}/${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      throw error;
     }
   };
 
@@ -110,6 +137,7 @@ export const useProfile = () => {
     profile,
     loading,
     updateProfile,
+    uploadAvatar,
     refetch: fetchProfile,
   };
 };

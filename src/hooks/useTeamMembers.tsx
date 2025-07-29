@@ -65,6 +65,9 @@ export const useTeamMembers = () => {
           border_pattern: newMember.borderPattern || newMember.border_pattern || 'solid',
           border_color: newMember.borderColor || newMember.border_color || '#3B82F6',
           avatar: newMember.avatar || '/placeholder.svg',
+          emergency_contact_name: newMember.emergency_contact_name || '',
+          emergency_contact_phone: newMember.emergency_contact_phone || '',
+          emergency_contact_relationship: newMember.emergency_contact_relationship || '',
         })
         .select()
         .single();
@@ -91,7 +94,7 @@ export const useTeamMembers = () => {
 
   const updateTeamMemberMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<TeamMember> }) => {
-      // Mapear campos para o formato do banco - apenas campos que existem na tabela profiles
+      // Mapear campos para o formato do banco - incluindo novos campos de emergência
       const profileUpdates: any = {};
       
       if (updates.name !== undefined) profileUpdates.name = updates.name;
@@ -120,6 +123,11 @@ export const useTeamMembers = () => {
       if (updates.borderColor !== undefined) profileUpdates.border_color = updates.borderColor;
       if (updates.border_color !== undefined) profileUpdates.border_color = updates.border_color;
       if (updates.avatar !== undefined) profileUpdates.avatar = updates.avatar;
+      
+      // Novos campos de contato de emergência
+      if (updates.emergency_contact_name !== undefined) profileUpdates.emergency_contact_name = updates.emergency_contact_name;
+      if (updates.emergency_contact_phone !== undefined) profileUpdates.emergency_contact_phone = updates.emergency_contact_phone;
+      if (updates.emergency_contact_relationship !== undefined) profileUpdates.emergency_contact_relationship = updates.emergency_contact_relationship;
 
       const { data, error } = await supabase
         .from('profiles')

@@ -61,6 +61,9 @@ export type Database = {
           created_at: string
           department: Database["public"]["Enums"]["department_type"]
           email: string
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          emergency_contact_relationship: string | null
           hire_date: string | null
           hours_worked_week: number | null
           id: string
@@ -84,6 +87,9 @@ export type Database = {
           created_at?: string
           department?: Database["public"]["Enums"]["department_type"]
           email: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
           hire_date?: string | null
           hours_worked_week?: number | null
           id: string
@@ -107,6 +113,9 @@ export type Database = {
           created_at?: string
           department?: Database["public"]["Enums"]["department_type"]
           email?: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
           hire_date?: string | null
           hours_worked_week?: number | null
           id?: string
