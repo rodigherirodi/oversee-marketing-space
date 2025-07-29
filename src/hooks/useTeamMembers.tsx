@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -36,7 +35,7 @@ export const useTeamMembers = () => {
   const addTeamMemberMutation = useMutation({
     mutationFn: async (newMember: Partial<TeamMember>) => {
       // Mapear campos para o formato do banco - apenas campos que existem na tabela profiles
-      const profileData: Omit<any, 'id' | 'created_at' | 'updated_at'> = {
+      const profileData = {
         name: newMember.name!,
         email: newMember.email!,
         phone: newMember.phone || '',
