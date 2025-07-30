@@ -74,19 +74,19 @@ export const TaskWatchersSelector: React.FC<TaskWatchersSelectorProps> = ({
     
     onChange(newWatchers);
 
-    // If we have a taskId, update the database
+    // If we have a taskId, update the database usando query raw
     if (taskId) {
       try {
         if (selectedWatchers.includes(memberId)) {
           // Remove watcher
-          await supabase
+          await (supabase as any)
             .from('task_watchers')
             .delete()
             .eq('task_id', taskId)
             .eq('user_id', memberId);
         } else {
           // Add watcher
-          await supabase
+          await (supabase as any)
             .from('task_watchers')
             .insert([{ task_id: taskId, user_id: memberId }]);
         }

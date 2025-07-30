@@ -32,7 +32,8 @@ export const TaskAttachmentsSection: React.FC<TaskAttachmentsSectionProps> = ({ 
 
   const fetchAttachments = async () => {
     try {
-      const { data, error } = await supabase
+      // Temporariamente usando query raw até types.ts ser atualizado
+      const { data, error } = await (supabase as any)
         .from('task_attachments')
         .select('*')
         .eq('task_id', taskId)
@@ -68,8 +69,8 @@ export const TaskAttachmentsSection: React.FC<TaskAttachmentsSectionProps> = ({ 
         .from('task-attachments')
         .getPublicUrl(fileName);
 
-      // Save to database
-      const { data, error } = await supabase
+      // Save to database usando query raw
+      const { data, error } = await (supabase as any)
         .from('task_attachments')
         .insert([{
           task_id: taskId,
@@ -107,8 +108,8 @@ export const TaskAttachmentsSection: React.FC<TaskAttachmentsSectionProps> = ({ 
 
       if (storageError) throw storageError;
 
-      // Delete from database
-      const { error: dbError } = await supabase
+      // Delete from database usando query raw
+      const { error: dbError } = await (supabase as any)
         .from('task_attachments')
         .delete()
         .eq('id', attachmentId);

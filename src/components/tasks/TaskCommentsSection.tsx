@@ -36,7 +36,8 @@ export const TaskCommentsSection: React.FC<TaskCommentsSectionProps> = ({ taskId
 
   const fetchComments = async () => {
     try {
-      const { data, error } = await supabase
+      // Usando query raw até types.ts ser atualizado
+      const { data, error } = await (supabase as any)
         .from('task_comments')
         .select(`
           id, content, author_id, created_at,
@@ -62,7 +63,7 @@ export const TaskCommentsSection: React.FC<TaskCommentsSectionProps> = ({ taskId
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('task_comments')
         .insert([{
           task_id: taskId,
