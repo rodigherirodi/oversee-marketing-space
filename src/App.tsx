@@ -51,74 +51,72 @@ function App() {
           <WorkspaceProvider>
             <TrilhasProvider>
               <ChatProvider>
-                <div className="min-h-screen bg-background">
-                  <Toaster />
-                  <Routes>
-                    {/* Public routes */}
-                    <Route path="/auth" element={<Auth />} />
-                    <Route path="/404" element={<NotFound />} />
+                <TaskProvider>
+                  <div className="min-h-screen bg-background">
+                    <Toaster />
+                    <Routes>
+                      {/* Public routes */}
+                      <Route path="/auth" element={<Auth />} />
+                      <Route path="/404" element={<NotFound />} />
 
-                    {/* Protected routes */}
-                    <Route path="/*" element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
-                      <Route path="*" element={
-                        <TaskProvider>
-                          <AuthenticatedLayout><Outlet /></AuthenticatedLayout>
-                        </TaskProvider>
-                      }>
-                        <Route path="" element={<Index />} />
-                        <Route path="dashboard" element={<AnalyticalDashboard />} />
-                        <Route path="productivity" element={<Productivity />} />
-                        
-                        {/* Tasks routes */}
-                        <Route path="tasks" element={<Tasks />} />
-                        
-                        {/* Projects routes */}
-                        <Route path="projects" element={<Projects />} />
-                        <Route path="projects/:id" element={<ProjectDetail />} />
-                        
-                        {/* Team routes */}
-                        <Route path="team" element={<Team />} />
-                        <Route path="team/:id" element={<TeamMemberProfile />} />
-                        
-                        {/* Client routes */}
-                        <Route path="clients" element={<Clients />} />
-                        <Route path="clients/:id" element={<ClientProfile />} />
-                        
-                        {/* Trilhas routes */}
-                        <Route path="trilhas" element={<Trilhas />} />
-                        <Route path="trilhas/:id" element={<TrilhaDetail />} />
-                        
-                        {/* Learning routes */}
-                        <Route path="cursos" element={<Cursos />} />
-                        <Route path="briefings" element={<Briefings />} />
-                        <Route path="guias" element={<Guias />} />
-                        <Route path="cases" element={<Cases />} />
-                        
-                        {/* Commercial routes */}
-                        <Route path="comercial/crm" element={<CRM />} />
-                        <Route path="comercial/crm/:id" element={<LeadDetail />} />
-                        <Route path="comercial/activities" element={<Activities />} />
-                        <Route path="comercial/money" element={<Money />} />
-                        <Route path="comercial/playbooks" element={<Playbooks />} />
-                        
-                        {/* Culture routes */}
-                        <Route path="cultura/agenda" element={<Agenda />} />
-                        <Route path="cultura/onboarding" element={<Onboarding />} />
-                        
-                        {/* Management routes */}
-                        <Route path="gestao/gerenciamento" element={<Gerenciamento />} />
-                        <Route path="gestao/admin" element={<Admin />} />
-                        
-                        {/* Communication routes */}
-                        <Route path="chat" element={<Chat />} />
-                        <Route path="access" element={<Access />} />
+                      {/* Protected routes */}
+                      <Route path="/*" element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
+                        <Route path="*" element={<AuthenticatedLayout><Outlet /></AuthenticatedLayout>}>
+                          <Route path="" element={<Index />} />
+                          <Route path="dashboard" element={<AnalyticalDashboard />} />
+                          <Route path="productivity" element={<Productivity />} />
+                          
+                          {/* Tasks routes */}
+                          <Route path="tasks" element={<Tasks />} />
+                          
+                          {/* Projects routes */}
+                          <Route path="projects" element={<Projects />} />
+                          <Route path="projects/:id" element={<ProjectDetail />} />
+                          
+                          {/* Team routes */}
+                          <Route path="team" element={<Team />} />
+                          <Route path="team/:id" element={<TeamMemberProfile />} />
+                          
+                          {/* Client routes */}
+                          <Route path="clients" element={<Clients />} />
+                          <Route path="clients/:id" element={<ClientProfile />} />
+                          
+                          {/* Trilhas routes */}
+                          <Route path="trilhas" element={<Trilhas />} />
+                          <Route path="trilhas/:id" element={<TrilhaDetail />} />
+                          
+                          {/* Learning routes */}
+                          <Route path="cursos" element={<Cursos />} />
+                          <Route path="briefings" element={<Briefings />} />
+                          <Route path="guias" element={<Guias />} />
+                          <Route path="cases" element={<Cases />} />
+                          
+                          {/* Commercial routes */}
+                          <Route path="comercial/crm" element={<CRM />} />
+                          <Route path="comercial/crm/:id" element={<LeadDetail />} />
+                          <Route path="comercial/activities" element={<Activities />} />
+                          <Route path="comercial/money" element={<Money />} />
+                          <Route path="comercial/playbooks" element={<Playbooks />} />
+                          
+                          {/* Culture routes */}
+                          <Route path="cultura/agenda" element={<Agenda />} />
+                          <Route path="cultura/onboarding" element={<Onboarding />} />
+                          
+                          {/* Management routes */}
+                          <Route path="gestao/gerenciamento" element={<Gerenciamento />} />
+                          <Route path="gestao/admin" element={<Admin />} />
+                          
+                          {/* Communication routes */}
+                          <Route path="chat" element={<Chat />} />
+                          <Route path="access" element={<Access />} />
+                        </Route>
                       </Route>
-                    </Route>
 
-                    {/* Catch all route */}
-                    <Route path="*" element={<Navigate to="/404" replace />} />
-                  </Routes>
-                </div>
+                      {/* Catch all route */}
+                      <Route path="*" element={<Navigate to="/404" replace />} />
+                    </Routes>
+                  </div>
+                </TaskProvider>
               </ChatProvider>
             </TrilhasProvider>
           </WorkspaceProvider>
