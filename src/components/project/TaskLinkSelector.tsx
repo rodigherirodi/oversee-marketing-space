@@ -1,13 +1,13 @@
 
 import React, { useState } from 'react';
-import { Task } from '@/types/entities';
+import { Task as DatabaseTask } from '@/hooks/useTasks';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Search, X } from 'lucide-react';
 
 interface TaskLinkSelectorProps {
-  availableTasks: Task[];
+  availableTasks: DatabaseTask[];
   onSelect: (taskId: string) => void;
   onCancel: () => void;
 }
@@ -17,7 +17,7 @@ const TaskLinkSelector = ({ availableTasks, onSelect, onCancel }: TaskLinkSelect
 
   const filteredTasks = availableTasks.filter(task =>
     task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    task.description.toLowerCase().includes(searchTerm.toLowerCase())
+    (task.description && task.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const getPriorityColor = (priority: string) => {
@@ -88,10 +88,10 @@ const TaskLinkSelector = ({ availableTasks, onSelect, onCancel }: TaskLinkSelect
                       {getPriorityLabel(task.priority)}
                     </Badge>
                     <span className="text-gray-500">
-                      {task.assignee}
+                      {task.assignee?.name || 'Não atribuído'}
                     </span>
                     <span className="text-gray-500">
-                      {new Date(task.dueDate).toLocaleDateString('pt-BR')}
+                      {new Date(task.due_date).toLocaleDateString('pt-BR')}
                     </span>
                   </div>
                 </div>
