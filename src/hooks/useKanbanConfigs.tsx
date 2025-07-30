@@ -28,25 +28,25 @@ export const useKanbanConfigs = () => {
     try {
       // Fetch kanban configs
       const { data: configs, error: configError } = await supabase
-        .from('kanban_configs' as any)
+        .from('kanban_configs')
         .select('*')
         .order('name');
 
       if (configError) throw configError;
 
       const { data: stages, error: stagesError } = await supabase
-        .from('task_stages' as any)
+        .from('task_stages')
         .select('*')
         .order('order_position');
 
       if (stagesError) throw stagesError;
 
-      const configsWithStages: KanbanConfig[] = (configs || []).map((config: any) => ({
+      const configsWithStages: KanbanConfig[] = (configs || []).map((config) => ({
         id: config.id,
         name: config.name,
         department: config.department,
         color: config.color,
-        stages: (stages || []).filter((stage: any) => stage.kanban_config_id === config.id)
+        stages: (stages || []).filter((stage) => stage.kanban_config_id === config.id)
       }));
 
       setKanbanConfigs(configsWithStages);
@@ -68,7 +68,7 @@ export const useKanbanConfigs = () => {
   const addKanbanConfig = async (kanban: Omit<KanbanConfig, 'id' | 'stages'>): Promise<KanbanConfig | undefined> => {
     try {
       const { data, error } = await supabase
-        .from('kanban_configs' as any)
+        .from('kanban_configs')
         .insert([kanban])
         .select()
         .single();
@@ -76,7 +76,10 @@ export const useKanbanConfigs = () => {
       if (error) throw error;
 
       const newKanban: KanbanConfig = {
-        ...data,
+        id: data.id,
+        name: data.name,
+        department: data.department,
+        color: data.color,
         stages: []
       };
 
@@ -93,7 +96,7 @@ export const useKanbanConfigs = () => {
   const updateKanbanConfig = async (id: string, updates: Partial<KanbanConfig>) => {
     try {
       const { error } = await supabase
-        .from('kanban_configs' as any)
+        .from('kanban_configs')
         .update(updates)
         .eq('id', id);
 
@@ -118,7 +121,7 @@ export const useKanbanConfigs = () => {
   const deleteKanbanConfig = async (id: string) => {
     try {
       const { error } = await supabase
-        .from('kanban_configs' as any)
+        .from('kanban_configs')
         .delete()
         .eq('id', id);
 

@@ -17,7 +17,7 @@ export const useTaskTypes = () => {
   const fetchTaskTypes = async () => {
     try {
       const { data, error } = await supabase
-        .from('task_types' as any)
+        .from('task_types')
         .select('*')
         .order('name');
 
@@ -34,14 +34,20 @@ export const useTaskTypes = () => {
   const addTaskType = async (taskType: Omit<TaskType, 'id'>): Promise<TaskType | undefined> => {
     try {
       const { data, error } = await supabase
-        .from('task_types' as any)
+        .from('task_types')
         .insert([taskType])
         .select()
         .single();
 
       if (error) throw error;
 
-      const newTaskType = data as TaskType;
+      const newTaskType: TaskType = {
+        id: data.id,
+        name: data.name,
+        color: data.color,
+        icon: data.icon
+      };
+      
       setTaskTypes(prev => [...prev, newTaskType]);
       toast.success('Tipo de tarefa criado com sucesso');
       return newTaskType;

@@ -71,30 +71,18 @@ export const useTasks = () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('tasks' as any)
-        .select(`
-          *,
-          task_type:task_types(id, name, color, icon),
-          assignee:profiles!tasks_assignee_id_fkey(id, name, email, avatar),
-          watchers:task_watchers(
-            user:profiles(id, name, email, avatar)
-          ),
-          comments:task_comments(
-            id, content, author_id, created_at,
-            author:profiles(name, avatar)
-          ),
-          attachments:task_attachments(*)
-        `)
+        .from('tasks')
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      // Transform the data to match our interface
-      const transformedTasks: Task[] = (data || []).map((task: any) => ({
+      // For now, just use the basic task data without complex joins
+      const transformedTasks: Task[] = (data || []).map((task) => ({
         ...task,
-        watchers: task.watchers?.map((w: any) => w.user) || [],
-        comments: task.comments || [],
-        attachments: task.attachments || []
+        watchers: [],
+        comments: [],
+        attachments: []
       }));
 
       setTasks(transformedTasks);
@@ -114,16 +102,12 @@ export const useTasks = () => {
       if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
-        .from('tasks' as any)
+        .from('tasks')
         .insert([{
           ...taskData,
           created_by: user.id
         }])
-        .select(`
-          *,
-          task_type:task_types(id, name, color, icon),
-          assignee:profiles!tasks_assignee_id_fkey(id, name, email, avatar)
-        `)
+        .select()
         .single();
 
       if (error) throw error;
@@ -148,17 +132,13 @@ export const useTasks = () => {
   const updateTask = async (taskId: string, updates: Partial<Task>): Promise<Task | undefined> => {
     try {
       const { data, error } = await supabase
-        .from('tasks' as any)
+        .from('tasks')
         .update({
           ...updates,
           updated_at: new Date().toISOString()
         })
         .eq('id', taskId)
-        .select(`
-          *,
-          task_type:task_types(id, name, color, icon),
-          assignee:profiles!tasks_assignee_id_fkey(id, name, email, avatar)
-        `)
+        .select()
         .single();
 
       if (error) throw error;
@@ -171,7 +151,7 @@ export const useTasks = () => {
       };
 
       setTasks(prev => prev.map(task => 
-        task.id === taskId ? { ...task, ...transformedTask } : task
+        task.id === taskId ? transformedTask : task
       ));
       toast.success('Tarefa atualizada com sucesso');
       return transformedTask;
@@ -185,7 +165,7 @@ export const useTasks = () => {
   const deleteTask = async (taskId: string) => {
     try {
       const { error } = await supabase
-        .from('tasks' as any)
+        .from('tasks')
         .delete()
         .eq('id', taskId);
 
