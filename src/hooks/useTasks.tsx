@@ -71,7 +71,7 @@ export const useTasks = () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('tasks')
+        .from('tasks' as any)
         .select(`
           *,
           task_type:task_types(id, name, color, icon),
@@ -90,7 +90,7 @@ export const useTasks = () => {
       if (error) throw error;
 
       // Transform the data to match our interface
-      const transformedTasks = (data || []).map((task: any) => ({
+      const transformedTasks: Task[] = (data || []).map((task: any) => ({
         ...task,
         watchers: task.watchers?.map((w: any) => w.user) || [],
         comments: task.comments || [],
@@ -108,13 +108,13 @@ export const useTasks = () => {
     }
   };
 
-  const createTask = async (taskData: Partial<Task>) => {
+  const createTask = async (taskData: Partial<Task>): Promise<Task | undefined> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
-        .from('tasks')
+        .from('tasks' as any)
         .insert([{
           ...taskData,
           created_by: user.id
@@ -128,7 +128,7 @@ export const useTasks = () => {
 
       if (error) throw error;
 
-      const transformedTask = {
+      const transformedTask: Task = {
         ...data,
         watchers: [],
         comments: [],
@@ -145,10 +145,10 @@ export const useTasks = () => {
     }
   };
 
-  const updateTask = async (taskId: string, updates: Partial<Task>) => {
+  const updateTask = async (taskId: string, updates: Partial<Task>): Promise<Task | undefined> => {
     try {
       const { data, error } = await supabase
-        .from('tasks')
+        .from('tasks' as any)
         .update({
           ...updates,
           updated_at: new Date().toISOString()
@@ -163,7 +163,7 @@ export const useTasks = () => {
 
       if (error) throw error;
 
-      const transformedTask = {
+      const transformedTask: Task = {
         ...data,
         watchers: [],
         comments: [],
@@ -185,7 +185,7 @@ export const useTasks = () => {
   const deleteTask = async (taskId: string) => {
     try {
       const { error } = await supabase
-        .from('tasks')
+        .from('tasks' as any)
         .delete()
         .eq('id', taskId);
 

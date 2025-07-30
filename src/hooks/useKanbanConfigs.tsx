@@ -3,20 +3,20 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-export interface KanbanConfig {
-  id: string;
-  name: string;
-  department: string;
-  color: string;
-  stages: TaskStage[];
-}
-
 export interface TaskStage {
   id: string;
   name: string;
   color: string;
   order_position: number;
   kanban_config_id: string;
+}
+
+export interface KanbanConfig {
+  id: string;
+  name: string;
+  department: string;
+  color: string;
+  stages: TaskStage[];
 }
 
 export const useKanbanConfigs = () => {
@@ -26,23 +26,27 @@ export const useKanbanConfigs = () => {
 
   const fetchKanbanConfigs = async () => {
     try {
+      // Fetch kanban configs using raw query since the table isn't in types yet
       const { data: configs, error: configError } = await supabase
-        .from('kanban_configs')
+        .from('kanban_configs' as any)
         .select('*')
         .order('name');
 
       if (configError) throw configError;
 
       const { data: stages, error: stagesError } = await supabase
-        .from('task_stages')
+        .from('task_stages' as any)
         .select('*')
         .order('order_position');
 
       if (stagesError) throw stagesError;
 
-      const configsWithStages = (configs || []).map(config => ({
-        ...config,
-        stages: stages?.filter(stage => stage.kanban_config_id === config.id) || []
+      const configsWithStages: KanbanConfig[] = (configs || []).map((config: any) => ({
+        id: config.id,
+        name: config.name,
+        department: config.department,
+        color: config.color,
+        stages: (stages || []).filter((stage: any) => stage.kanban_config_id === config.id)
       }));
 
       setKanbanConfigs(configsWithStages);
@@ -60,17 +64,17 @@ export const useKanbanConfigs = () => {
     }
   };
 
-  const addKanbanConfig = async (kanban: Omit<KanbanConfig, 'id' | 'stages'>) => {
+  const addKanbanConfig = async (kanban: Omit<KanbanConfig, 'id' | 'stages'>): Promise<KanbanConfig | undefined> => {
     try {
       const { data, error } = await supabase
-        .from('kanban_configs')
+        .from('kanban_configs' as any)
         .insert([kanban])
         .select()
         .single();
 
       if (error) throw error;
 
-      const newKanban = { ...data, stages: [] };
+      const newKanban: KanbanConfig = { ...data, stages: [] };
       setKanbanConfigs(prev => [...prev, newKanban]);
       toast.success('Configuração kanban criada com sucesso');
       return newKanban;
@@ -84,7 +88,7 @@ export const useKanbanConfigs = () => {
   const updateKanbanConfig = async (id: string, updates: Partial<KanbanConfig>) => {
     try {
       const { error } = await supabase
-        .from('kanban_configs')
+        .from('kanban_configs' as any)
         .update(updates)
         .eq('id', id);
 
@@ -109,7 +113,7 @@ export const useKanbanConfigs = () => {
   const deleteKanbanConfig = async (id: string) => {
     try {
       const { error } = await supabase
-        .from('kanban_configs')
+        .from('kanban_configs' as any)
         .delete()
         .eq('id', id);
 

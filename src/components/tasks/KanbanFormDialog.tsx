@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { KanbanConfig, KanbanStage } from '@/hooks/useKanbanConfigs';
+import { KanbanConfig, TaskStage } from '@/hooks/useKanbanConfigs';
 import {
   Dialog,
   DialogContent,
@@ -32,6 +32,12 @@ interface KanbanFormDialogProps {
   editKanban?: KanbanConfig | null;
 }
 
+interface StageFormData {
+  name: string;
+  color: string;
+  order_position: number;
+}
+
 export const KanbanFormDialog: React.FC<KanbanFormDialogProps> = ({
   isOpen,
   onClose,
@@ -43,7 +49,7 @@ export const KanbanFormDialog: React.FC<KanbanFormDialogProps> = ({
     department: '',
     color: '#3B82F6',
   });
-  const [stages, setStages] = useState<Omit<KanbanStage, 'id'>[]>([
+  const [stages, setStages] = useState<StageFormData[]>([
     { name: 'A Fazer', color: '#6B7280', order_position: 1 },
     { name: 'Em Andamento', color: '#3B82F6', order_position: 2 },
     { name: 'Concluído', color: '#10B981', order_position: 3 },
@@ -100,13 +106,18 @@ export const KanbanFormDialog: React.FC<KanbanFormDialogProps> = ({
       ...formData,
       stages: stages.map((stage, index) => ({
         id: `stage-${Date.now()}-${index}`,
-        ...stage,
-        order_position: index + 1
+        name: stage.name,
+        color: stage.color,
+        order_position: index + 1,
+        kanban_config_id: ''
       }))
     };
 
     if (editKanban) {
-      onSubmit({ ...editKanban, ...kanbanData });
+      onSubmit({ 
+        id: editKanban.id,
+        ...kanbanData 
+      });
     } else {
       onSubmit(kanbanData);
     }
@@ -132,7 +143,7 @@ export const KanbanFormDialog: React.FC<KanbanFormDialogProps> = ({
     setStages(prev => prev.filter((_, i) => i !== index));
   };
 
-  const updateStage = (index: number, updates: Partial<Omit<KanbanStage, 'id'>>) => {
+  const updateStage = (index: number, updates: Partial<StageFormData>) => {
     setStages(prev => prev.map((stage, i) => 
       i === index ? { ...stage, ...updates } : stage
     ));
