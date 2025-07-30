@@ -10,9 +10,9 @@ import { TaskCalendarView } from '@/components/tasks/TaskCalendarView';
 import { TaskModal } from '@/components/TaskModal';
 import { TaskConfigDialog } from '@/components/tasks/TaskConfigDialog';
 import { KanbanSelector } from '@/components/tasks/KanbanSelector';
-import { TaskProvider, useTaskContext } from '@/contexts/TaskContext';
+import { useTaskContext } from '@/contexts/TaskContext';
 
-const TasksContent = () => {
+const Tasks = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
@@ -231,14 +231,6 @@ const TasksContent = () => {
         onClose={() => setIsConfigDialogOpen(false)}
       />
     </div>
-  );
-};
-
-const Tasks = () => {
-  return (
-    <TaskProvider>
-      <TasksContent />
-    </TaskProvider>
   );
 };
 
