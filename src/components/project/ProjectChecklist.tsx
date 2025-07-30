@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { useTaskContext } from '@/contexts/TaskContext';
-import { Task } from '@/types/entities';
+import { Task } from '@/hooks/useTasks';
 import TaskLinkSelector from './TaskLinkSelector';
 import TaskQuickForm from './TaskQuickForm';
 import ChecklistTaskCard from './ChecklistTaskCard';
@@ -37,7 +37,7 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
   const [showTaskSelector, setShowTaskSelector] = useState<number | null>(null);
 
   // Get project tasks
-  const projectTasks = tasks.filter(task => task.projectId === projectId);
+  const projectTasks = tasks.filter(task => task.project_id === projectId);
 
   // Sync checklist with task statuses
   useEffect(() => {
@@ -114,11 +114,11 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
     onUpdate(updated);
   };
 
-  const handleCreateTask = (itemId: number, taskData: Omit<Task, 'id' | 'createdAt'>) => {
+  const handleCreateTask = (itemId: number, taskData: Omit<Task, 'id' | 'created_at'>) => {
     // Create the task
     createTask({
       ...taskData,
-      projectId: projectId
+      project_id: projectId
     });
 
     // Generate a temporary ID that will match the one created by addTask
@@ -128,9 +128,9 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
     // We'll use a setTimeout to allow the task to be created first
     setTimeout(() => {
       // Find the most recently created task for this project
-      const projectTasksAfterCreation = tasks.filter(task => task.projectId === projectId);
+      const projectTasksAfterCreation = tasks.filter(task => task.project_id === projectId);
       const newestTask = projectTasksAfterCreation.sort((a, b) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       )[0];
 
       if (newestTask) {
