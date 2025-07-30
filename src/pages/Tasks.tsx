@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, Filter, Calendar, List, LayoutGrid, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,9 +10,9 @@ import { TaskCalendarView } from '@/components/tasks/TaskCalendarView';
 import { TaskModal } from '@/components/TaskModal';
 import { TaskConfigDialog } from '@/components/tasks/TaskConfigDialog';
 import { KanbanSelector } from '@/components/tasks/KanbanSelector';
-import { useTaskContext } from '@/contexts/TaskContext';
+import { TaskProvider, useTaskContext } from '@/contexts/TaskContext';
 
-const Tasks = () => {
+const TasksContent = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
@@ -232,6 +231,14 @@ const Tasks = () => {
         onClose={() => setIsConfigDialogOpen(false)}
       />
     </div>
+  );
+};
+
+const Tasks = () => {
+  return (
+    <TaskProvider>
+      <TasksContent />
+    </TaskProvider>
   );
 };
 
