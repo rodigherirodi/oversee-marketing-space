@@ -51,14 +51,15 @@ export const useKanbanConfigs = () => {
 
       setKanbanConfigs(configsWithStages);
       
-      // Set default current kanban to "Geral" if none selected
+      // Set default kanban if none selected
       if (!currentKanban && configsWithStages.length > 0) {
         const defaultKanban = configsWithStages.find(k => k.id === 'geral') || configsWithStages[0];
         setCurrentKanban(defaultKanban);
       }
-    } catch (err) {
-      console.error('Error fetching kanban configs:', err);
-      toast.error('Erro ao carregar configurações kanban');
+      
+    } catch (error) {
+      console.error('Error fetching kanban configs:', error);
+      toast.error('Erro ao carregar configurações do kanban');
     } finally {
       setLoading(false);
     }
@@ -74,14 +75,18 @@ export const useKanbanConfigs = () => {
 
       if (error) throw error;
 
-      const newKanban: KanbanConfig = { ...data, stages: [] };
+      const newKanban: KanbanConfig = {
+        ...data,
+        stages: []
+      };
+
       setKanbanConfigs(prev => [...prev, newKanban]);
-      toast.success('Configuração kanban criada com sucesso');
+      toast.success('Kanban criado com sucesso');
       return newKanban;
-    } catch (err) {
-      console.error('Error creating kanban config:', err);
-      toast.error('Erro ao criar configuração kanban');
-      throw err;
+    } catch (error) {
+      console.error('Error creating kanban config:', error);
+      toast.error('Erro ao criar kanban');
+      throw error;
     }
   };
 
@@ -94,19 +99,19 @@ export const useKanbanConfigs = () => {
 
       if (error) throw error;
 
-      setKanbanConfigs(prev => prev.map(config => 
-        config.id === id ? { ...config, ...updates } : config
+      setKanbanConfigs(prev => prev.map(kanban => 
+        kanban.id === id ? { ...kanban, ...updates } : kanban
       ));
-      
-      if (currentKanban?.id === id) {
-        setCurrentKanban(prev => prev ? { ...prev, ...updates } : null);
+
+      if (currentKanban && currentKanban.id === id) {
+        setCurrentKanban({ ...currentKanban, ...updates });
       }
-      
-      toast.success('Configuração kanban atualizada');
-    } catch (err) {
-      console.error('Error updating kanban config:', err);
-      toast.error('Erro ao atualizar configuração kanban');
-      throw err;
+
+      toast.success('Kanban atualizado com sucesso');
+    } catch (error) {
+      console.error('Error updating kanban config:', error);
+      toast.error('Erro ao atualizar kanban');
+      throw error;
     }
   };
 
@@ -119,18 +124,18 @@ export const useKanbanConfigs = () => {
 
       if (error) throw error;
 
-      setKanbanConfigs(prev => prev.filter(config => config.id !== id));
+      setKanbanConfigs(prev => prev.filter(kanban => kanban.id !== id));
       
-      if (currentKanban?.id === id) {
-        const remaining = kanbanConfigs.filter(config => config.id !== id);
+      if (currentKanban && currentKanban.id === id) {
+        const remaining = kanbanConfigs.filter(k => k.id !== id);
         setCurrentKanban(remaining.length > 0 ? remaining[0] : null);
       }
-      
-      toast.success('Configuração kanban excluída');
-    } catch (err) {
-      console.error('Error deleting kanban config:', err);
-      toast.error('Erro ao excluir configuração kanban');
-      throw err;
+
+      toast.success('Kanban excluído com sucesso');
+    } catch (error) {
+      console.error('Error deleting kanban config:', error);
+      toast.error('Erro ao excluir kanban');
+      throw error;
     }
   };
 

@@ -43,7 +43,7 @@ export const useTaskContext = () => {
 export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { 
     tasks, 
-    loading, 
+    loading: tasksLoading, 
     error, 
     createTask, 
     updateTask, 
@@ -57,6 +57,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     kanbanConfigs, 
     currentKanban, 
     setCurrentKanban,
+    loading: kanbanLoading,
     addKanbanConfig,
     updateKanbanConfig,
     deleteKanbanConfig
@@ -90,8 +91,11 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  // Combined loading state
+  const loading = tasksLoading || kanbanLoading;
+
   // Show loading only during initial fetch
-  if (loading && tasks.length === 0) {
+  if (loading && tasks.length === 0 && kanbanConfigs.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>

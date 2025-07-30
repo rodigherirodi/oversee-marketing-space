@@ -23,8 +23,9 @@ export const useTaskTypes = () => {
 
       if (error) throw error;
       setTaskTypes(data || []);
-    } catch (err) {
-      console.error('Error fetching task types:', err);
+    } catch (error) {
+      console.error('Error fetching task types:', error);
+      toast.error('Erro ao carregar tipos de tarefa');
     } finally {
       setLoading(false);
     }
@@ -40,14 +41,14 @@ export const useTaskTypes = () => {
 
       if (error) throw error;
 
-      const newTaskType: TaskType = data;
+      const newTaskType = data as TaskType;
       setTaskTypes(prev => [...prev, newTaskType]);
       toast.success('Tipo de tarefa criado com sucesso');
       return newTaskType;
-    } catch (err) {
-      console.error('Error creating task type:', err);
+    } catch (error) {
+      console.error('Error creating task type:', error);
       toast.error('Erro ao criar tipo de tarefa');
-      throw err;
+      throw error;
     }
   };
 
@@ -55,9 +56,10 @@ export const useTaskTypes = () => {
     fetchTaskTypes();
   }, []);
 
-  return { 
-    taskTypes, 
+  return {
+    taskTypes,
     loading,
-    addTaskType
+    addTaskType,
+    refetch: fetchTaskTypes
   };
 };
