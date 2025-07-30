@@ -16,11 +16,15 @@ interface TaskContextType {
   
   // Task types
   taskTypes: TaskType[];
+  addTaskType: (taskType: Omit<TaskType, 'id'>) => Promise<TaskType | undefined>;
   
   // Kanban operations
   kanbanConfigs: KanbanConfig[];
   currentKanban: KanbanConfig | null;
   setCurrentKanban: (kanban: KanbanConfig) => void;
+  addKanbanConfig: (kanban: Omit<KanbanConfig, 'id'>) => Promise<KanbanConfig | undefined>;
+  updateKanbanConfig: (id: string, updates: Partial<KanbanConfig>) => Promise<void>;
+  deleteKanbanConfig: (id: string) => Promise<void>;
   
   // Utility functions
   getTasksByKanban: (kanbanId: string) => Task[];
@@ -47,12 +51,15 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     refetch: refetchTasks 
   } = useTasks();
   
-  const { taskTypes } = useTaskTypes();
+  const { taskTypes, addTaskType } = useTaskTypes();
   
   const { 
     kanbanConfigs, 
     currentKanban, 
-    setCurrentKanban 
+    setCurrentKanban,
+    addKanbanConfig,
+    updateKanbanConfig,
+    deleteKanbanConfig
   } = useKanbanConfigs();
 
   const getTasksByKanban = (kanbanId: string): Task[] => {
@@ -86,9 +93,13 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         deleteTask,
         refetchTasks,
         taskTypes,
+        addTaskType,
         kanbanConfigs,
         currentKanban,
         setCurrentKanban,
+        addKanbanConfig,
+        updateKanbanConfig,
+        deleteKanbanConfig,
         getTasksByKanban,
       }}
     >

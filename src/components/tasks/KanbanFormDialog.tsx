@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { KanbanConfig, TaskStage } from '@/types/entities';
+import { KanbanConfig, KanbanStage } from '@/hooks/useKanbanConfigs';
 import {
   Dialog,
   DialogContent,
@@ -9,7 +9,6 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { 
   Plus, 
   X, 
@@ -44,10 +43,10 @@ export const KanbanFormDialog: React.FC<KanbanFormDialogProps> = ({
     department: '',
     color: '#3B82F6',
   });
-  const [stages, setStages] = useState<Omit<TaskStage, 'id'>[]>([
-    { name: 'A Fazer', color: '#6B7280', order: 1 },
-    { name: 'Em Andamento', color: '#3B82F6', order: 2 },
-    { name: 'Concluído', color: '#10B981', order: 3 },
+  const [stages, setStages] = useState<Omit<KanbanStage, 'id'>[]>([
+    { name: 'A Fazer', color: '#6B7280', order_position: 1 },
+    { name: 'Em Andamento', color: '#3B82F6', order_position: 2 },
+    { name: 'Concluído', color: '#10B981', order_position: 3 },
   ]);
   const [newStageName, setNewStageName] = useState('');
 
@@ -77,7 +76,7 @@ export const KanbanFormDialog: React.FC<KanbanFormDialogProps> = ({
       setStages(editKanban.stages.map(stage => ({
         name: stage.name,
         color: stage.color,
-        order: stage.order
+        order_position: stage.order_position
       })));
     } else {
       setFormData({
@@ -86,9 +85,9 @@ export const KanbanFormDialog: React.FC<KanbanFormDialogProps> = ({
         color: '#3B82F6',
       });
       setStages([
-        { name: 'A Fazer', color: '#6B7280', order: 1 },
-        { name: 'Em Andamento', color: '#3B82F6', order: 2 },
-        { name: 'Concluído', color: '#10B981', order: 3 },
+        { name: 'A Fazer', color: '#6B7280', order_position: 1 },
+        { name: 'Em Andamento', color: '#3B82F6', order_position: 2 },
+        { name: 'Concluído', color: '#10B981', order_position: 3 },
       ]);
     }
   }, [editKanban, isOpen]);
@@ -102,7 +101,7 @@ export const KanbanFormDialog: React.FC<KanbanFormDialogProps> = ({
       stages: stages.map((stage, index) => ({
         id: `stage-${Date.now()}-${index}`,
         ...stage,
-        order: index + 1
+        order_position: index + 1
       }))
     };
 
@@ -122,7 +121,7 @@ export const KanbanFormDialog: React.FC<KanbanFormDialogProps> = ({
         {
           name: newStageName,
           color: colors[Math.floor(Math.random() * colors.length)],
-          order: prev.length + 1
+          order_position: prev.length + 1
         }
       ]);
       setNewStageName('');
@@ -133,7 +132,7 @@ export const KanbanFormDialog: React.FC<KanbanFormDialogProps> = ({
     setStages(prev => prev.filter((_, i) => i !== index));
   };
 
-  const updateStage = (index: number, updates: Partial<Omit<TaskStage, 'id'>>) => {
+  const updateStage = (index: number, updates: Partial<Omit<KanbanStage, 'id'>>) => {
     setStages(prev => prev.map((stage, i) => 
       i === index ? { ...stage, ...updates } : stage
     ));

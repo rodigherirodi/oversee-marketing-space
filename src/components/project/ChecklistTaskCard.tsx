@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Task } from '@/types/entities';
+import { Task } from '@/hooks/useTasks';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -131,7 +131,7 @@ const ChecklistTaskCard = ({
               <Badge className={getPriorityColor(task.priority)}>
                 {getPriorityLabel(task.priority)}
               </Badge>
-              <span className="text-xs text-gray-600">{task.assignee}</span>
+              <span className="text-xs text-gray-600">{task.assignee?.name}</span>
               {item.lastSync && (
                 <span className="text-xs text-gray-400">
                   Sync: {new Date(item.lastSync).toLocaleTimeString('pt-BR', { 

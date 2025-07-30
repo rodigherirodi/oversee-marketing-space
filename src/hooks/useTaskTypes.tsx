@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export interface TaskType {
   id: string;
@@ -13,25 +14,46 @@ export const useTaskTypes = () => {
   const [taskTypes, setTaskTypes] = useState<TaskType[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchTaskTypes = async () => {
+    try {
+      // Using raw query until types.ts is updated
+      const { data, error } = await (supabase as any)
+        .from('task_types')
+        .select('*')
+        .order('name');
+
+      if (error) throw error;
+      setTaskTypes(data || []);
+    } catch (err) {
+      console.error('Error fetching task types:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addTaskType = async (taskType: Omit<TaskType, 'id'>) => {
+    try {
+      const { data, error } = await (supabase as any)
+        .from('task_types')
+        .insert([taskType])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setTaskTypes(prev => [...prev, data]);
+      toast.success('Tipo de tarefa criado com sucesso');
+      return data;
+    } catch (err) {
+      console.error('Error creating task type:', err);
+      toast.error('Erro ao criar tipo de tarefa');
+      throw err;
+    }
+  };
+
   useEffect(() => {
-    const fetchTaskTypes = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('task_types')
-          .select('*')
-          .order('name');
-
-        if (error) throw error;
-        setTaskTypes(data || []);
-      } catch (err) {
-        console.error('Error fetching task types:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchTaskTypes();
   }, []);
 
-  return { taskTypes, loading };
+  return { taskTypes, loading, addTaskType };
 };

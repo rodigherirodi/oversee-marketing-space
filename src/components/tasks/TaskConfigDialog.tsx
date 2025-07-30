@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { TaskType, KanbanConfig, TaskStage } from '@/types/entities';
+import { TaskType, KanbanConfig } from '@/hooks/useKanbanConfigs';
 import { useTaskContext } from '@/contexts/TaskContext';
 import { KanbanFormDialog } from './KanbanFormDialog';
 import {
@@ -51,9 +52,9 @@ export const TaskConfigDialog: React.FC<TaskConfigDialogProps> = ({
   const [isKanbanFormOpen, setIsKanbanFormOpen] = useState(false);
   const [editingKanban, setEditingKanban] = useState<KanbanConfig | null>(null);
 
-  const handleAddTaskType = () => {
+  const handleAddTaskType = async () => {
     if (newTypeName.trim()) {
-      addTaskType({
+      await addTaskType({
         name: newTypeName,
         color: newTypeColor,
         icon: newTypeIcon || '📝',
@@ -64,13 +65,13 @@ export const TaskConfigDialog: React.FC<TaskConfigDialogProps> = ({
     }
   };
 
-  const handleKanbanSubmit = (kanbanData: Omit<KanbanConfig, 'id'> | KanbanConfig) => {
+  const handleKanbanSubmit = async (kanbanData: Omit<KanbanConfig, 'id'> | KanbanConfig) => {
     if ('id' in kanbanData) {
       // Editing existing kanban
-      updateKanbanConfig(kanbanData.id, kanbanData);
+      await updateKanbanConfig(kanbanData.id, kanbanData);
     } else {
       // Creating new kanban
-      addKanbanConfig(kanbanData);
+      await addKanbanConfig(kanbanData);
     }
     setIsKanbanFormOpen(false);
     setEditingKanban(null);
@@ -81,9 +82,9 @@ export const TaskConfigDialog: React.FC<TaskConfigDialogProps> = ({
     setIsKanbanFormOpen(true);
   };
 
-  const handleDeleteKanban = (kanbanId: string) => {
+  const handleDeleteKanban = async (kanbanId: string) => {
     if (confirm('Tem certeza que deseja excluir este kanban? Esta ação não pode ser desfeita.')) {
-      deleteKanbanConfig(kanbanId);
+      await deleteKanbanConfig(kanbanId);
     }
   };
 
@@ -239,7 +240,7 @@ export const TaskConfigDialog: React.FC<TaskConfigDialogProps> = ({
                       <h4 className="text-sm font-medium text-gray-600">Estágios:</h4>
                       <div className="flex flex-wrap gap-2">
                         {kanban.stages
-                          .sort((a, b) => a.order - b.order)
+                          .sort((a, b) => a.order_position - b.order_position)
                           .map((stage) => (
                             <Badge
                               key={stage.id}
