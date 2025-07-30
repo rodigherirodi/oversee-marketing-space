@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Link, ExternalLink, Unlink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -36,8 +35,8 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
   const [showTaskForm, setShowTaskForm] = useState<number | null>(null);
   const [showTaskSelector, setShowTaskSelector] = useState<number | null>(null);
 
-  // Get project tasks
-  const projectTasks = tasks.filter(task => task.project_id === projectId);
+  // Get project tasks - cast to DatabaseTask[] for internal use
+  const projectTasks = (tasks as DatabaseTask[]).filter(task => task.project_id === projectId);
 
   // Sync checklist with task statuses
   useEffect(() => {
@@ -114,12 +113,26 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
     onUpdate(updated);
   };
 
-  const handleCreateTask = (itemId: number, taskData: Partial<DatabaseTask>) => {
+  const handleCreateTask = (itemId: number, taskData: any) => {
+    // Transform the frontend task data to database format
+    const dbTaskData: Partial<DatabaseTask> = {
+      title: taskData.title || '',
+      description: taskData.description || '',
+      status: taskData.status || 'todo',
+      priority: taskData.priority || 'medium',
+      type_id: taskData.type_id || '',
+      assignee_id: taskData.assignee_id || '',
+      squad: taskData.squad || '',
+      client_id: taskData.client_id || '',
+      project_id: projectId,
+      due_date: taskData.due_date || new Date().toISOString(),
+      tags: taskData.tags || [],
+      custom_fields: taskData.custom_fields || {},
+      created_by: taskData.created_by || ''
+    };
+
     // Create the task
-    createTask({
-      ...taskData,
-      project_id: projectId
-    });
+    createTask(dbTaskData);
 
     // Generate a temporary ID that will match the one created by addTask
     const tempTaskId = `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -128,7 +141,7 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
     // We'll use a setTimeout to allow the task to be created first
     setTimeout(() => {
       // Find the most recently created task for this project
-      const projectTasksAfterCreation = tasks.filter(task => task.project_id === projectId);
+      const projectTasksAfterCreation = (tasks as DatabaseTask[]).filter(task => task.project_id === projectId);
       const newestTask = projectTasksAfterCreation.sort((a, b) => 
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       )[0];
@@ -153,7 +166,7 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
   };
 
   const handleLinkTask = (itemId: number, taskId: string) => {
-    const linkedTask = tasks.find(task => task.id === taskId);
+    const linkedTask = (tasks as DatabaseTask[]).find(task => task.id === taskId);
     if (!linkedTask) return;
 
     const updated = editedChecklist.map(item => 
@@ -206,7 +219,7 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
             {item.isLinked ? (
               <ChecklistTaskCard
                 item={item}
-                task={tasks.find(task => task.id === item.taskId)}
+                task={(tasks as DatabaseTask[]).find(task => task.id === item.taskId)}
                 isEditing={isEditing}
                 onToggle={() => toggleChecklistItem(item.id)}
                 onUnlink={() => handleUnlinkTask(item.id)}
