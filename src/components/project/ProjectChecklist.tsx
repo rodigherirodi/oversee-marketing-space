@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Link, ExternalLink, Unlink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -114,7 +113,7 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
     onUpdate(updated);
   };
 
-  const handleCreateTask = (itemId: number, taskData: Omit<Task, 'id' | 'created_at'>) => {
+  const handleCreateTask = (itemId: number, taskData: Partial<Task>) => {
     // Create the task
     createTask({
       ...taskData,
