@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Plus, Filter, Calendar, List, LayoutGrid } from 'lucide-react';
+import { Plus, Filter, Calendar, List, LayoutGrid, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -9,22 +9,25 @@ import { KanbanBoard } from '@/components/KanbanBoard';
 import { TaskListView } from '@/components/tasks/TaskListView';
 import { TaskCalendarView } from '@/components/tasks/TaskCalendarView';
 import { TaskModal } from '@/components/TaskModal';
-import { useTaskContext } from '@/contexts/TaskContext';
-import { useClients } from '@/hooks/useClients';
-import { useProjects } from '@/hooks/useProjects';
+import { TaskConfigDialog } from '@/components/tasks/TaskConfigDialog';
+import { KanbanSelector } from '@/components/tasks/KanbanSelector';
+import { useTasks, Task } from '@/hooks/useTasks';
+import { useTaskTypes } from '@/hooks/useTaskTypes';
+import { useKanbanConfigs } from '@/hooks/useKanbanConfigs';
 
 const Tasks = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [assigneeFilter, setAssigneeFilter] = useState<string>('all');
-  const [selectedTask, setSelectedTask] = useState<any>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
+  const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
 
-  const { tasks, taskTypes, currentKanban, addTask, updateTask, deleteTask } = useTaskContext();
-  const { clients } = useClients();
-  const { projects } = useProjects();
+  const { tasks, loading, createTask, updateTask, deleteTask } = useTasks();
+  const { taskTypes } = useTaskTypes();
+  const { currentKanban } = useKanbanConfigs();
 
   // Filter tasks based on search and filters
   const filteredTasks = tasks.filter(task => {
@@ -33,7 +36,7 @@ const Tasks = () => {
     const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
     const matchesPriority = priorityFilter === 'all' || task.priority === priorityFilter;
     const matchesAssignee = assigneeFilter === 'all' || 
-                           (assigneeFilter === 'me' ? task.assignee === 'Usuário Atual' : true);
+                           (assigneeFilter === 'me' ? task.assignee?.name === 'Current User' : true);
     
     return matchesSearch && matchesStatus && matchesPriority && matchesAssignee;
   });
@@ -44,25 +47,31 @@ const Tasks = () => {
     setIsTaskModalOpen(true);
   };
 
-  const handleEditTask = (task: any) => {
+  const handleEditTask = (task: Task) => {
     setSelectedTask(task);
     setIsCreatingTask(false);
     setIsTaskModalOpen(true);
   };
 
   const handleDeleteTask = (taskId: string) => {
-    deleteTask(taskId);
+    if (confirm('Tem certeza que deseja excluir esta tarefa?')) {
+      deleteTask(taskId);
+    }
   };
 
-  const handleTaskSubmit = (taskData: any) => {
-    if (selectedTask) {
-      updateTask(selectedTask.id, taskData);
-    } else {
-      addTask(taskData);
+  const handleTaskSubmit = async (taskData: Partial<Task>) => {
+    try {
+      if (selectedTask) {
+        await updateTask(selectedTask.id, taskData);
+      } else {
+        await createTask(taskData);
+      }
+      setIsTaskModalOpen(false);
+      setSelectedTask(null);
+      setIsCreatingTask(false);
+    } catch (error) {
+      console.error('Error submitting task:', error);
     }
-    setIsTaskModalOpen(false);
-    setSelectedTask(null);
-    setIsCreatingTask(false);
   };
 
   const handleCloseModal = () => {
@@ -70,6 +79,14 @@ const Tasks = () => {
     setSelectedTask(null);
     setIsCreatingTask(false);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -82,11 +99,23 @@ const Tasks = () => {
           </p>
         </div>
         
-        <Button onClick={handleNewTask}>
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Tarefa
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setIsConfigDialogOpen(true)}
+          >
+            <Settings className="w-4 h-4 mr-2" />
+            Configurações
+          </Button>
+          <Button onClick={handleNewTask}>
+            <Plus className="w-4 h-4 mr-2" />
+            Nova Tarefa
+          </Button>
+        </div>
       </div>
+
+      {/* Kanban Selector */}
+      <KanbanSelector />
 
       {/* Filters */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center">
@@ -106,10 +135,11 @@ const Tasks = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os Status</SelectItem>
-              <SelectItem value="todo">A Fazer</SelectItem>
-              <SelectItem value="in-progress">Em Progresso</SelectItem>
-              <SelectItem value="review">Em Revisão</SelectItem>
-              <SelectItem value="done">Concluído</SelectItem>
+              {currentKanban?.stages?.map(stage => (
+                <SelectItem key={stage.id} value={stage.id}>
+                  {stage.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           
@@ -186,8 +216,12 @@ const Tasks = () => {
         isOpen={isTaskModalOpen}
         onClose={handleCloseModal}
         onSubmit={handleTaskSubmit}
-        clients={clients}
-        projects={projects}
+      />
+
+      {/* Task Configuration Dialog */}
+      <TaskConfigDialog
+        isOpen={isConfigDialogOpen}
+        onClose={() => setIsConfigDialogOpen(false)}
       />
     </div>
   );
