@@ -94,15 +94,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Combined loading state
   const loading = tasksLoading || kanbanLoading;
 
-  // Show loading only during initial fetch
-  if (loading && tasks.length === 0 && kanbanConfigs.length === 0) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
+  // Always provide the context, even during loading
   return (
     <TaskContext.Provider
       value={{
@@ -124,7 +116,14 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         getTasksByKanban,
       }}
     >
-      {children}
+      {/* Show loading only during initial fetch, but always render children */}
+      {loading && tasks.length === 0 && kanbanConfigs.length === 0 ? (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      ) : (
+        children
+      )}
     </TaskContext.Provider>
   );
 };
