@@ -1,53 +1,27 @@
 
+import { useMemo } from 'react';
 import { useTaskContext } from '@/contexts/TaskContext';
-import { Task } from '@/types/entities';
-import { mockTasks } from '@/data/mockData';
 
-export const useUserTasks = (userName: string) => {
-  let tasks: Task[] = [];
-  
-  try {
-    // Try to use TaskContext if available
-    const { tasks: contextTasks } = useTaskContext();
-    tasks = contextTasks;
-  } catch (error) {
-    // If TaskContext is not available, use mock data
-    console.log('TaskContext not available, using mock data');
-    tasks = mockTasks;
-  }
-  
-  const userTasks = tasks.filter(task => task.assignee === userName);
-  
-  const today = new Date();
-  const todayStr = today.toISOString().split('T')[0];
-  
-  const overdueTasks = userTasks.filter(task => {
-    if (!task.dueDate) return false;
-    const dueDate = new Date(task.dueDate);
-    return dueDate < today && task.status !== 'completed';
-  });
-  
-  const todayTasks = userTasks.filter(task => {
-    return task.dueDate === todayStr && task.status !== 'completed';
-  });
-  
-  const tasksByPriority = userTasks.reduce((acc, task) => {
-    acc[task.priority] = (acc[task.priority] || 0) + 1;
-    return acc;
-  }, { high: 0, medium: 0, low: 0 });
-  
-  const completedTasks = userTasks.filter(task => task.status === 'completed').length;
-  const openTasks = userTasks.filter(task => task.status === 'todo').length;
-  const inProgressTasks = userTasks.filter(task => task.status === 'in-progress').length;
-  
+export const useUserTasks = () => {
+  const { tasks } = useTaskContext();
+
+  const userTasks = useMemo(() => {
+    // Convert tasks from useTasks format to the expected format
+    return tasks.map(task => ({
+      ...task,
+      // Map snake_case to camelCase where needed for compatibility
+      type: task.task_type?.name || 'Task',
+      clientId: task.client_id,
+      client: task.client_id, // This might need proper client data
+      dueDate: task.due_date,
+      createdAt: task.created_at,
+      updatedAt: task.updated_at
+    })) as any[];
+  }, [tasks]);
+
   return {
-    userTasks,
-    overdueTasks,
-    todayTasks,
-    tasksByPriority,
-    completedTasks,
-    openTasks,
-    inProgressTasks,
-    totalTasks: userTasks.length
+    tasks: userTasks,
+    loading: false,
+    error: null
   };
 };

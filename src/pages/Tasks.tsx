@@ -11,23 +11,27 @@ import { TaskCalendarView } from '@/components/tasks/TaskCalendarView';
 import { TaskModal } from '@/components/TaskModal';
 import { TaskConfigDialog } from '@/components/tasks/TaskConfigDialog';
 import { KanbanSelector } from '@/components/tasks/KanbanSelector';
-import { useTasks, Task } from '@/hooks/useTasks';
-import { useTaskTypes } from '@/hooks/useTaskTypes';
-import { useKanbanConfigs } from '@/hooks/useKanbanConfigs';
+import { TaskProvider, useTaskContext } from '@/contexts/TaskContext';
 
-const Tasks = () => {
+const TasksContent = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [assigneeFilter, setAssigneeFilter] = useState<string>('all');
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [selectedTask, setSelectedTask] = useState<any | null>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
 
-  const { tasks, loading, createTask, updateTask, deleteTask } = useTasks();
-  const { taskTypes } = useTaskTypes();
-  const { currentKanban } = useKanbanConfigs();
+  const { 
+    tasks, 
+    loading, 
+    addTask, 
+    updateTask, 
+    deleteTask, 
+    taskTypes, 
+    currentKanban 
+  } = useTaskContext();
 
   // Filter tasks based on search and filters
   const filteredTasks = tasks.filter(task => {
@@ -47,24 +51,24 @@ const Tasks = () => {
     setIsTaskModalOpen(true);
   };
 
-  const handleEditTask = (task: Task) => {
+  const handleEditTask = (task: any) => {
     setSelectedTask(task);
     setIsCreatingTask(false);
     setIsTaskModalOpen(true);
   };
 
-  const handleDeleteTask = (taskId: string) => {
+  const handleDeleteTask = async (taskId: string) => {
     if (confirm('Tem certeza que deseja excluir esta tarefa?')) {
-      deleteTask(taskId);
+      await deleteTask(taskId);
     }
   };
 
-  const handleTaskSubmit = async (taskData: Partial<Task>) => {
+  const handleTaskSubmit = async (taskData: any) => {
     try {
       if (selectedTask) {
         await updateTask(selectedTask.id, taskData);
       } else {
-        await createTask(taskData);
+        await addTask(taskData);
       }
       setIsTaskModalOpen(false);
       setSelectedTask(null);
@@ -78,6 +82,10 @@ const Tasks = () => {
     setIsTaskModalOpen(false);
     setSelectedTask(null);
     setIsCreatingTask(false);
+  };
+
+  const handleUpdateTask = async (taskId: string, updates: any) => {
+    await updateTask(taskId, updates);
   };
 
   if (loading) {
@@ -186,8 +194,8 @@ const Tasks = () => {
 
         <TabsContent value="kanban" className="mt-6">
           <KanbanBoard 
-            tasks={filteredTasks}
-            onUpdateTask={updateTask}
+            tasks={filteredTasks as any}
+            onUpdateTask={handleUpdateTask}
             onEditTask={handleEditTask}
             kanbanConfig={currentKanban}
           />
@@ -195,7 +203,7 @@ const Tasks = () => {
 
         <TabsContent value="list" className="mt-6">
           <TaskListView 
-            tasks={filteredTasks}
+            tasks={filteredTasks as any}
             taskTypes={taskTypes}
             onEditTask={handleEditTask}
             onDeleteTask={handleDeleteTask}
@@ -204,7 +212,7 @@ const Tasks = () => {
 
         <TabsContent value="calendar" className="mt-6">
           <TaskCalendarView 
-            tasks={filteredTasks}
+            tasks={filteredTasks as any}
             onEditTask={handleEditTask}
           />
         </TabsContent>
@@ -224,6 +232,14 @@ const Tasks = () => {
         onClose={() => setIsConfigDialogOpen(false)}
       />
     </div>
+  );
+};
+
+const Tasks = () => {
+  return (
+    <TaskProvider>
+      <TasksContent />
+    </TaskProvider>
   );
 };
 
