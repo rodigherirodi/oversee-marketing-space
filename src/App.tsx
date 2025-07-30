@@ -34,7 +34,7 @@ import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 import NotFound from '@/pages/NotFound';
 import { TaskProvider } from '@/contexts/TaskContext';
 import { TrilhasProvider } from '@/contexts/TrilhasContext';
-import { ChatProvider } from '@/contexts/ChatProvider';
+import { ChatProvider } from '@/contexts/ChatContext';
 import { WorkspaceProvider } from '@/contexts/WorkspaceContext';
 import AnalyticalDashboard from './pages/AnalyticalDashboard';
 import Productivity from './pages/Productivity';
@@ -48,15 +48,15 @@ const ProtectedRoutesWrapper = () => {
   return (
     <WorkspaceProvider>
       <TrilhasProvider>
-        <ChatProvider>
-          <TaskProvider>
+        <TaskProvider>
+          <ChatProvider>
             <ProtectedRoute>
               <AuthenticatedLayout>
                 <Outlet />
               </AuthenticatedLayout>
             </ProtectedRoute>
-          </TaskProvider>
-        </ChatProvider>
+          </ChatProvider>
+        </TaskProvider>
       </TrilhasProvider>
     </WorkspaceProvider>
   );
