@@ -16,7 +16,7 @@ export const useTaskTypes = () => {
 
   const fetchTaskTypes = async () => {
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('task_types')
         .select('*')
         .order('name');
@@ -32,7 +32,7 @@ export const useTaskTypes = () => {
 
   const addTaskType = async (taskType: Omit<TaskType, 'id'>) => {
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('task_types')
         .insert([taskType])
         .select()

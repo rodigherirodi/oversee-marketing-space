@@ -70,7 +70,7 @@ export const useTasks = () => {
   const fetchTasks = async () => {
     try {
       setLoading(true);
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('tasks')
         .select(`
           *,
@@ -113,7 +113,7 @@ export const useTasks = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('tasks')
         .insert([{
           ...taskData,
@@ -147,7 +147,7 @@ export const useTasks = () => {
 
   const updateTask = async (taskId: string, updates: Partial<Task>) => {
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('tasks')
         .update({
           ...updates,
@@ -184,7 +184,7 @@ export const useTasks = () => {
 
   const deleteTask = async (taskId: string) => {
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('tasks')
         .delete()
         .eq('id', taskId);

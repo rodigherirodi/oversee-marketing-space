@@ -22,7 +22,7 @@ interface TaskContextType {
   kanbanConfigs: KanbanConfig[];
   currentKanban: KanbanConfig | null;
   setCurrentKanban: (kanban: KanbanConfig) => void;
-  addKanbanConfig: (kanban: Omit<KanbanConfig, 'id'>) => Promise<KanbanConfig | undefined>;
+  addKanbanConfig: (kanban: Omit<KanbanConfig, 'id' | 'stages'>) => Promise<KanbanConfig | undefined>;
   updateKanbanConfig: (id: string, updates: Partial<KanbanConfig>) => Promise<void>;
   deleteKanbanConfig: (id: string) => Promise<void>;
   
