@@ -34,7 +34,7 @@ import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 import NotFound from '@/pages/NotFound';
 import { TaskProvider } from '@/contexts/TaskContext';
 import { TrilhasProvider } from '@/contexts/TrilhasContext';
-import { ChatProvider } from '@/contexts/ChatContext';
+import { ChatProvider } from '@/contexts/ChatProvider';
 import { WorkspaceProvider } from '@/contexts/WorkspaceContext';
 import AnalyticalDashboard from './pages/AnalyticalDashboard';
 import Productivity from './pages/Productivity';
@@ -43,83 +43,92 @@ import TeamMemberProfile from './pages/TeamMemberProfile';
 // Create a client
 const queryClient = new QueryClient();
 
+// Protected Routes Wrapper with all necessary providers
+const ProtectedRoutesWrapper = () => {
+  return (
+    <WorkspaceProvider>
+      <TrilhasProvider>
+        <ChatProvider>
+          <TaskProvider>
+            <ProtectedRoute>
+              <AuthenticatedLayout>
+                <Outlet />
+              </AuthenticatedLayout>
+            </ProtectedRoute>
+          </TaskProvider>
+        </ChatProvider>
+      </TrilhasProvider>
+    </WorkspaceProvider>
+  );
+};
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <WorkspaceProvider>
-            <TrilhasProvider>
-              <ChatProvider>
-                <TaskProvider>
-                  <div className="min-h-screen bg-background">
-                    <Toaster />
-                    <Routes>
-                      {/* Public routes */}
-                      <Route path="/auth" element={<Auth />} />
-                      <Route path="/404" element={<NotFound />} />
+          <div className="min-h-screen bg-background">
+            <Toaster />
+            <Routes>
+              {/* Public routes */}
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/404" element={<NotFound />} />
 
-                      {/* Protected routes */}
-                      <Route path="/*" element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
-                        <Route path="*" element={<AuthenticatedLayout><Outlet /></AuthenticatedLayout>}>
-                          <Route path="" element={<Index />} />
-                          <Route path="dashboard" element={<AnalyticalDashboard />} />
-                          <Route path="productivity" element={<Productivity />} />
-                          
-                          {/* Tasks routes */}
-                          <Route path="tasks" element={<Tasks />} />
-                          
-                          {/* Projects routes */}
-                          <Route path="projects" element={<Projects />} />
-                          <Route path="projects/:id" element={<ProjectDetail />} />
-                          
-                          {/* Team routes */}
-                          <Route path="team" element={<Team />} />
-                          <Route path="team/:id" element={<TeamMemberProfile />} />
-                          
-                          {/* Client routes */}
-                          <Route path="clients" element={<Clients />} />
-                          <Route path="clients/:id" element={<ClientProfile />} />
-                          
-                          {/* Trilhas routes */}
-                          <Route path="trilhas" element={<Trilhas />} />
-                          <Route path="trilhas/:id" element={<TrilhaDetail />} />
-                          
-                          {/* Learning routes */}
-                          <Route path="cursos" element={<Cursos />} />
-                          <Route path="briefings" element={<Briefings />} />
-                          <Route path="guias" element={<Guias />} />
-                          <Route path="cases" element={<Cases />} />
-                          
-                          {/* Commercial routes */}
-                          <Route path="comercial/crm" element={<CRM />} />
-                          <Route path="comercial/crm/:id" element={<LeadDetail />} />
-                          <Route path="comercial/activities" element={<Activities />} />
-                          <Route path="comercial/money" element={<Money />} />
-                          <Route path="comercial/playbooks" element={<Playbooks />} />
-                          
-                          {/* Culture routes */}
-                          <Route path="cultura/agenda" element={<Agenda />} />
-                          <Route path="cultura/onboarding" element={<Onboarding />} />
-                          
-                          {/* Management routes */}
-                          <Route path="gestao/gerenciamento" element={<Gerenciamento />} />
-                          <Route path="gestao/admin" element={<Admin />} />
-                          
-                          {/* Communication routes */}
-                          <Route path="chat" element={<Chat />} />
-                          <Route path="access" element={<Access />} />
-                        </Route>
-                      </Route>
+              {/* Protected routes */}
+              <Route path="/*" element={<ProtectedRoutesWrapper />}>
+                <Route path="" element={<Index />} />
+                <Route path="dashboard" element={<AnalyticalDashboard />} />
+                <Route path="productivity" element={<Productivity />} />
+                
+                {/* Tasks routes */}
+                <Route path="tasks" element={<Tasks />} />
+                
+                {/* Projects routes */}
+                <Route path="projects" element={<Projects />} />
+                <Route path="projects/:id" element={<ProjectDetail />} />
+                
+                {/* Team routes */}
+                <Route path="team" element={<Team />} />
+                <Route path="team/:id" element={<TeamMemberProfile />} />
+                
+                {/* Client routes */}
+                <Route path="clients" element={<Clients />} />
+                <Route path="clients/:id" element={<ClientProfile />} />
+                
+                {/* Trilhas routes */}
+                <Route path="trilhas" element={<Trilhas />} />
+                <Route path="trilhas/:id" element={<TrilhaDetail />} />
+                
+                {/* Learning routes */}
+                <Route path="cursos" element={<Cursos />} />
+                <Route path="briefings" element={<Briefings />} />
+                <Route path="guias" element={<Guias />} />
+                <Route path="cases" element={<Cases />} />
+                
+                {/* Commercial routes */}
+                <Route path="comercial/crm" element={<CRM />} />
+                <Route path="comercial/crm/:id" element={<LeadDetail />} />
+                <Route path="comercial/activities" element={<Activities />} />
+                <Route path="comercial/money" element={<Money />} />
+                <Route path="comercial/playbooks" element={<Playbooks />} />
+                
+                {/* Culture routes */}
+                <Route path="cultura/agenda" element={<Agenda />} />
+                <Route path="cultura/onboarding" element={<Onboarding />} />
+                
+                {/* Management routes */}
+                <Route path="gestao/gerenciamento" element={<Gerenciamento />} />
+                <Route path="gestao/admin" element={<Admin />} />
+                
+                {/* Communication routes */}
+                <Route path="chat" element={<Chat />} />
+                <Route path="access" element={<Access />} />
+              </Route>
 
-                      {/* Catch all route */}
-                      <Route path="*" element={<Navigate to="/404" replace />} />
-                    </Routes>
-                  </div>
-                </TaskProvider>
-              </ChatProvider>
-            </TrilhasProvider>
-          </WorkspaceProvider>
+              {/* Catch all route */}
+              <Route path="*" element={<Navigate to="/404" replace />} />
+            </Routes>
+          </div>
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
