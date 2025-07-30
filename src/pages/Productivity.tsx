@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -18,7 +17,7 @@ const Productivity = () => {
   const { productivity, achievements, pointsHistory, goals, isLoading: productivityLoading } = useProductivityData();
   
   // Use the useUserTasks hook to get task data
-  const { overdueTasks, todayTasks } = useUserTasks(currentUserProfile?.name || 'Usuário Atual');
+  const { overdueTasks, todayTasks } = useUserTasks();
 
   // Transform currentUserProfile to UserProductivity format
   const mockUserProductivity: UserProductivity = {

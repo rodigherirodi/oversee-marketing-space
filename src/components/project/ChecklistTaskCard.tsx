@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Task } from '@/hooks/useTasks';
+import { Task as DatabaseTask } from '@/hooks/useTasks';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -20,7 +20,7 @@ interface ChecklistItem {
 
 interface ChecklistTaskCardProps {
   item: ChecklistItem;
-  task?: Task;
+  task?: DatabaseTask;
   isEditing: boolean;
   onToggle: () => void;
   onUnlink: () => void;

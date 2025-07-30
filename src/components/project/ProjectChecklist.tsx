@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Link, ExternalLink, Unlink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { useTaskContext } from '@/contexts/TaskContext';
-import { Task } from '@/hooks/useTasks';
+import { Task as DatabaseTask } from '@/hooks/useTasks';
 import TaskLinkSelector from './TaskLinkSelector';
 import TaskQuickForm from './TaskQuickForm';
 import ChecklistTaskCard from './ChecklistTaskCard';
@@ -113,7 +114,7 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
     onUpdate(updated);
   };
 
-  const handleCreateTask = (itemId: number, taskData: Partial<Task>) => {
+  const handleCreateTask = (itemId: number, taskData: Partial<DatabaseTask>) => {
     // Create the task
     createTask({
       ...taskData,
