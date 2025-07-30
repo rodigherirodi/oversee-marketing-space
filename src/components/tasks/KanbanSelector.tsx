@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { KanbanConfig } from '@/types/entities';
+import { KanbanConfig } from '@/hooks/useKanbanConfigs';
 import { useTaskContext } from '@/contexts/TaskContext';
 import {
   Select,
