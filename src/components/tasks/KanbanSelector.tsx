@@ -14,6 +14,16 @@ import { Badge } from '@/components/ui/badge';
 export const KanbanSelector: React.FC = () => {
   const { kanbanConfigs, currentKanban, setCurrentKanban } = useTaskContext();
 
+  // Handle case when currentKanban is null
+  if (!currentKanban) {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-medium text-gray-700">Kanban:</span>
+        <span className="text-sm text-gray-500">Carregando...</span>
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center gap-2">
       <span className="text-sm font-medium text-gray-700">Kanban:</span>

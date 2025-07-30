@@ -1,13 +1,14 @@
 
 import React from 'react';
-import { Task, KanbanConfig } from '../types/entities';
+import { Task } from '@/hooks/useTasks';
+import { KanbanConfig } from '@/hooks/useKanbanConfigs';
 import { TaskCard } from './TaskCard';
 
 interface KanbanBoardProps {
   tasks: Task[];
   onUpdateTask: (taskId: string, updates: Partial<Task>) => void;
   onEditTask: (task: Task) => void;
-  kanbanConfig: KanbanConfig;
+  kanbanConfig: KanbanConfig | null;
 }
 
 export const KanbanBoard: React.FC<KanbanBoardProps> = ({ 
@@ -16,8 +17,16 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   onEditTask, 
   kanbanConfig 
 }) => {
+  if (!kanbanConfig) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-gray-500">Carregando kanban...</p>
+      </div>
+    );
+  }
+
   const columns = kanbanConfig.stages
-    .sort((a, b) => a.order - b.order)
+    .sort((a, b) => a.order_position - b.order_position)
     .map(stage => ({
       id: stage.id,
       title: stage.name,

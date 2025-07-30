@@ -38,7 +38,7 @@ export const useKanbanConfigs = () => {
 
       const configs = data?.map((config: any) => ({
         ...config,
-        stages: config.stages?.sort((a: any, b: any) => a.order_position - b.order_position) || []
+        stages: (config.stages || []).sort((a: any, b: any) => a.order_position - b.order_position)
       })) || [];
 
       setKanbanConfigs(configs);
@@ -166,7 +166,7 @@ export const useKanbanConfigs = () => {
 
       setKanbanConfigs(prev => prev.filter(k => k.id !== kanbanId));
       if (currentKanban?.id === kanbanId) {
-        setCurrentKanban(kanbanConfigs[0] || null);
+        setCurrentKanban(kanbanConfigs.length > 1 ? kanbanConfigs[0] : null);
       }
       toast.success('Kanban excluído com sucesso');
     } catch (err) {

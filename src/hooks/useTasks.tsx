@@ -70,7 +70,7 @@ export const useTasks = () => {
   const fetchTasks = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('tasks')
         .select(`
           *,
@@ -90,12 +90,12 @@ export const useTasks = () => {
       if (error) throw error;
 
       // Transform the data to match our interface
-      const transformedTasks = data?.map(task => ({
+      const transformedTasks = (data || []).map((task: any) => ({
         ...task,
         watchers: task.watchers?.map((w: any) => w.user) || [],
         comments: task.comments || [],
         attachments: task.attachments || []
-      })) || [];
+      }));
 
       setTasks(transformedTasks);
       setError(null);
@@ -113,7 +113,7 @@ export const useTasks = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('tasks')
         .insert([{
           ...taskData,
@@ -128,9 +128,16 @@ export const useTasks = () => {
 
       if (error) throw error;
 
-      setTasks(prev => [data, ...prev]);
+      const transformedTask = {
+        ...data,
+        watchers: [],
+        comments: [],
+        attachments: []
+      };
+
+      setTasks(prev => [transformedTask, ...prev]);
       toast.success('Tarefa criada com sucesso');
-      return data;
+      return transformedTask;
     } catch (err) {
       console.error('Error creating task:', err);
       toast.error('Erro ao criar tarefa');
@@ -140,7 +147,7 @@ export const useTasks = () => {
 
   const updateTask = async (taskId: string, updates: Partial<Task>) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('tasks')
         .update({
           ...updates,
@@ -156,11 +163,18 @@ export const useTasks = () => {
 
       if (error) throw error;
 
+      const transformedTask = {
+        ...data,
+        watchers: [],
+        comments: [],
+        attachments: []
+      };
+
       setTasks(prev => prev.map(task => 
-        task.id === taskId ? { ...task, ...data } : task
+        task.id === taskId ? { ...task, ...transformedTask } : task
       ));
       toast.success('Tarefa atualizada com sucesso');
-      return data;
+      return transformedTask;
     } catch (err) {
       console.error('Error updating task:', err);
       toast.error('Erro ao atualizar tarefa');
@@ -170,7 +184,7 @@ export const useTasks = () => {
 
   const deleteTask = async (taskId: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('tasks')
         .delete()
         .eq('id', taskId);

@@ -16,7 +16,6 @@ export const useTaskTypes = () => {
 
   const fetchTaskTypes = async () => {
     try {
-      // Using raw query until types.ts is updated
       const { data, error } = await (supabase as any)
         .from('task_types')
         .select('*')
@@ -55,5 +54,9 @@ export const useTaskTypes = () => {
     fetchTaskTypes();
   }, []);
 
-  return { taskTypes, loading, addTaskType };
+  return { 
+    taskTypes, 
+    loading,
+    addTaskType
+  };
 };

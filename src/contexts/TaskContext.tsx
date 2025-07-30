@@ -45,7 +45,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     tasks, 
     loading, 
     error, 
-    createTask: addTask, 
+    createTask, 
     updateTask, 
     deleteTask, 
     refetch: refetchTasks 
@@ -73,6 +73,23 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return tasks.filter(task => task.squad === kanban.department);
   };
 
+  // Wrapper functions to match expected return types
+  const addTask = async (task: Partial<Task>): Promise<Task | undefined> => {
+    try {
+      return await createTask(task);
+    } catch (error) {
+      return undefined;
+    }
+  };
+
+  const updateTaskWrapper = async (id: string, updates: Partial<Task>): Promise<Task | undefined> => {
+    try {
+      return await updateTask(id, updates);
+    } catch (error) {
+      return undefined;
+    }
+  };
+
   // Show loading only during initial fetch
   if (loading && tasks.length === 0) {
     return (
@@ -89,7 +106,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         loading,
         error,
         addTask,
-        updateTask,
+        updateTask: updateTaskWrapper,
         deleteTask,
         refetchTasks,
         taskTypes,

@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
-import { TaskType, KanbanConfig } from '@/hooks/useKanbanConfigs';
+import { TaskType } from '@/hooks/useTaskTypes';
+import { KanbanConfig } from '@/hooks/useKanbanConfigs';
 import { useTaskContext } from '@/contexts/TaskContext';
 import { KanbanFormDialog } from './KanbanFormDialog';
 import {
