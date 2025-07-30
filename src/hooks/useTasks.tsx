@@ -70,15 +70,15 @@ export const useTasks = () => {
   const fetchTasks = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('tasks')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      // For now, just use the basic task data without complex joins
-      const transformedTasks: Task[] = (data || []).map((task) => ({
+      // Transform the data to match our Task interface
+      const transformedTasks: Task[] = (data || []).map((task: any) => ({
         ...task,
         watchers: [],
         comments: [],
@@ -101,7 +101,7 @@ export const useTasks = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('tasks')
         .insert([{
           ...taskData,
@@ -131,7 +131,7 @@ export const useTasks = () => {
 
   const updateTask = async (taskId: string, updates: Partial<Task>): Promise<Task | undefined> => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('tasks')
         .update({
           ...updates,
@@ -164,7 +164,7 @@ export const useTasks = () => {
 
   const deleteTask = async (taskId: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('tasks')
         .delete()
         .eq('id', taskId);
