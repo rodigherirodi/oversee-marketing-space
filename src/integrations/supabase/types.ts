@@ -130,6 +130,72 @@ export type Database = {
         }
         Relationships: []
       }
+      tarefas: {
+        Row: {
+          anexos: Json | null
+          atualizado_em: string
+          campos_customizados: Json | null
+          cliente: string | null
+          concluido_em: string | null
+          criado_em: string
+          criado_por: string | null
+          data_entrega: string | null
+          descricao: string | null
+          id: string
+          observadores: string[] | null
+          prioridade: Database["public"]["Enums"]["task_priority"]
+          projeto: string | null
+          responsavel: string
+          squad: string | null
+          status: Database["public"]["Enums"]["task_status"]
+          tags: string[] | null
+          tipo: string | null
+          titulo: string
+        }
+        Insert: {
+          anexos?: Json | null
+          atualizado_em?: string
+          campos_customizados?: Json | null
+          cliente?: string | null
+          concluido_em?: string | null
+          criado_em?: string
+          criado_por?: string | null
+          data_entrega?: string | null
+          descricao?: string | null
+          id?: string
+          observadores?: string[] | null
+          prioridade?: Database["public"]["Enums"]["task_priority"]
+          projeto?: string | null
+          responsavel: string
+          squad?: string | null
+          status?: Database["public"]["Enums"]["task_status"]
+          tags?: string[] | null
+          tipo?: string | null
+          titulo: string
+        }
+        Update: {
+          anexos?: Json | null
+          atualizado_em?: string
+          campos_customizados?: Json | null
+          cliente?: string | null
+          concluido_em?: string | null
+          criado_em?: string
+          criado_por?: string | null
+          data_entrega?: string | null
+          descricao?: string | null
+          id?: string
+          observadores?: string[] | null
+          prioridade?: Database["public"]["Enums"]["task_priority"]
+          projeto?: string | null
+          responsavel?: string
+          squad?: string | null
+          status?: Database["public"]["Enums"]["task_status"]
+          tags?: string[] | null
+          tipo?: string | null
+          titulo?: string
+        }
+        Relationships: []
+      }
       user_achievements: {
         Row: {
           badge: string
@@ -438,6 +504,8 @@ export type Database = {
         | "cultura"
         | "comercial"
         | "gestao"
+      task_priority: "low" | "medium" | "high"
+      task_status: "todo" | "in_progress" | "review" | "completed" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -573,6 +641,8 @@ export const Constants = {
         "comercial",
         "gestao",
       ],
+      task_priority: ["low", "medium", "high"],
+      task_status: ["todo", "in_progress", "review", "completed", "cancelled"],
     },
   },
 } as const

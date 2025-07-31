@@ -70,16 +70,32 @@ export const useTasks = () => {
   const fetchTasks = async () => {
     try {
       setLoading(true);
-      const { data, error } = await (supabase as any)
-        .from('tasks')
+      const { data, error } = await supabase
+        .from('tarefas')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('criado_em', { ascending: false });
 
       if (error) throw error;
 
       // Transform the data to match our Task interface
       const transformedTasks: Task[] = (data || []).map((task: any) => ({
-        ...task,
+        id: task.id,
+        title: task.titulo,
+        description: task.descricao || '',
+        status: task.status,
+        priority: task.prioridade,
+        type_id: task.tipo || 'task',
+        assignee_id: task.responsavel,
+        squad: task.squad || 'operacao',
+        client_id: task.cliente || '',
+        project_id: task.projeto,
+        due_date: task.data_entrega || '',
+        tags: task.tags || [],
+        custom_fields: task.campos_customizados || {},
+        created_at: task.criado_em,
+        updated_at: task.atualizado_em,
+        completed_at: task.concluido_em,
+        created_by: task.criado_por || '',
         watchers: [],
         comments: [],
         attachments: []
@@ -101,11 +117,22 @@ export const useTasks = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const { data, error } = await (supabase as any)
-        .from('tasks')
+      const { data, error } = await supabase
+        .from('tarefas')
         .insert([{
-          ...taskData,
-          created_by: user.id
+          titulo: taskData.title,
+          descricao: taskData.description,
+          status: taskData.status || 'todo',
+          prioridade: taskData.priority || 'medium',
+          responsavel: taskData.assignee_id,
+          cliente: taskData.client_id,
+          projeto: taskData.project_id,
+          data_entrega: taskData.due_date,
+          squad: taskData.squad || 'operacao',
+          tipo: taskData.type_id || 'task',
+          tags: taskData.tags || [],
+          campos_customizados: taskData.custom_fields || {},
+          criado_por: user.id
         }])
         .select()
         .single();
@@ -113,7 +140,23 @@ export const useTasks = () => {
       if (error) throw error;
 
       const transformedTask: Task = {
-        ...data,
+        id: data.id,
+        title: data.titulo,
+        description: data.descricao || '',
+        status: data.status,
+        priority: data.prioridade,
+        type_id: data.tipo || 'task',
+        assignee_id: data.responsavel,
+        squad: data.squad || 'operacao',
+        client_id: data.cliente || '',
+        project_id: data.projeto,
+        due_date: data.data_entrega || '',
+        tags: data.tags || [],
+        custom_fields: data.campos_customizados || {},
+        created_at: data.criado_em,
+        updated_at: data.atualizado_em,
+        completed_at: data.concluido_em,
+        created_by: data.criado_por || '',
         watchers: [],
         comments: [],
         attachments: []
@@ -131,12 +174,24 @@ export const useTasks = () => {
 
   const updateTask = async (taskId: string, updates: Partial<Task>): Promise<Task | undefined> => {
     try {
-      const { data, error } = await (supabase as any)
-        .from('tasks')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString()
-        })
+      const updateData: any = {};
+      
+      if (updates.title !== undefined) updateData.titulo = updates.title;
+      if (updates.description !== undefined) updateData.descricao = updates.description;
+      if (updates.status !== undefined) updateData.status = updates.status;
+      if (updates.priority !== undefined) updateData.prioridade = updates.priority;
+      if (updates.assignee_id !== undefined) updateData.responsavel = updates.assignee_id;
+      if (updates.client_id !== undefined) updateData.cliente = updates.client_id;
+      if (updates.project_id !== undefined) updateData.projeto = updates.project_id;
+      if (updates.due_date !== undefined) updateData.data_entrega = updates.due_date;
+      if (updates.squad !== undefined) updateData.squad = updates.squad;
+      if (updates.type_id !== undefined) updateData.tipo = updates.type_id;
+      if (updates.tags !== undefined) updateData.tags = updates.tags;
+      if (updates.custom_fields !== undefined) updateData.campos_customizados = updates.custom_fields;
+
+      const { data, error } = await supabase
+        .from('tarefas')
+        .update(updateData)
         .eq('id', taskId)
         .select()
         .single();
@@ -144,7 +199,23 @@ export const useTasks = () => {
       if (error) throw error;
 
       const transformedTask: Task = {
-        ...data,
+        id: data.id,
+        title: data.titulo,
+        description: data.descricao || '',
+        status: data.status,
+        priority: data.prioridade,
+        type_id: data.tipo || 'task',
+        assignee_id: data.responsavel,
+        squad: data.squad || 'operacao',
+        client_id: data.cliente || '',
+        project_id: data.projeto,
+        due_date: data.data_entrega || '',
+        tags: data.tags || [],
+        custom_fields: data.campos_customizados || {},
+        created_at: data.criado_em,
+        updated_at: data.atualizado_em,
+        completed_at: data.concluido_em,
+        created_by: data.criado_por || '',
         watchers: [],
         comments: [],
         attachments: []
@@ -164,8 +235,8 @@ export const useTasks = () => {
 
   const deleteTask = async (taskId: string) => {
     try {
-      const { error } = await (supabase as any)
-        .from('tasks')
+      const { error } = await supabase
+        .from('tarefas')
         .delete()
         .eq('id', taskId);
 
