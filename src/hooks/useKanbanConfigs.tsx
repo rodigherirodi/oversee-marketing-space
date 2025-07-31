@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export interface TaskStage {
@@ -26,34 +25,40 @@ export const useKanbanConfigs = () => {
 
   const fetchKanbanConfigs = async () => {
     try {
-      // Fetch kanban configs
-      const { data: configs, error: configError } = await supabase
-        .from('kanban_configs')
-        .select('*')
-        .order('name');
+      // Mock data until database is properly set up
+      const mockKanbanConfigs: KanbanConfig[] = [
+        {
+          id: 'geral',
+          name: 'Geral',
+          department: 'Geral',
+          color: '#6366F1',
+          stages: [
+            { id: 'todo', name: 'A Fazer', color: '#64748B', order_position: 0, kanban_config_id: 'geral' },
+            { id: 'doing', name: 'Em Andamento', color: '#3B82F6', order_position: 1, kanban_config_id: 'geral' },
+            { id: 'review', name: 'Em Revisão', color: '#F59E0B', order_position: 2, kanban_config_id: 'geral' },
+            { id: 'done', name: 'Concluído', color: '#10B981', order_position: 3, kanban_config_id: 'geral' }
+          ]
+        },
+        {
+          id: 'operacao',
+          name: 'Operação',
+          department: 'operacao',
+          color: '#3B82F6',
+          stages: [
+            { id: 'backlog', name: 'Backlog', color: '#64748B', order_position: 0, kanban_config_id: 'operacao' },
+            { id: 'development', name: 'Em Desenvolvimento', color: '#3B82F6', order_position: 1, kanban_config_id: 'operacao' },
+            { id: 'testing', name: 'Teste', color: '#F59E0B', order_position: 2, kanban_config_id: 'operacao' },
+            { id: 'deploy', name: 'Deploy', color: '#8B5CF6', order_position: 3, kanban_config_id: 'operacao' },
+            { id: 'finished', name: 'Finalizado', color: '#10B981', order_position: 4, kanban_config_id: 'operacao' }
+          ]
+        }
+      ];
 
-      if (configError) throw configError;
-
-      const { data: stages, error: stagesError } = await supabase
-        .from('task_stages')
-        .select('*')
-        .order('order_position');
-
-      if (stagesError) throw stagesError;
-
-      const configsWithStages: KanbanConfig[] = (configs || []).map((config: any) => ({
-        id: config.id,
-        name: config.name,
-        department: config.department,
-        color: config.color,
-        stages: (stages || []).filter((stage: any) => stage.kanban_config_id === config.id)
-      }));
-
-      setKanbanConfigs(configsWithStages);
+      setKanbanConfigs(mockKanbanConfigs);
       
       // Set default kanban if none selected
-      if (!currentKanban && configsWithStages.length > 0) {
-        const defaultKanban = configsWithStages.find(k => k.id === 'geral') || configsWithStages[0];
+      if (!currentKanban && mockKanbanConfigs.length > 0) {
+        const defaultKanban = mockKanbanConfigs.find(k => k.id === 'geral') || mockKanbanConfigs[0];
         setCurrentKanban(defaultKanban);
       }
       
@@ -67,19 +72,9 @@ export const useKanbanConfigs = () => {
 
   const addKanbanConfig = async (kanban: Omit<KanbanConfig, 'id' | 'stages'>): Promise<KanbanConfig | undefined> => {
     try {
-      const { data, error } = await supabase
-        .from('kanban_configs')
-        .insert([kanban])
-        .select()
-        .single();
-
-      if (error) throw error;
-
       const newKanban: KanbanConfig = {
-        id: data.id,
-        name: data.name,
-        department: data.department,
-        color: data.color,
+        id: Math.random().toString(36).substr(2, 9),
+        ...kanban,
         stages: []
       };
 
@@ -95,13 +90,6 @@ export const useKanbanConfigs = () => {
 
   const updateKanbanConfig = async (id: string, updates: Partial<KanbanConfig>) => {
     try {
-      const { error } = await supabase
-        .from('kanban_configs')
-        .update(updates)
-        .eq('id', id);
-
-      if (error) throw error;
-
       setKanbanConfigs(prev => prev.map(kanban => 
         kanban.id === id ? { ...kanban, ...updates } : kanban
       ));
@@ -120,13 +108,6 @@ export const useKanbanConfigs = () => {
 
   const deleteKanbanConfig = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('kanban_configs')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
       setKanbanConfigs(prev => prev.filter(kanban => kanban.id !== id));
       
       if (currentKanban && currentKanban.id === id) {
