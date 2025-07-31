@@ -9,8 +9,10 @@ import { WorkspaceProvider } from '@/contexts/WorkspaceContext';
 import { TrilhasProvider } from '@/contexts/TrilhasContext';
 import Tasks from '@/pages/Tasks';
 import Chat from '@/pages/Chat';
-import Profile from '@/pages/Profile';
 import Trilhas from '@/pages/Trilhas';
+import Projects from '@/pages/Projects';
+import Clients from '@/pages/Clients';
+import ClientProfile from '@/pages/ClientProfile';
 import { TaskProvider } from '@/contexts/TaskContext';
 
 const queryClient = new QueryClient();
@@ -49,18 +51,34 @@ function App() {
                         }
                       />
                       <Route
-                        path="/chat"
+                        path="/projects"
                         element={
                           <PrivateRoute>
-                            <Chat />
+                            <Projects />
                           </PrivateRoute>
                         }
                       />
                       <Route
-                        path="/profile"
+                        path="/clients"
                         element={
                           <PrivateRoute>
-                            <Profile />
+                            <Clients />
+                          </PrivateRoute>
+                        }
+                      />
+                      <Route
+                        path="/clients/:id"
+                        element={
+                          <PrivateRoute>
+                            <ClientProfile />
+                          </PrivateRoute>
+                        }
+                      />
+                      <Route
+                        path="/chat"
+                        element={
+                          <PrivateRoute>
+                            <Chat />
                           </PrivateRoute>
                         }
                       />
