@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export interface Task {
@@ -69,74 +70,22 @@ export const useTasks = () => {
   const fetchTasks = async () => {
     try {
       setLoading(true);
-      
-      // Mock data until database is properly set up
-      const mockTasks: Task[] = [
-        {
-          id: '1',
-          title: 'Implementar sistema de login',
-          description: 'Criar tela de login com validação e integração com Supabase',
-          status: 'todo',
-          priority: 'high',
-          type_id: 'feature',
-          assignee_id: 'user1',
-          squad: 'operacao',
-          client_id: 'client1',
-          due_date: '2025-02-15',
-          tags: ['frontend', 'auth'],
-          custom_fields: {},
-          created_at: '2025-01-31T10:00:00Z',
-          updated_at: '2025-01-31T10:00:00Z',
-          created_by: 'user1',
-          task_type: {
-            id: 'feature',
-            name: 'Funcionalidade',
-            color: '#10B981',
-            icon: '⭐'
-          },
-          assignee: {
-            id: 'user1',
-            name: 'João Silva',
-            email: 'joao@empresa.com'
-          },
-          watchers: [],
-          comments: [],
-          attachments: []
-        },
-        {
-          id: '2',
-          title: 'Corrigir bug na listagem de tarefas',
-          description: 'O filtro por status não está funcionando corretamente',
-          status: 'doing',
-          priority: 'medium',
-          type_id: 'bug',
-          assignee_id: 'user2',
-          squad: 'operacao',
-          client_id: 'client1',
-          due_date: '2025-02-10',
-          tags: ['bug', 'frontend'],
-          custom_fields: {},
-          created_at: '2025-01-30T14:30:00Z',
-          updated_at: '2025-01-31T09:15:00Z',
-          created_by: 'user2',
-          task_type: {
-            id: 'bug',
-            name: 'Bug',
-            color: '#EF4444',
-            icon: '🐛'
-          },
-          assignee: {
-            id: 'user2',
-            name: 'Maria Santos',
-            email: 'maria@empresa.com'
-          },
-          watchers: [],
-          comments: [],
-          attachments: []
-        }
-      ];
+      const { data, error } = await (supabase as any)
+        .from('tasks')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      setTasks(mockTasks);
+      if (error) throw error;
+
+      // Transform the data to match our Task interface
+      const transformedTasks: Task[] = (data || []).map((task: any) => ({
+        ...task,
+        watchers: [],
+        comments: [],
+        attachments: []
+      }));
+
+      setTasks(transformedTasks);
       setError(null);
     } catch (err) {
       console.error('Error fetching tasks:', err);
@@ -149,31 +98,30 @@ export const useTasks = () => {
 
   const createTask = async (taskData: Partial<Task>): Promise<Task | undefined> => {
     try {
-      const newTask: Task = {
-        id: Math.random().toString(36).substr(2, 9),
-        title: taskData.title || '',
-        description: taskData.description || '',
-        status: taskData.status || 'todo',
-        priority: taskData.priority || 'medium',
-        type_id: taskData.type_id || 'task',
-        assignee_id: taskData.assignee_id || '',
-        squad: taskData.squad || 'Geral',
-        client_id: taskData.client_id || '',
-        project_id: taskData.project_id,
-        due_date: taskData.due_date || new Date().toISOString().split('T')[0],
-        tags: taskData.tags || [],
-        custom_fields: taskData.custom_fields || {},
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        created_by: 'current-user',
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const { data, error } = await (supabase as any)
+        .from('tasks')
+        .insert([{
+          ...taskData,
+          created_by: user.id
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const transformedTask: Task = {
+        ...data,
         watchers: [],
         comments: [],
         attachments: []
       };
 
-      setTasks(prev => [newTask, ...prev]);
+      setTasks(prev => [transformedTask, ...prev]);
       toast.success('Tarefa criada com sucesso');
-      return newTask;
+      return transformedTask;
     } catch (err) {
       console.error('Error creating task:', err);
       toast.error('Erro ao criar tarefa');
@@ -183,18 +131,30 @@ export const useTasks = () => {
 
   const updateTask = async (taskId: string, updates: Partial<Task>): Promise<Task | undefined> => {
     try {
-      const updatedTask = {
-        ...updates,
-        updated_at: new Date().toISOString()
+      const { data, error } = await (supabase as any)
+        .from('tasks')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', taskId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const transformedTask: Task = {
+        ...data,
+        watchers: [],
+        comments: [],
+        attachments: []
       };
 
       setTasks(prev => prev.map(task => 
-        task.id === taskId ? { ...task, ...updatedTask } : task
+        task.id === taskId ? transformedTask : task
       ));
-      
-      const task = tasks.find(t => t.id === taskId);
       toast.success('Tarefa atualizada com sucesso');
-      return task ? { ...task, ...updatedTask } : undefined;
+      return transformedTask;
     } catch (err) {
       console.error('Error updating task:', err);
       toast.error('Erro ao atualizar tarefa');
@@ -204,6 +164,13 @@ export const useTasks = () => {
 
   const deleteTask = async (taskId: string) => {
     try {
+      const { error } = await (supabase as any)
+        .from('tasks')
+        .delete()
+        .eq('id', taskId);
+
+      if (error) throw error;
+
       setTasks(prev => prev.filter(task => task.id !== taskId));
       toast.success('Tarefa excluída com sucesso');
     } catch (err) {

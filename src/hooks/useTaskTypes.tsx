@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export interface TaskType {
@@ -15,15 +16,13 @@ export const useTaskTypes = () => {
 
   const fetchTaskTypes = async () => {
     try {
-      // Mock data until database is properly set up
-      const mockTaskTypes: TaskType[] = [
-        { id: 'task', name: 'Tarefa', color: '#3B82F6', icon: '📋' },
-        { id: 'bug', name: 'Bug', color: '#EF4444', icon: '🐛' },
-        { id: 'feature', name: 'Funcionalidade', color: '#10B981', icon: '⭐' },
-        { id: 'improvement', name: 'Melhoria', color: '#F59E0B', icon: '🔧' }
-      ];
+      const { data, error } = await (supabase as any)
+        .from('task_types')
+        .select('*')
+        .order('name');
 
-      setTaskTypes(mockTaskTypes);
+      if (error) throw error;
+      setTaskTypes(data || []);
     } catch (error) {
       console.error('Error fetching task types:', error);
       toast.error('Erro ao carregar tipos de tarefa');
@@ -34,9 +33,19 @@ export const useTaskTypes = () => {
 
   const addTaskType = async (taskType: Omit<TaskType, 'id'>): Promise<TaskType | undefined> => {
     try {
+      const { data, error } = await (supabase as any)
+        .from('task_types')
+        .insert([taskType])
+        .select()
+        .single();
+
+      if (error) throw error;
+
       const newTaskType: TaskType = {
-        id: Math.random().toString(36).substr(2, 9),
-        ...taskType
+        id: data.id,
+        name: data.name,
+        color: data.color,
+        icon: data.icon
       };
       
       setTaskTypes(prev => [...prev, newTaskType]);
