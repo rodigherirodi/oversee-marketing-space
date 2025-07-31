@@ -1,42 +1,21 @@
 
 import { useState } from 'react';
-import { Client } from '@/types/entities';
-import { mockClients } from '@/data/mockData';
-import { useToast } from '@/hooks/use-toast';
+
+export interface Client {
+  id: string;
+  name: string;
+}
 
 export const useClients = () => {
-  const [clients, setClients] = useState<Client[]>(mockClients);
-  const { toast } = useToast();
-
-  const addClient = (newClient: Omit<Client, 'id' | 'createdAt'>) => {
-    const client: Client = {
-      ...newClient,
-      id: `client-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      createdAt: new Date().toISOString(),
-    };
-    
-    setClients(prevClients => [client, ...prevClients]);
-    return client;
-  };
-
-  const updateClient = (id: string, updates: Partial<Client>) => {
-    setClients(prevClients => 
-      prevClients.map(client => 
-        client.id === id ? { ...client, ...updates } : client
-      )
-    );
-    
-    toast({
-      title: "Cliente atualizado",
-      description: "Os dados do cliente foram atualizados com sucesso.",
-    });
-  };
-
-  console.log('Clients loaded:', clients.length);
+  // Mock data for now - replace with actual API calls when clients table is created
+  const [clients] = useState<Client[]>([
+    { id: '1', name: 'Cliente A' },
+    { id: '2', name: 'Cliente B' },
+    { id: '3', name: 'Cliente C' }
+  ]);
 
   return {
     clients,
-    addClient,
-    updateClient,
+    loading: false
   };
 };

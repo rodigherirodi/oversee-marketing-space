@@ -1,26 +1,23 @@
 
 import { useState } from 'react';
-import { Project } from '@/types/entities';
-import { mockProjects } from '@/data/mockData';
+
+export interface Project {
+  id: string;
+  name: string;
+  clientId: string;
+}
 
 export const useProjects = () => {
-  const [projects, setProjects] = useState<Project[]>(mockProjects);
-
-  const addProject = (newProject: Omit<Project, 'id' | 'createdAt'>) => {
-    const project: Project = {
-      ...newProject,
-      id: `project-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      createdAt: new Date().toISOString(),
-    };
-    
-    setProjects(prevProjects => [project, ...prevProjects]);
-    return project;
-  };
-
-  console.log('Projects loaded:', projects.length);
+  // Mock data for now - replace with actual API calls when projects table is created
+  const [projects] = useState<Project[]>([
+    { id: '1', name: 'Projeto Alpha', clientId: '1' },
+    { id: '2', name: 'Projeto Beta', clientId: '1' },
+    { id: '3', name: 'Projeto Gamma', clientId: '2' },
+    { id: '4', name: 'Projeto Delta', clientId: '3' }
+  ]);
 
   return {
     projects,
-    addProject,
+    loading: false
   };
 };
