@@ -117,12 +117,17 @@ export const useTasks = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
+      // Ensure status is a valid enum value
+      const validStatus = taskData.status === 'todo' || taskData.status === 'in_progress' || 
+                         taskData.status === 'review' || taskData.status === 'completed' || 
+                         taskData.status === 'cancelled' ? taskData.status : 'todo';
+
       const { data, error } = await supabase
         .from('tarefas')
-        .insert([{
+        .insert({
           titulo: taskData.title,
           descricao: taskData.description,
-          status: taskData.status || 'todo',
+          status: validStatus,
           prioridade: taskData.priority || 'medium',
           responsavel: taskData.assignee_id,
           cliente: taskData.client_id,
@@ -133,7 +138,7 @@ export const useTasks = () => {
           tags: taskData.tags || [],
           campos_customizados: taskData.custom_fields || {},
           criado_por: user.id
-        }])
+        })
         .select()
         .single();
 
@@ -178,7 +183,13 @@ export const useTasks = () => {
       
       if (updates.title !== undefined) updateData.titulo = updates.title;
       if (updates.description !== undefined) updateData.descricao = updates.description;
-      if (updates.status !== undefined) updateData.status = updates.status;
+      if (updates.status !== undefined) {
+        // Ensure status is a valid enum value
+        const validStatus = updates.status === 'todo' || updates.status === 'in_progress' || 
+                           updates.status === 'review' || updates.status === 'completed' || 
+                           updates.status === 'cancelled' ? updates.status : 'todo';
+        updateData.status = validStatus;
+      }
       if (updates.priority !== undefined) updateData.prioridade = updates.priority;
       if (updates.assignee_id !== undefined) updateData.responsavel = updates.assignee_id;
       if (updates.client_id !== undefined) updateData.cliente = updates.client_id;
