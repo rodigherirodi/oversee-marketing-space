@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -10,10 +11,15 @@ export interface Task {
   priority: 'low' | 'medium' | 'high';
   type_id: string;
   assignee_id: string;
+  assignee: string; // Added for compatibility with TaskListView
   squad: string;
   client_id: string;
+  client: { name: string }; // Added for compatibility with TaskListView
   project_id?: string;
+  project?: { name: string }; // Added for compatibility with TaskListView
   due_date: string;
+  dueDate: string; // Added for compatibility with TaskListView
+  type: string; // Added for compatibility with TaskListView
   tags: string[];
   custom_fields: any;
   created_at: string;
@@ -27,12 +33,6 @@ export interface Task {
     name: string;
     color: string;
     icon: string;
-  };
-  assignee?: {
-    id: string;
-    name: string;
-    email: string;
-    avatar?: string;
   };
   watchers?: Array<{
     id: string;
@@ -86,11 +86,16 @@ export const useTasks = () => {
         status: task.status,
         priority: task.prioridade,
         type_id: task.tipo || 'task',
-        assignee_id: task.responsavel,
+        type: task.tipo || 'task', // For compatibility
+        assignee_id: task.responsavel || '',
+        assignee: task.responsavel || 'Não atribuído', // For compatibility with TaskListView
         squad: task.squad || 'operacao',
         client_id: task.cliente || '',
+        client: { name: task.cliente || 'Cliente não informado' }, // For compatibility
         project_id: task.projeto,
+        project: task.projeto ? { name: task.projeto } : undefined, // For compatibility
         due_date: task.data_entrega || '',
+        dueDate: task.data_entrega || '', // For compatibility
         tags: task.tags || [],
         custom_fields: task.campos_customizados || {},
         created_at: task.criado_em,
@@ -131,12 +136,12 @@ export const useTasks = () => {
           descricao: taskData.description,
           status: validStatus,
           prioridade: taskData.priority || 'medium',
-          responsavel: taskData.assignee_id,
-          cliente: taskData.client_id,
-          projeto: taskData.project_id,
-          data_entrega: taskData.due_date,
+          responsavel: taskData.assignee_id || taskData.assignee,
+          cliente: taskData.client_id || taskData.client?.name,
+          projeto: taskData.project_id || taskData.project?.name,
+          data_entrega: taskData.due_date || taskData.dueDate,
           squad: taskData.squad || 'operacao',
-          tipo: taskData.type_id || 'task',
+          tipo: taskData.type_id || taskData.type || 'task',
           tags: taskData.tags || [],
           campos_customizados: taskData.custom_fields || {},
           criado_por: user.id
@@ -153,11 +158,16 @@ export const useTasks = () => {
         status: data.status,
         priority: data.prioridade,
         type_id: data.tipo || 'task',
-        assignee_id: data.responsavel,
+        type: data.tipo || 'task',
+        assignee_id: data.responsavel || '',
+        assignee: data.responsavel || 'Não atribuído',
         squad: data.squad || 'operacao',
         client_id: data.cliente || '',
+        client: { name: data.cliente || 'Cliente não informado' },
         project_id: data.projeto,
+        project: data.projeto ? { name: data.projeto } : undefined,
         due_date: data.data_entrega || '',
+        dueDate: data.data_entrega || '',
         tags: data.tags || [],
         custom_fields: data.campos_customizados || {},
         created_at: data.criado_em,
@@ -193,12 +203,22 @@ export const useTasks = () => {
         updateData.status = validStatus;
       }
       if (updates.priority !== undefined) updateData.prioridade = updates.priority;
-      if (updates.assignee_id !== undefined) updateData.responsavel = updates.assignee_id;
-      if (updates.client_id !== undefined) updateData.cliente = updates.client_id;
-      if (updates.project_id !== undefined) updateData.projeto = updates.project_id;
-      if (updates.due_date !== undefined) updateData.data_entrega = updates.due_date;
+      if (updates.assignee_id !== undefined || updates.assignee !== undefined) {
+        updateData.responsavel = updates.assignee_id || updates.assignee;
+      }
+      if (updates.client_id !== undefined || updates.client?.name !== undefined) {
+        updateData.cliente = updates.client_id || updates.client?.name;
+      }
+      if (updates.project_id !== undefined || updates.project?.name !== undefined) {
+        updateData.projeto = updates.project_id || updates.project?.name;
+      }
+      if (updates.due_date !== undefined || updates.dueDate !== undefined) {
+        updateData.data_entrega = updates.due_date || updates.dueDate;
+      }
       if (updates.squad !== undefined) updateData.squad = updates.squad;
-      if (updates.type_id !== undefined) updateData.tipo = updates.type_id;
+      if (updates.type_id !== undefined || updates.type !== undefined) {
+        updateData.tipo = updates.type_id || updates.type;
+      }
       if (updates.tags !== undefined) updateData.tags = updates.tags;
       if (updates.custom_fields !== undefined) updateData.campos_customizados = updates.custom_fields;
 
@@ -218,11 +238,16 @@ export const useTasks = () => {
         status: data.status,
         priority: data.prioridade,
         type_id: data.tipo || 'task',
-        assignee_id: data.responsavel,
+        type: data.tipo || 'task',
+        assignee_id: data.responsavel || '',
+        assignee: data.responsavel || 'Não atribuído',
         squad: data.squad || 'operacao',
         client_id: data.cliente || '',
+        client: { name: data.cliente || 'Cliente não informado' },
         project_id: data.projeto,
+        project: data.projeto ? { name: data.projeto } : undefined,
         due_date: data.data_entrega || '',
+        dueDate: data.data_entrega || '',
         tags: data.tags || [],
         custom_fields: data.campos_customizados || {},
         created_at: data.criado_em,
