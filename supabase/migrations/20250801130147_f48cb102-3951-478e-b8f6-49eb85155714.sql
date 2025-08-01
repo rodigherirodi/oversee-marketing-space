@@ -1,0 +1,81 @@
+
+-- Inserir os 3 registros de exemplo na tabela tarefas (segunda tentativa com status corretos)
+INSERT INTO public.tarefas (
+  titulo, 
+  descricao, 
+  status, 
+  prioridade, 
+  responsavel, 
+  cliente, 
+  projeto, 
+  data_entrega, 
+  criado_em, 
+  atualizado_em, 
+  concluido_em, 
+  criado_por, 
+  squad, 
+  tipo, 
+  tags, 
+  campos_customizados,
+  observadores
+) VALUES 
+-- Registro 1: Landing page institucional
+(
+  'Criação de landing page institucional',
+  'Desenvolvimento de uma landing page responsiva com foco em captação de leads.',
+  'in_progress'::task_status,
+  'high'::task_priority,
+  'Ronaldo Rodigheri',
+  'TechCorp',
+  'Site Institucional 2024',
+  '2025-08-15',
+  NOW(),
+  NOW(),
+  NULL,
+  '8ccb9ce1-7e34-4c32-ba8f-5f9cd0bd9674'::uuid,
+  'Web',
+  'design',
+  ARRAY['institucional', 'site'],
+  '{"layout": "hero com formulário", "etapa": "em validação"}'::jsonb,
+  ARRAY[]::text[]
+),
+-- Registro 2: Estratégia de tráfego Black Friday
+(
+  'Estratégia de tráfego para campanha Black Friday',
+  'Planejamento e estruturação de campanhas de tráfego pago em Meta Ads e Google Ads.',
+  'todo'::task_status,
+  'medium'::task_priority,
+  'Ronaldo Rodigheri',
+  'Fashion Plus',
+  'Campanha Black Friday',
+  '2025-08-25',
+  NOW(),
+  NOW(),
+  NULL,
+  '8ccb9ce1-7e34-4c32-ba8f-5f9cd0bd9674'::uuid,
+  'Tráfego',
+  'performance',
+  ARRAY['campanha', 'tráfego pago'],
+  '{"budget": "R$ 3.000", "plataformas": ["Meta", "Google"]}'::jsonb,
+  ARRAY[]::text[]
+),
+-- Registro 3: Produção de vídeo para redes sociais
+(
+  'Produção de vídeo para redes sociais',
+  'Gravação e edição de vídeo vertical para Reels com roteiro e trilha personalizada.',
+  'completed'::task_status,
+  'low'::task_priority,
+  'Ronaldo Rodigheri',
+  'VitaCare',
+  'Conteúdo Setembro',
+  '2025-07-30',
+  '2025-07-10 10:00:00+00',
+  '2025-07-30 17:30:00+00',
+  '2025-07-30 17:30:00+00',
+  '8ccb9ce1-7e34-4c32-ba8f-5f9cd0bd9674'::uuid,
+  'Audiovisual',
+  'video',
+  ARRAY['social media', 'reels'],
+  '{"resolução": "1080x1920", "plataforma": "Instagram"}'::jsonb,
+  ARRAY[]::text[]
+);

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -77,6 +76,8 @@ export const useTasks = () => {
 
       if (error) throw error;
 
+      console.log('Raw data from tarefas:', data);
+
       // Transform the data to match our Task interface
       const transformedTasks: Task[] = (data || []).map((task: any) => ({
         id: task.id,
@@ -101,6 +102,7 @@ export const useTasks = () => {
         attachments: []
       }));
 
+      console.log('Transformed tasks:', transformedTasks);
       setTasks(transformedTasks);
       setError(null);
     } catch (err) {
