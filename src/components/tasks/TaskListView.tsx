@@ -147,10 +147,10 @@ export const TaskListView: React.FC<TaskListViewProps> = ({
           {sortedTasks.map((task) => {
             const taskType = getTaskType(task.type);
             const isOverdue = new Date(task.dueDate) < new Date();
-            // Handle assignee - it can be either a string or an object with name property
+            // Handle assignee - ensure it's always a string for compatibility
             const assigneeName = typeof task.assignee === 'string' 
               ? task.assignee 
-              : task.assignee || 'Não atribuído';
+              : (task.assignee?.name || 'Não atribuído');
             
             return (
               <TableRow 
@@ -193,9 +193,9 @@ export const TaskListView: React.FC<TaskListViewProps> = ({
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-medium">
-                      {assigneeName.split(' ').map(n => n[0]).join('')}
+                      {assigneeName && assigneeName.split(' ').map(n => n[0]).join('')}
                     </div>
-                    <span className="text-sm">{assigneeName.split(' ')[0]}</span>
+                    <span className="text-sm">{assigneeName && assigneeName.split(' ')[0]}</span>
                   </div>
                 </TableCell>
                 <TableCell>
