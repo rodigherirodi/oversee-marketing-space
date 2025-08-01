@@ -147,7 +147,10 @@ export const TaskListView: React.FC<TaskListViewProps> = ({
           {sortedTasks.map((task) => {
             const taskType = getTaskType(task.type);
             const isOverdue = new Date(task.dueDate) < new Date();
-            const assigneeName = task.assignee?.name || 'Não atribuído';
+            // Handle assignee - it can be either a string or an object with name property
+            const assigneeName = typeof task.assignee === 'string' 
+              ? task.assignee 
+              : task.assignee || 'Não atribuído';
             
             return (
               <TableRow 
