@@ -97,6 +97,13 @@ export const TaskListView: React.FC<TaskListViewProps> = ({
     return date.toLocaleDateString('pt-BR');
   };
 
+  const getAssigneeName = (assignee: any): string => {
+    if (!assignee) return 'Não atribuído';
+    if (typeof assignee === 'string') return assignee;
+    if (typeof assignee === 'object' && assignee.name) return assignee.name;
+    return 'Não atribuído';
+  };
+
   return (
     <div className="bg-white rounded-lg border">
       <Table>
@@ -147,16 +154,7 @@ export const TaskListView: React.FC<TaskListViewProps> = ({
           {sortedTasks.map((task) => {
             const taskType = getTaskType(task.type);
             const isOverdue = new Date(task.dueDate) < new Date();
-            
-            // Handle assignee - safely extract name regardless of type
-            let assigneeName = 'Não atribuído';
-            if (task.assignee) {
-              if (typeof task.assignee === 'string') {
-                assigneeName = task.assignee;
-              } else if (typeof task.assignee === 'object' && 'name' in task.assignee) {
-                assigneeName = task.assignee.name || 'Não atribuído';
-              }
-            }
+            const assigneeName = getAssigneeName(task.assignee);
             
             return (
               <TableRow 
@@ -199,7 +197,7 @@ export const TaskListView: React.FC<TaskListViewProps> = ({
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-medium">
-                      {assigneeName && assigneeName !== 'Não atribuído' 
+                      {assigneeName !== 'Não atribuído' 
                         ? assigneeName.split(' ').map(n => n[0]).join('').toUpperCase()
                         : '?'
                       }
