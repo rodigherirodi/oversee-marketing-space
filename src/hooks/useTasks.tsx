@@ -68,14 +68,19 @@ export const useTasks = () => {
   const fetchTasks = async () => {
     try {
       setLoading(true);
+      
+      // Query tarefas and join with profiles to get the responsible person's name
       const { data, error } = await supabase
-        .from('tarefas_com_responsavel')
-        .select('*')
+        .from('tarefas')
+        .select(`
+          *,
+          profiles!inner(name)
+        `)
         .order('criado_em', { ascending: false });
 
       if (error) throw error;
 
-      console.log('Raw data from tarefas_com_responsavel:', data);
+      console.log('Raw data from tarefas with profiles:', data);
 
       // Transform the data to match our Task interface
       const transformedTasks: Task[] = (data || []).map((task: any) => ({
@@ -87,7 +92,7 @@ export const useTasks = () => {
         type_id: task.tipo || 'task',
         type: task.tipo || 'task', // For compatibility
         assignee_id: task.responsavel || '',
-        assignee: { name: task.responsavel_nome || 'Não atribuído' }, // Use responsavel_nome from view
+        assignee: { name: task.profiles?.name || 'Não atribuído' }, // Use name from profiles join
         squad: task.squad || 'operacao',
         client_id: task.cliente || '',
         client: { name: task.cliente || 'Cliente não informado' }, // For compatibility
