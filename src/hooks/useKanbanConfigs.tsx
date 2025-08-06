@@ -41,12 +41,12 @@ export const useKanbanConfigs = () => {
 
       if (stagesError) throw stagesError;
 
-      const configsWithStages: KanbanConfig[] = (configs || []).map((config: any) => ({
+      const configsWithStages: KanbanConfig[] = (configs || []).map((config) => ({
         id: config.id,
         name: config.name,
         department: config.department,
         color: config.color,
-        stages: (stages || []).filter((stage: any) => stage.kanban_config_id === config.id)
+        stages: (stages || []).filter((stage) => stage.kanban_config_id === config.id)
       }));
 
       setKanbanConfigs(configsWithStages);
@@ -67,9 +67,19 @@ export const useKanbanConfigs = () => {
 
   const addKanbanConfig = async (kanban: Omit<KanbanConfig, 'id' | 'stages'>): Promise<KanbanConfig | undefined> => {
     try {
+      // Generate a unique ID for the kanban config
+      const kanbanId = kanban.name.toLowerCase().replace(/\s+/g, '_');
+      
+      const kanbanData = {
+        id: kanbanId,
+        name: kanban.name,
+        department: kanban.department,
+        color: kanban.color
+      };
+
       const { data, error } = await supabase
         .from('kanban_configs')
-        .insert([kanban])
+        .insert(kanbanData)
         .select()
         .single();
 
