@@ -118,6 +118,16 @@ export const TaskListView: React.FC<TaskListViewProps> = ({
     return 'Squad não informado';
   };
 
+  const getAssigneeInitials = (assigneeName: string): string => {
+    if (assigneeName === 'Não atribuído') return '?';
+    return assigneeName.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
+
+  const getAssigneeDisplayName = (assigneeName: string): string => {
+    if (assigneeName === 'Não atribuído') return assigneeName;
+    return assigneeName.split(' ')[0];
+  };
+
   return (
     <div className="bg-white rounded-lg border">
       <Table>
@@ -171,6 +181,8 @@ export const TaskListView: React.FC<TaskListViewProps> = ({
             const assigneeName = getAssigneeName(task.assignee);
             const clientName = getClientName(task.client);
             const squadName = getSquadName(task.squad);
+            const assigneeInitials = getAssigneeInitials(assigneeName);
+            const assigneeDisplayName = getAssigneeDisplayName(assigneeName);
             
             return (
               <TableRow 
@@ -213,13 +225,10 @@ export const TaskListView: React.FC<TaskListViewProps> = ({
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-medium">
-                      {assigneeName !== 'Não atribuído' 
-                        ? assigneeName.split(' ').map(n => n[0]).join('').toUpperCase()
-                        : '?'
-                      }
+                      {assigneeInitials}
                     </div>
                     <span className="text-sm">
-                      {assigneeName !== 'Não atribuído' ? assigneeName.split(' ')[0] : assigneeName}
+                      {assigneeDisplayName}
                     </span>
                   </div>
                 </TableCell>
