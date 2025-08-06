@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -70,13 +69,13 @@ export const useTasks = () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('tarefas')
+        .from('tarefas_com_responsavel')
         .select('*')
         .order('criado_em', { ascending: false });
 
       if (error) throw error;
 
-      console.log('Raw data from tarefas:', data);
+      console.log('Raw data from tarefas_com_responsavel:', data);
 
       // Transform the data to match our Task interface
       const transformedTasks: Task[] = (data || []).map((task: any) => ({
@@ -88,7 +87,7 @@ export const useTasks = () => {
         type_id: task.tipo || 'task',
         type: task.tipo || 'task', // For compatibility
         assignee_id: task.responsavel || '',
-        assignee: { name: task.responsavel || 'Não atribuído' }, // Map as object with name property
+        assignee: { name: task.responsavel_nome || 'Não atribuído' }, // Use responsavel_nome from view
         squad: task.squad || 'operacao',
         client_id: task.cliente || '',
         client: { name: task.cliente || 'Cliente não informado' }, // For compatibility
