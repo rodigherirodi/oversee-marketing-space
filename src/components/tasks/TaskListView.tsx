@@ -128,6 +128,18 @@ export const TaskListView: React.FC<TaskListViewProps> = ({
     return assigneeName.split(' ')[0];
   };
 
+  const getTaskTypeIcon = (taskType: TaskType | undefined): string => {
+    if (!taskType || !taskType.icon) return '';
+    if (typeof taskType.icon === 'string') return taskType.icon;
+    return '';
+  };
+
+  const getTaskTypeName = (taskType: TaskType | undefined): string => {
+    if (!taskType) return 'Tipo não definido';
+    if (typeof taskType.name === 'string') return taskType.name;
+    return 'Tipo não definido';
+  };
+
   return (
     <div className="bg-white rounded-lg border">
       <Table>
@@ -183,6 +195,8 @@ export const TaskListView: React.FC<TaskListViewProps> = ({
             const squadName = getSquadName(task.squad);
             const assigneeInitials = getAssigneeInitials(assigneeName);
             const assigneeDisplayName = getAssigneeDisplayName(assigneeName);
+            const taskTypeIcon = getTaskTypeIcon(taskType);
+            const taskTypeName = getTaskTypeName(taskType);
             
             return (
               <TableRow 
@@ -210,7 +224,7 @@ export const TaskListView: React.FC<TaskListViewProps> = ({
                         color: taskType.color 
                       }}
                     >
-                      {taskType.icon} {taskType.name}
+                      {taskTypeIcon} {taskTypeName}
                     </Badge>
                   )}
                 </TableCell>
