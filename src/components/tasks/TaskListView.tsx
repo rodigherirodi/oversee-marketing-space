@@ -104,6 +104,20 @@ export const TaskListView: React.FC<TaskListViewProps> = ({
     return 'Não atribuído';
   };
 
+  const getClientName = (client: any): string => {
+    if (!client) return 'Cliente não informado';
+    if (typeof client === 'string') return client;
+    if (typeof client === 'object' && client.name) return client.name;
+    return 'Cliente não informado';
+  };
+
+  const getSquadName = (squad: any): string => {
+    if (!squad) return 'Squad não informado';
+    if (typeof squad === 'string') return squad;
+    if (typeof squad === 'object' && squad.name) return squad.name;
+    return 'Squad não informado';
+  };
+
   return (
     <div className="bg-white rounded-lg border">
       <Table>
@@ -155,6 +169,8 @@ export const TaskListView: React.FC<TaskListViewProps> = ({
             const taskType = getTaskType(task.type);
             const isOverdue = new Date(task.dueDate) < new Date();
             const assigneeName = getAssigneeName(task.assignee);
+            const clientName = getClientName(task.client);
+            const squadName = getSquadName(task.squad);
             
             return (
               <TableRow 
@@ -209,13 +225,13 @@ export const TaskListView: React.FC<TaskListViewProps> = ({
                 </TableCell>
                 <TableCell>
                   <Badge variant="outline" className="text-xs">
-                    {task.squad}
+                    {squadName}
                   </Badge>
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-1">
                     <Building2 className="w-3 h-3 text-gray-400" />
-                    <span className="text-sm text-gray-600">{task.client.name}</span>
+                    <span className="text-sm text-gray-600">{clientName}</span>
                   </div>
                 </TableCell>
                 <TableCell>
