@@ -26,15 +26,15 @@ export const useKanbanConfigs = () => {
 
   const fetchKanbanConfigs = async () => {
     try {
-      // Fetch kanban configs with type assertion
-      const { data: configs, error: configError } = await (supabase as any)
+      // Fetch kanban configs
+      const { data: configs, error: configError } = await supabase
         .from('kanban_configs')
         .select('*')
         .order('name');
 
       if (configError) throw configError;
 
-      const { data: stages, error: stagesError } = await (supabase as any)
+      const { data: stages, error: stagesError } = await supabase
         .from('task_stages')
         .select('*')
         .order('order_position');
@@ -67,7 +67,7 @@ export const useKanbanConfigs = () => {
 
   const addKanbanConfig = async (kanban: Omit<KanbanConfig, 'id' | 'stages'>): Promise<KanbanConfig | undefined> => {
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('kanban_configs')
         .insert([kanban])
         .select()
@@ -95,7 +95,7 @@ export const useKanbanConfigs = () => {
 
   const updateKanbanConfig = async (id: string, updates: Partial<KanbanConfig>) => {
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('kanban_configs')
         .update(updates)
         .eq('id', id);
@@ -120,7 +120,7 @@ export const useKanbanConfigs = () => {
 
   const deleteKanbanConfig = async (id: string) => {
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('kanban_configs')
         .delete()
         .eq('id', id);

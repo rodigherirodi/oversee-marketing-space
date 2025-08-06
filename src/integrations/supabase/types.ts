@@ -49,6 +49,33 @@ export type Database = {
           },
         ]
       }
+      kanban_configs: {
+        Row: {
+          color: string
+          created_at: string
+          department: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          department?: string
+          id: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          department?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           active_projects_count: number | null
@@ -130,6 +157,60 @@ export type Database = {
         }
         Relationships: []
       }
+      projetos: {
+        Row: {
+          atualizado_em: string | null
+          briefing: string | null
+          cliente: string | null
+          criado_em: string | null
+          data_entrega: string | null
+          data_inicio: string | null
+          equipe: string | null
+          escopo: string | null
+          id: string
+          materiais: Json | null
+          observacoes: string | null
+          responsavel: string | null
+          status: string | null
+          tags: string[] | null
+          titulo: string
+        }
+        Insert: {
+          atualizado_em?: string | null
+          briefing?: string | null
+          cliente?: string | null
+          criado_em?: string | null
+          data_entrega?: string | null
+          data_inicio?: string | null
+          equipe?: string | null
+          escopo?: string | null
+          id?: string
+          materiais?: Json | null
+          observacoes?: string | null
+          responsavel?: string | null
+          status?: string | null
+          tags?: string[] | null
+          titulo: string
+        }
+        Update: {
+          atualizado_em?: string | null
+          briefing?: string | null
+          cliente?: string | null
+          criado_em?: string | null
+          data_entrega?: string | null
+          data_inicio?: string | null
+          equipe?: string | null
+          escopo?: string | null
+          id?: string
+          materiais?: Json | null
+          observacoes?: string | null
+          responsavel?: string | null
+          status?: string | null
+          tags?: string[] | null
+          titulo?: string
+        }
+        Relationships: []
+      }
       tarefas: {
         Row: {
           anexos: Json | null
@@ -194,7 +275,53 @@ export type Database = {
           tipo?: string | null
           titulo?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_responsavel_profile"
+            columns: ["responsavel"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_stages: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          kanban_config_id: string
+          name: string
+          order_position: number
+          updated_at: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id: string
+          kanban_config_id: string
+          name: string
+          order_position: number
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          kanban_config_id?: string
+          name?: string
+          order_position?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_stages_kanban_config_id_fkey"
+            columns: ["kanban_config_id"]
+            isOneToOne: false
+            referencedRelation: "kanban_configs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_achievements: {
         Row: {
@@ -481,7 +608,29 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      tarefas_com_responsavel: {
+        Row: {
+          atualizado_em: string | null
+          campos_customizados: Json | null
+          cliente: string | null
+          concluido_em: string | null
+          criado_em: string | null
+          criado_por: string | null
+          data_entrega: string | null
+          descricao: string | null
+          id: string | null
+          observadores: string[] | null
+          prioridade: Database["public"]["Enums"]["task_priority"] | null
+          projeto: string | null
+          responsavel_nome: string | null
+          squad: string | null
+          status: Database["public"]["Enums"]["task_status"] | null
+          tags: string[] | null
+          tipo: string | null
+          titulo: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_current_user_role: {
