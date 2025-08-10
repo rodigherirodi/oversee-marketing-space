@@ -25,7 +25,18 @@ export const useTaskTypes = () => {
         .order('name');
 
       if (error) throw error;
-      setTaskTypes(data || []);
+      
+      // Transform data to match TaskType interface
+      const transformedTypes: TaskType[] = (data || []).map((type: any) => ({
+        id: type.id,
+        name: type.name,
+        color: type.color || '#3B82F6',
+        icon: type.icon || '📋',
+        slug: type.slug,
+        description: type.description
+      }));
+      
+      setTaskTypes(transformedTypes);
     } catch (error) {
       console.error('Error fetching task types:', error);
       toast.error('Erro ao carregar tipos de tarefa');
@@ -38,7 +49,13 @@ export const useTaskTypes = () => {
     try {
       const { data, error } = await supabase
         .from('task_types')
-        .insert([taskType])
+        .insert([{
+          name: taskType.name,
+          slug: taskType.slug,
+          description: taskType.description,
+          icon: taskType.icon,
+          color: taskType.color
+        }])
         .select()
         .single();
 
@@ -47,8 +64,8 @@ export const useTaskTypes = () => {
       const newTaskType: TaskType = {
         id: data.id,
         name: data.name,
-        color: data.color,
-        icon: data.icon,
+        color: data.color || '#3B82F6',
+        icon: data.icon || '📋',
         slug: data.slug,
         description: data.description
       };

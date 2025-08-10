@@ -31,13 +31,15 @@ export const TaskAttachmentsSection: React.FC<TaskAttachmentsSectionProps> = ({ 
 
   const fetchAttachments = async () => {
     try {
-      // Use raw SQL query to fetch from task_attachments table
+      // Direct query to task_attachments table (fallback if RPC doesn't exist)
       const { data, error } = await supabase
-        .rpc('get_task_attachments', { task_id_param: taskId });
+        .from('task_attachments' as any)
+        .select('*')
+        .eq('task_id', taskId)
+        .order('uploaded_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching attachments:', error);
-        // Fallback to empty array if function doesn't exist yet
         setAttachments([]);
       } else {
         setAttachments(data || []);
@@ -71,16 +73,19 @@ export const TaskAttachmentsSection: React.FC<TaskAttachmentsSectionProps> = ({ 
         .from('task-attachments')
         .getPublicUrl(fileName);
 
-      // Save to database using RPC function
+      // Save to database using direct insert
       const { data, error } = await supabase
-        .rpc('insert_task_attachment', {
-          task_id_param: taskId,
-          name_param: file.name,
-          url_param: publicUrl,
-          file_type_param: file.type,
-          file_size_param: file.size,
-          uploaded_by_param: user.id
-        });
+        .from('task_attachments' as any)
+        .insert({
+          task_id: taskId,
+          name: file.name,
+          url: publicUrl,
+          file_type: file.type,
+          file_size: file.size,
+          uploaded_by: user.id
+        })
+        .select()
+        .single();
 
       if (error) {
         console.error('Error saving attachment:', error);
@@ -125,9 +130,11 @@ export const TaskAttachmentsSection: React.FC<TaskAttachmentsSectionProps> = ({ 
         console.warn('Storage deletion failed:', storageError);
       }
 
-      // Delete from database using RPC function
+      // Delete from database using direct delete
       const { error: dbError } = await supabase
-        .rpc('delete_task_attachment', { attachment_id_param: attachmentId });
+        .from('task_attachments' as any)
+        .delete()
+        .eq('id', attachmentId);
 
       if (dbError) {
         console.error('Error deleting from database:', dbError);

@@ -36,15 +36,31 @@ export const TaskCommentsSection: React.FC<TaskCommentsSectionProps> = ({ taskId
 
   const fetchComments = async () => {
     try {
-      // Use RPC function to fetch comments with author info
+      // Direct query with join to get author info
       const { data, error } = await supabase
-        .rpc('get_task_comments', { task_id_param: taskId });
+        .from('task_comments' as any)
+        .select(`
+          *,
+          author:profiles!task_comments_author_id_fkey(name)
+        `)
+        .eq('task_id', taskId)
+        .order('created_at', { ascending: true });
 
       if (error) {
         console.error('Error fetching comments:', error);
         setComments([]);
       } else {
-        setComments(data || []);
+        const formattedComments = (data || []).map((comment: any) => ({
+          id: comment.id,
+          content: comment.content,
+          author_id: comment.author_id,
+          created_at: comment.created_at,
+          author: {
+            name: comment.author?.name || 'Usuário',
+            avatar: undefined
+          }
+        }));
+        setComments(formattedComments);
       }
     } catch (err) {
       console.error('Error fetching comments:', err);
@@ -62,13 +78,19 @@ export const TaskCommentsSection: React.FC<TaskCommentsSectionProps> = ({ taskId
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // Use RPC function to insert comment
+      // Direct insert to task_comments table
       const { data, error } = await supabase
-        .rpc('insert_task_comment', {
-          task_id_param: taskId,
-          content_param: newComment.trim(),
-          author_id_param: user.id
-        });
+        .from('task_comments' as any)
+        .insert({
+          task_id: taskId,
+          content: newComment.trim(),
+          author_id: user.id
+        })
+        .select(`
+          *,
+          author:profiles!task_comments_author_id_fkey(name)
+        `)
+        .single();
 
       if (error) {
         console.error('Error adding comment:', error);
@@ -91,8 +113,18 @@ export const TaskCommentsSection: React.FC<TaskCommentsSectionProps> = ({ taskId
         };
         setComments(prev => [...prev, newCommentObj]);
       } else {
-        // Refresh comments list
-        fetchComments();
+        // Add the new comment to state
+        const formattedComment: Comment = {
+          id: data.id,
+          content: data.content,
+          author_id: data.author_id,
+          created_at: data.created_at,
+          author: {
+            name: data.author?.name || 'Usuário',
+            avatar: undefined
+          }
+        };
+        setComments(prev => [...prev, formattedComment]);
       }
 
       setNewComment('');

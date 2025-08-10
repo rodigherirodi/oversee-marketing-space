@@ -73,7 +73,7 @@ export const useTasks = () => {
         .from('tarefas')
         .select(`
           *,
-          assignee:profiles!tarefas_responsavel_fkey(name)
+          profiles!tarefas_responsavel_fkey(name)
         `)
         .order('criado_em', { ascending: false });
 
@@ -90,7 +90,7 @@ export const useTasks = () => {
         type_id: task.tipo_id || task.tipo || 'task',
         type: task.tipo || 'task',
         assignee_id: task.responsavel || '',
-        assignee: { name: task.assignee?.name || 'Não atribuído' },
+        assignee: { name: task.profiles?.name || 'Não atribuído' },
         squad: task.squad || 'operacao',
         client_id: task.cliente || '',
         client: { name: task.cliente || 'Cliente não informado' },
@@ -150,7 +150,7 @@ export const useTasks = () => {
         })
         .select(`
           *,
-          assignee:profiles!tarefas_responsavel_fkey(name)
+          profiles!tarefas_responsavel_fkey(name)
         `)
         .single();
 
@@ -165,7 +165,7 @@ export const useTasks = () => {
         type_id: data.tipo_id || data.tipo || 'task',
         type: data.tipo || 'task',
         assignee_id: data.responsavel || '',
-        assignee: { name: data.assignee?.name || 'Não atribuído' },
+        assignee: { name: data.profiles?.name || 'Não atribuído' },
         squad: data.squad || 'operacao',
         client_id: data.cliente || '',
         client: { name: data.cliente || 'Cliente não informado' },
@@ -233,7 +233,7 @@ export const useTasks = () => {
         .eq('id', taskId)
         .select(`
           *,
-          assignee:profiles!tarefas_responsavel_fkey(name)
+          profiles!tarefas_responsavel_fkey(name)
         `)
         .single();
 
@@ -248,7 +248,7 @@ export const useTasks = () => {
         type_id: data.tipo_id || data.tipo || 'task',
         type: data.tipo || 'task',
         assignee_id: data.responsavel || '',
-        assignee: { name: data.assignee?.name || 'Não atribuído' },
+        assignee: { name: data.profiles?.name || 'Não atribuído' },
         squad: data.squad || 'operacao',
         client_id: data.cliente || '',
         client: { name: data.cliente || 'Cliente não informado' },

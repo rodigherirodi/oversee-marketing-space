@@ -55,10 +55,14 @@ export const TaskConfigDialog: React.FC<TaskConfigDialogProps> = ({
 
   const handleAddTaskType = async () => {
     if (newTypeName.trim()) {
+      // Generate slug from name
+      const slug = newTypeName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      
       await addTaskType({
         name: newTypeName,
         color: newTypeColor,
         icon: newTypeIcon || '📝',
+        slug: slug,
       });
       setNewTypeName('');
       setNewTypeIcon('');
