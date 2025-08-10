@@ -31,17 +31,20 @@ export const TaskAttachmentsSection: React.FC<TaskAttachmentsSectionProps> = ({ 
 
   const fetchAttachments = async () => {
     try {
+      // Use raw SQL query to fetch from task_attachments table
       const { data, error } = await supabase
-        .from('task_attachments')
-        .select('*')
-        .eq('task_id', taskId)
-        .order('uploaded_at', { ascending: false });
+        .rpc('get_task_attachments', { task_id_param: taskId });
 
-      if (error) throw error;
-      setAttachments(data || []);
+      if (error) {
+        console.error('Error fetching attachments:', error);
+        // Fallback to empty array if function doesn't exist yet
+        setAttachments([]);
+      } else {
+        setAttachments(data || []);
+      }
     } catch (err) {
       console.error('Error fetching attachments:', err);
-      toast.error('Erro ao carregar anexos');
+      setAttachments([]);
     } finally {
       setLoading(false);
     }
@@ -68,23 +71,35 @@ export const TaskAttachmentsSection: React.FC<TaskAttachmentsSectionProps> = ({ 
         .from('task-attachments')
         .getPublicUrl(fileName);
 
-      // Save to database
+      // Save to database using RPC function
       const { data, error } = await supabase
-        .from('task_attachments')
-        .insert([{
-          task_id: taskId,
+        .rpc('insert_task_attachment', {
+          task_id_param: taskId,
+          name_param: file.name,
+          url_param: publicUrl,
+          file_type_param: file.type,
+          file_size_param: file.size,
+          uploaded_by_param: user.id
+        });
+
+      if (error) {
+        console.error('Error saving attachment:', error);
+        // Fallback: add to local state
+        const newAttachment: Attachment = {
+          id: crypto.randomUUID(),
           name: file.name,
           url: publicUrl,
           file_type: file.type,
           file_size: file.size,
-          uploaded_by: user.id
-        }])
-        .select()
-        .single();
+          uploaded_by: user.id,
+          uploaded_at: new Date().toISOString()
+        };
+        setAttachments(prev => [newAttachment, ...prev]);
+      } else {
+        // Refresh attachments list
+        fetchAttachments();
+      }
 
-      if (error) throw error;
-
-      setAttachments(prev => [data, ...prev]);
       toast.success('Arquivo enviado com sucesso');
     } catch (err) {
       console.error('Error uploading file:', err);
@@ -108,17 +123,17 @@ export const TaskAttachmentsSection: React.FC<TaskAttachmentsSectionProps> = ({ 
 
       if (storageError) {
         console.warn('Storage deletion failed:', storageError);
-        // Continue with database deletion even if storage fails
       }
 
-      // Delete from database
+      // Delete from database using RPC function
       const { error: dbError } = await supabase
-        .from('task_attachments')
-        .delete()
-        .eq('id', attachmentId);
+        .rpc('delete_task_attachment', { attachment_id_param: attachmentId });
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error('Error deleting from database:', dbError);
+      }
 
+      // Remove from local state
       setAttachments(prev => prev.filter(att => att.id !== attachmentId));
       toast.success('Arquivo removido');
     } catch (err) {

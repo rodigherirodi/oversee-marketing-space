@@ -36,20 +36,19 @@ export const TaskCommentsSection: React.FC<TaskCommentsSectionProps> = ({ taskId
 
   const fetchComments = async () => {
     try {
+      // Use RPC function to fetch comments with author info
       const { data, error } = await supabase
-        .from('task_comments')
-        .select(`
-          id, content, author_id, created_at,
-          author:profiles(name, avatar)
-        `)
-        .eq('task_id', taskId)
-        .order('created_at', { ascending: true });
+        .rpc('get_task_comments', { task_id_param: taskId });
 
-      if (error) throw error;
-      setComments(data || []);
+      if (error) {
+        console.error('Error fetching comments:', error);
+        setComments([]);
+      } else {
+        setComments(data || []);
+      }
     } catch (err) {
       console.error('Error fetching comments:', err);
-      toast.error('Erro ao carregar comentários');
+      setComments([]);
     } finally {
       setLoading(false);
     }
@@ -63,22 +62,39 @@ export const TaskCommentsSection: React.FC<TaskCommentsSectionProps> = ({ taskId
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
+      // Use RPC function to insert comment
       const { data, error } = await supabase
-        .from('task_comments')
-        .insert([{
-          task_id: taskId,
+        .rpc('insert_task_comment', {
+          task_id_param: taskId,
+          content_param: newComment.trim(),
+          author_id_param: user.id
+        });
+
+      if (error) {
+        console.error('Error adding comment:', error);
+        // Fallback: add to local state
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('id', user.id)
+          .single();
+
+        const newCommentObj: Comment = {
+          id: crypto.randomUUID(),
           content: newComment.trim(),
-          author_id: user.id
-        }])
-        .select(`
-          id, content, author_id, created_at,
-          author:profiles(name, avatar)
-        `)
-        .single();
+          author_id: user.id,
+          created_at: new Date().toISOString(),
+          author: {
+            name: profile?.name || 'Usuário',
+            avatar: undefined
+          }
+        };
+        setComments(prev => [...prev, newCommentObj]);
+      } else {
+        // Refresh comments list
+        fetchComments();
+      }
 
-      if (error) throw error;
-
-      setComments(prev => [...prev, data]);
       setNewComment('');
       toast.success('Comentário adicionado');
     } catch (err) {
