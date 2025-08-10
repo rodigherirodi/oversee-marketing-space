@@ -26,12 +26,12 @@ export const useTaskTypes = () => {
 
       if (error) throw error;
       
-      // Transform data to match TaskType interface
+      // Transform data to match TaskType interface with defaults for missing fields
       const transformedTypes: TaskType[] = (data || []).map((type: any) => ({
         id: type.id,
         name: type.name,
-        color: type.color || '#3B82F6',
-        icon: type.icon || '📋',
+        color: type.color || '#3B82F6', // Default color if missing
+        icon: type.icon || '📋', // Default icon if missing
         slug: type.slug,
         description: type.description
       }));
@@ -64,8 +64,8 @@ export const useTaskTypes = () => {
       const newTaskType: TaskType = {
         id: data.id,
         name: data.name,
-        color: data.color || '#3B82F6',
-        icon: data.icon || '📋',
+        color: data.color || '#3B82F6', // Default color if missing
+        icon: data.icon || '📋', // Default icon if missing
         slug: data.slug,
         description: data.description
       };

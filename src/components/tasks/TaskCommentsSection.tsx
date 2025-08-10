@@ -36,32 +36,49 @@ export const TaskCommentsSection: React.FC<TaskCommentsSectionProps> = ({ taskId
 
   const fetchComments = async () => {
     try {
-      // Direct query with join to get author info
-      const { data, error } = await supabase
+      // Fetch comments using any type to bypass TypeScript issues
+      const { data: commentsData, error: commentsError } = await supabase
         .from('task_comments' as any)
-        .select(`
-          *,
-          author:profiles!task_comments_author_id_fkey(name)
-        `)
+        .select('*')
         .eq('task_id', taskId)
         .order('created_at', { ascending: true });
 
-      if (error) {
-        console.error('Error fetching comments:', error);
+      if (commentsError) {
+        console.error('Error fetching comments:', commentsError);
         setComments([]);
-      } else {
-        const formattedComments = (data || []).map((comment: any) => ({
+        return;
+      }
+
+      // For each comment, fetch the author's name from profiles
+      const commentsWithAuthors: Comment[] = [];
+      
+      for (const comment of commentsData || []) {
+        let authorName = 'Usuário';
+        
+        // Fetch author name from profiles
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('id', comment.author_id)
+          .single();
+        
+        if (profileData?.name) {
+          authorName = profileData.name;
+        }
+
+        commentsWithAuthors.push({
           id: comment.id,
           content: comment.content,
           author_id: comment.author_id,
           created_at: comment.created_at,
           author: {
-            name: comment.author?.name || 'Usuário',
+            name: authorName,
             avatar: undefined
           }
-        }));
-        setComments(formattedComments);
+        });
       }
+
+      setComments(commentsWithAuthors);
     } catch (err) {
       console.error('Error fetching comments:', err);
       setComments([]);
@@ -78,7 +95,7 @@ export const TaskCommentsSection: React.FC<TaskCommentsSectionProps> = ({ taskId
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // Direct insert to task_comments table
+      // Insert comment using any type
       const { data, error } = await supabase
         .from('task_comments' as any)
         .insert({
@@ -86,10 +103,7 @@ export const TaskCommentsSection: React.FC<TaskCommentsSectionProps> = ({ taskId
           content: newComment.trim(),
           author_id: user.id
         })
-        .select(`
-          *,
-          author:profiles!task_comments_author_id_fkey(name)
-        `)
+        .select()
         .single();
 
       if (error) {
@@ -113,14 +127,20 @@ export const TaskCommentsSection: React.FC<TaskCommentsSectionProps> = ({ taskId
         };
         setComments(prev => [...prev, newCommentObj]);
       } else {
-        // Add the new comment to state
+        // Fetch author name and add to state
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('id', user.id)
+          .single();
+
         const formattedComment: Comment = {
           id: data.id,
           content: data.content,
           author_id: data.author_id,
           created_at: data.created_at,
           author: {
-            name: data.author?.name || 'Usuário',
+            name: profile?.name || 'Usuário',
             avatar: undefined
           }
         };

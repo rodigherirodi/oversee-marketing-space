@@ -31,7 +31,9 @@ export const TaskAttachmentsSection: React.FC<TaskAttachmentsSectionProps> = ({ 
 
   const fetchAttachments = async () => {
     try {
-      // Direct query to task_attachments table (fallback if RPC doesn't exist)
+      setLoading(true);
+      
+      // Try to fetch from task_attachments table using any type
       const { data, error } = await supabase
         .from('task_attachments' as any)
         .select('*')
@@ -42,7 +44,17 @@ export const TaskAttachmentsSection: React.FC<TaskAttachmentsSectionProps> = ({ 
         console.error('Error fetching attachments:', error);
         setAttachments([]);
       } else {
-        setAttachments(data || []);
+        // Transform data to match Attachment interface
+        const transformedAttachments: Attachment[] = (data || []).map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          url: item.url,
+          file_type: item.file_type,
+          file_size: item.file_size,
+          uploaded_by: item.uploaded_by,
+          uploaded_at: item.uploaded_at
+        }));
+        setAttachments(transformedAttachments);
       }
     } catch (err) {
       console.error('Error fetching attachments:', err);
@@ -73,7 +85,7 @@ export const TaskAttachmentsSection: React.FC<TaskAttachmentsSectionProps> = ({ 
         .from('task-attachments')
         .getPublicUrl(fileName);
 
-      // Save to database using direct insert
+      // Save to database using any type
       const { data, error } = await supabase
         .from('task_attachments' as any)
         .insert({
@@ -130,7 +142,7 @@ export const TaskAttachmentsSection: React.FC<TaskAttachmentsSectionProps> = ({ 
         console.warn('Storage deletion failed:', storageError);
       }
 
-      // Delete from database using direct delete
+      // Delete from database using any type
       const { error: dbError } = await supabase
         .from('task_attachments' as any)
         .delete()

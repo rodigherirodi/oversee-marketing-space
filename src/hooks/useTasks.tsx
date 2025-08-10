@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -71,43 +70,60 @@ export const useTasks = () => {
       
       const { data, error } = await supabase
         .from('tarefas')
-        .select(`
-          *,
-          profiles!tarefas_responsavel_fkey(name)
-        `)
+        .select('*')
         .order('criado_em', { ascending: false });
 
       if (error) throw error;
 
-      console.log('Raw data from tarefas with profiles:', data);
+      console.log('Raw data from tarefas:', data);
 
-      const transformedTasks: Task[] = (data || []).map((task: any) => ({
-        id: task.id,
-        title: task.titulo,
-        description: task.descricao || '',
-        status: task.status,
-        priority: task.prioridade,
-        type_id: task.tipo_id || task.tipo || 'task',
-        type: task.tipo || 'task',
-        assignee_id: task.responsavel || '',
-        assignee: { name: task.profiles?.name || 'Não atribuído' },
-        squad: task.squad || 'operacao',
-        client_id: task.cliente || '',
-        client: { name: task.cliente || 'Cliente não informado' },
-        project_id: task.projeto,
-        project: task.projeto ? { name: task.projeto } : undefined,
-        due_date: task.data_entrega || '',
-        dueDate: task.data_entrega || '',
-        tags: task.tags || [],
-        custom_fields: task.campos_customizados || {},
-        created_at: task.criado_em,
-        updated_at: task.atualizado_em,
-        completed_at: task.concluido_em,
-        created_by: task.criado_por || '',
-        watchers: [],
-        comments: [],
-        attachments: []
-      }));
+      const transformedTasks: Task[] = [];
+
+      for (const task of data || []) {
+        // Fetch assignee name separately
+        let assigneeName = 'Não atribuído';
+        if (task.responsavel) {
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('name')
+            .eq('id', task.responsavel)
+            .single();
+          
+          if (profileData?.name) {
+            assigneeName = profileData.name;
+          }
+        }
+
+        const transformedTask: Task = {
+          id: task.id,
+          title: task.titulo,
+          description: task.descricao || '',
+          status: task.status,
+          priority: task.prioridade,
+          type_id: task.tipo_id || task.tipo || 'task',
+          type: task.tipo || 'task',
+          assignee_id: task.responsavel || '',
+          assignee: { name: assigneeName },
+          squad: task.squad || 'operacao',
+          client_id: task.cliente || '',
+          client: { name: task.cliente || 'Cliente não informado' },
+          project_id: task.projeto,
+          project: task.projeto ? { name: task.projeto } : undefined,
+          due_date: task.data_entrega || '',
+          dueDate: task.data_entrega || '',
+          tags: task.tags || [],
+          custom_fields: task.campos_customizados || {},
+          created_at: task.criado_em,
+          updated_at: task.atualizado_em,
+          completed_at: task.concluido_em,
+          created_by: task.criado_por || '',
+          watchers: [],
+          comments: [],
+          attachments: []
+        };
+
+        transformedTasks.push(transformedTask);
+      }
 
       console.log('Transformed tasks:', transformedTasks);
       setTasks(transformedTasks);
@@ -148,13 +164,24 @@ export const useTasks = () => {
           campos_customizados: taskData.custom_fields || {},
           criado_por: user.id
         })
-        .select(`
-          *,
-          profiles!tarefas_responsavel_fkey(name)
-        `)
+        .select()
         .single();
 
       if (error) throw error;
+
+      // Fetch assignee name separately
+      let assigneeName = 'Não atribuído';
+      if (data.responsavel) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('id', data.responsavel)
+          .single();
+        
+        if (profileData?.name) {
+          assigneeName = profileData.name;
+        }
+      }
 
       const transformedTask: Task = {
         id: data.id,
@@ -165,7 +192,7 @@ export const useTasks = () => {
         type_id: data.tipo_id || data.tipo || 'task',
         type: data.tipo || 'task',
         assignee_id: data.responsavel || '',
-        assignee: { name: data.profiles?.name || 'Não atribuído' },
+        assignee: { name: assigneeName },
         squad: data.squad || 'operacao',
         client_id: data.cliente || '',
         client: { name: data.cliente || 'Cliente não informado' },
@@ -231,13 +258,24 @@ export const useTasks = () => {
         .from('tarefas')
         .update(updateData)
         .eq('id', taskId)
-        .select(`
-          *,
-          profiles!tarefas_responsavel_fkey(name)
-        `)
+        .select()
         .single();
 
       if (error) throw error;
+
+      // Fetch assignee name separately
+      let assigneeName = 'Não atribuído';
+      if (data.responsavel) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('id', data.responsavel)
+          .single();
+        
+        if (profileData?.name) {
+          assigneeName = profileData.name;
+        }
+      }
 
       const transformedTask: Task = {
         id: data.id,
@@ -248,7 +286,7 @@ export const useTasks = () => {
         type_id: data.tipo_id || data.tipo || 'task',
         type: data.tipo || 'task',
         assignee_id: data.responsavel || '',
-        assignee: { name: data.profiles?.name || 'Não atribuído' },
+        assignee: { name: assigneeName },
         squad: data.squad || 'operacao',
         client_id: data.cliente || '',
         client: { name: data.cliente || 'Cliente não informado' },
