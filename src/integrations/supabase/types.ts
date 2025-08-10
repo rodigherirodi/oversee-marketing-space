@@ -295,6 +295,110 @@ export type Database = {
           },
         ]
       }
+      task_attachments: {
+        Row: {
+          file_size: number
+          file_type: string
+          id: string
+          name: string
+          task_id: string
+          uploaded_at: string
+          uploaded_by: string
+          url: string
+        }
+        Insert: {
+          file_size: number
+          file_type: string
+          id?: string
+          name: string
+          task_id: string
+          uploaded_at?: string
+          uploaded_by: string
+          url: string
+        }
+        Update: {
+          file_size?: number
+          file_type?: string
+          id?: string
+          name?: string
+          task_id?: string
+          uploaded_at?: string
+          uploaded_by?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_attachments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tarefas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_attachments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tarefas_com_responsavel"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_attachments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "v_tarefas_detalhes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_comments: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          id: string
+          task_id: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          id?: string
+          task_id: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          task_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_comments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tarefas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_comments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tarefas_com_responsavel"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_comments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "v_tarefas_detalhes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_stages: {
         Row: {
           color: string
@@ -335,8 +439,10 @@ export type Database = {
       }
       task_types: {
         Row: {
+          color: string | null
           created_at: string
           description: string | null
+          icon: string | null
           id: string
           is_active: boolean
           name: string
@@ -344,8 +450,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          color?: string | null
           created_at?: string
           description?: string | null
+          icon?: string | null
           id?: string
           is_active?: boolean
           name: string
@@ -353,8 +461,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          color?: string | null
           created_at?: string
           description?: string | null
+          icon?: string | null
           id?: string
           is_active?: boolean
           name?: string

@@ -27,7 +27,7 @@ export const useTaskTypes = () => {
       if (error) throw error;
       
       // Transform data to match TaskType interface with defaults for missing fields
-      const transformedTypes: TaskType[] = (data || []).map((type: any) => ({
+      const transformedTypes: TaskType[] = (data || []).map((type) => ({
         id: type.id,
         name: type.name,
         color: type.color || '#3B82F6', // Default color if missing

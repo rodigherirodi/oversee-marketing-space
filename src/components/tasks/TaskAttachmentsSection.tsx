@@ -33,9 +33,9 @@ export const TaskAttachmentsSection: React.FC<TaskAttachmentsSectionProps> = ({ 
     try {
       setLoading(true);
       
-      // Try to fetch from task_attachments table using any type
+      // Fetch from the new task_attachments table
       const { data, error } = await supabase
-        .from('task_attachments' as any)
+        .from('task_attachments')
         .select('*')
         .eq('task_id', taskId)
         .order('uploaded_at', { ascending: false });
@@ -45,7 +45,7 @@ export const TaskAttachmentsSection: React.FC<TaskAttachmentsSectionProps> = ({ 
         setAttachments([]);
       } else {
         // Transform data to match Attachment interface
-        const transformedAttachments: Attachment[] = (data || []).map((item: any) => ({
+        const transformedAttachments: Attachment[] = (data || []).map((item) => ({
           id: item.id,
           name: item.name,
           url: item.url,
@@ -85,9 +85,9 @@ export const TaskAttachmentsSection: React.FC<TaskAttachmentsSectionProps> = ({ 
         .from('task-attachments')
         .getPublicUrl(fileName);
 
-      // Save to database using any type
+      // Save to database
       const { data, error } = await supabase
-        .from('task_attachments' as any)
+        .from('task_attachments')
         .insert({
           task_id: taskId,
           name: file.name,
@@ -101,23 +101,12 @@ export const TaskAttachmentsSection: React.FC<TaskAttachmentsSectionProps> = ({ 
 
       if (error) {
         console.error('Error saving attachment:', error);
-        // Fallback: add to local state
-        const newAttachment: Attachment = {
-          id: crypto.randomUUID(),
-          name: file.name,
-          url: publicUrl,
-          file_type: file.type,
-          file_size: file.size,
-          uploaded_by: user.id,
-          uploaded_at: new Date().toISOString()
-        };
-        setAttachments(prev => [newAttachment, ...prev]);
+        toast.error('Erro ao salvar anexo no banco de dados');
       } else {
         // Refresh attachments list
         fetchAttachments();
+        toast.success('Arquivo enviado com sucesso');
       }
-
-      toast.success('Arquivo enviado com sucesso');
     } catch (err) {
       console.error('Error uploading file:', err);
       toast.error('Erro ao enviar arquivo');
@@ -142,19 +131,20 @@ export const TaskAttachmentsSection: React.FC<TaskAttachmentsSectionProps> = ({ 
         console.warn('Storage deletion failed:', storageError);
       }
 
-      // Delete from database using any type
+      // Delete from database
       const { error: dbError } = await supabase
-        .from('task_attachments' as any)
+        .from('task_attachments')
         .delete()
         .eq('id', attachmentId);
 
       if (dbError) {
         console.error('Error deleting from database:', dbError);
+        toast.error('Erro ao remover anexo do banco de dados');
+      } else {
+        // Remove from local state
+        setAttachments(prev => prev.filter(att => att.id !== attachmentId));
+        toast.success('Arquivo removido');
       }
-
-      // Remove from local state
-      setAttachments(prev => prev.filter(att => att.id !== attachmentId));
-      toast.success('Arquivo removido');
     } catch (err) {
       console.error('Error deleting attachment:', err);
       toast.error('Erro ao remover arquivo');

@@ -36,9 +36,9 @@ export const TaskCommentsSection: React.FC<TaskCommentsSectionProps> = ({ taskId
 
   const fetchComments = async () => {
     try {
-      // Fetch comments using any type to bypass TypeScript issues
+      // Fetch comments directly from the new table
       const { data: commentsData, error: commentsError } = await supabase
-        .from('task_comments' as any)
+        .from('task_comments')
         .select('*')
         .eq('task_id', taskId)
         .order('created_at', { ascending: true });
@@ -95,9 +95,9 @@ export const TaskCommentsSection: React.FC<TaskCommentsSectionProps> = ({ taskId
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // Insert comment using any type
+      // Insert comment directly into the new table
       const { data, error } = await supabase
-        .from('task_comments' as any)
+        .from('task_comments')
         .insert({
           task_id: taskId,
           content: newComment.trim(),
@@ -108,45 +108,29 @@ export const TaskCommentsSection: React.FC<TaskCommentsSectionProps> = ({ taskId
 
       if (error) {
         console.error('Error adding comment:', error);
-        // Fallback: add to local state
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('name')
-          .eq('id', user.id)
-          .single();
-
-        const newCommentObj: Comment = {
-          id: crypto.randomUUID(),
-          content: newComment.trim(),
-          author_id: user.id,
-          created_at: new Date().toISOString(),
-          author: {
-            name: profile?.name || 'Usuário',
-            avatar: undefined
-          }
-        };
-        setComments(prev => [...prev, newCommentObj]);
-      } else {
-        // Fetch author name and add to state
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('name')
-          .eq('id', user.id)
-          .single();
-
-        const formattedComment: Comment = {
-          id: data.id,
-          content: data.content,
-          author_id: data.author_id,
-          created_at: data.created_at,
-          author: {
-            name: profile?.name || 'Usuário',
-            avatar: undefined
-          }
-        };
-        setComments(prev => [...prev, formattedComment]);
+        toast.error('Erro ao adicionar comentário');
+        return;
       }
 
+      // Fetch author name and add to state
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('name')
+        .eq('id', user.id)
+        .single();
+
+      const formattedComment: Comment = {
+        id: data.id,
+        content: data.content,
+        author_id: data.author_id,
+        created_at: data.created_at,
+        author: {
+          name: profile?.name || 'Usuário',
+          avatar: undefined
+        }
+      };
+
+      setComments(prev => [...prev, formattedComment]);
       setNewComment('');
       toast.success('Comentário adicionado');
     } catch (err) {
