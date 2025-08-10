@@ -231,6 +231,7 @@ export type Database = {
           status: Database["public"]["Enums"]["task_status"]
           tags: string[] | null
           tipo: string | null
+          tipo_id: string | null
           titulo: string
         }
         Insert: {
@@ -252,6 +253,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["task_status"]
           tags?: string[] | null
           tipo?: string | null
+          tipo_id?: string | null
           titulo: string
         }
         Update: {
@@ -273,6 +275,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["task_status"]
           tags?: string[] | null
           tipo?: string | null
+          tipo_id?: string | null
           titulo?: string
         }
         Relationships: [
@@ -281,6 +284,13 @@ export type Database = {
             columns: ["responsavel"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_tarefas_tipo"
+            columns: ["tipo_id"]
+            isOneToOne: false
+            referencedRelation: "task_types"
             referencedColumns: ["id"]
           },
         ]
@@ -322,6 +332,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      task_types: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       user_achievements: {
         Row: {
@@ -630,6 +670,46 @@ export type Database = {
           titulo: string | null
         }
         Relationships: []
+      }
+      v_tarefas_detalhes: {
+        Row: {
+          atualizado_em: string | null
+          campos_customizados: Json | null
+          cliente: string | null
+          concluido_em: string | null
+          criado_em: string | null
+          criado_por: string | null
+          data_entrega: string | null
+          descricao: string | null
+          id: string | null
+          observadores: string[] | null
+          prioridade: Database["public"]["Enums"]["task_priority"] | null
+          projeto: string | null
+          responsavel: string | null
+          responsavel_nome: string | null
+          squad: string | null
+          status: Database["public"]["Enums"]["task_status"] | null
+          tags: string[] | null
+          tipo_id: string | null
+          tipo_nome: string | null
+          titulo: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_responsavel_profile"
+            columns: ["responsavel"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_tarefas_tipo"
+            columns: ["tipo_id"]
+            isOneToOne: false
+            referencedRelation: "task_types"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {

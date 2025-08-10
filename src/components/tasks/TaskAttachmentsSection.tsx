@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Paperclip, Upload, Download, Trash2, File, Image, X } from 'lucide-react';
+import { Paperclip, Upload, Download, Trash2, File, Image } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -32,8 +31,7 @@ export const TaskAttachmentsSection: React.FC<TaskAttachmentsSectionProps> = ({ 
 
   const fetchAttachments = async () => {
     try {
-      // Temporariamente usando query raw até types.ts ser atualizado
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('task_attachments')
         .select('*')
         .eq('task_id', taskId)
@@ -43,6 +41,7 @@ export const TaskAttachmentsSection: React.FC<TaskAttachmentsSectionProps> = ({ 
       setAttachments(data || []);
     } catch (err) {
       console.error('Error fetching attachments:', err);
+      toast.error('Erro ao carregar anexos');
     } finally {
       setLoading(false);
     }
@@ -69,8 +68,8 @@ export const TaskAttachmentsSection: React.FC<TaskAttachmentsSectionProps> = ({ 
         .from('task-attachments')
         .getPublicUrl(fileName);
 
-      // Save to database usando query raw
-      const { data, error } = await (supabase as any)
+      // Save to database
+      const { data, error } = await supabase
         .from('task_attachments')
         .insert([{
           task_id: taskId,
@@ -99,17 +98,21 @@ export const TaskAttachmentsSection: React.FC<TaskAttachmentsSectionProps> = ({ 
     try {
       // Extract file path from URL
       const url = new URL(fileName);
-      const path = url.pathname.split('/').slice(-2).join('/');
+      const pathParts = url.pathname.split('/');
+      const path = pathParts.slice(-2).join('/'); // Get last two parts (user_id/filename)
 
       // Delete from storage
       const { error: storageError } = await supabase.storage
         .from('task-attachments')
         .remove([path]);
 
-      if (storageError) throw storageError;
+      if (storageError) {
+        console.warn('Storage deletion failed:', storageError);
+        // Continue with database deletion even if storage fails
+      }
 
-      // Delete from database usando query raw
-      const { error: dbError } = await (supabase as any)
+      // Delete from database
+      const { error: dbError } = await supabase
         .from('task_attachments')
         .delete()
         .eq('id', attachmentId);
@@ -128,6 +131,10 @@ export const TaskAttachmentsSection: React.FC<TaskAttachmentsSectionProps> = ({ 
     const files = event.target.files;
     if (files && files.length > 0) {
       Array.from(files).forEach(uploadFile);
+    }
+    // Reset input value to allow selecting the same file again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -166,6 +173,7 @@ export const TaskAttachmentsSection: React.FC<TaskAttachmentsSectionProps> = ({ 
           multiple
           onChange={handleFileSelect}
           className="hidden"
+          accept="*/*"
         />
       </div>
 
@@ -184,7 +192,7 @@ export const TaskAttachmentsSection: React.FC<TaskAttachmentsSectionProps> = ({ 
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium truncate">{attachment.name}</p>
                   <p className="text-xs text-gray-500">
-                    {formatFileSize(attachment.file_size)} • {new Date(attachment.uploaded_at).toLocaleDateString()}
+                    {formatFileSize(attachment.file_size)} • {new Date(attachment.uploaded_at).toLocaleDateString('pt-BR')}
                   </p>
                 </div>
               </div>
@@ -193,6 +201,7 @@ export const TaskAttachmentsSection: React.FC<TaskAttachmentsSectionProps> = ({ 
                   variant="ghost"
                   size="sm"
                   onClick={() => window.open(attachment.url, '_blank')}
+                  title="Baixar arquivo"
                 >
                   <Download className="w-4 h-4" />
                 </Button>
@@ -201,6 +210,7 @@ export const TaskAttachmentsSection: React.FC<TaskAttachmentsSectionProps> = ({ 
                   size="sm"
                   onClick={() => deleteAttachment(attachment.id, attachment.url)}
                   className="text-red-600 hover:text-red-700"
+                  title="Remover arquivo"
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>

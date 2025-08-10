@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, User, MoreHorizontal, Clock } from 'lucide-react';
+import { Calendar, User, MoreHorizontal } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -79,8 +79,19 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate, onEdit }) =>
   const formattedDate = formatDate(task.due_date);
   const isOverdue = task.due_date ? new Date(task.due_date) < new Date() : false;
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't trigger edit when clicking on dropdown menu
+    if ((e.target as HTMLElement).closest('[data-dropdown-trigger]')) {
+      return;
+    }
+    onEdit(task);
+  };
+
   return (
-    <Card className="w-full hover:shadow-md transition-shadow cursor-pointer">
+    <Card 
+      className="w-full hover:shadow-md transition-shadow cursor-pointer"
+      onClick={handleCardClick}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -95,12 +106,21 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate, onEdit }) =>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-6 w-6 p-0"
+                data-dropdown-trigger="true"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <MoreHorizontal className="w-3 h-3" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onEdit(task)}>
+              <DropdownMenuItem onClick={(e) => {
+                e.stopPropagation();
+                onEdit(task);
+              }}>
                 Editar
               </DropdownMenuItem>
             </DropdownMenuContent>

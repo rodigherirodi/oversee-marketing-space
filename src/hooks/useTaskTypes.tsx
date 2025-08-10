@@ -8,6 +8,8 @@ export interface TaskType {
   name: string;
   color: string;
   icon: string;
+  slug: string;
+  description?: string;
 }
 
 export const useTaskTypes = () => {
@@ -16,9 +18,10 @@ export const useTaskTypes = () => {
 
   const fetchTaskTypes = async () => {
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('task_types')
         .select('*')
+        .eq('is_active', true)
         .order('name');
 
       if (error) throw error;
@@ -33,7 +36,7 @@ export const useTaskTypes = () => {
 
   const addTaskType = async (taskType: Omit<TaskType, 'id'>): Promise<TaskType | undefined> => {
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('task_types')
         .insert([taskType])
         .select()
@@ -45,7 +48,9 @@ export const useTaskTypes = () => {
         id: data.id,
         name: data.name,
         color: data.color,
-        icon: data.icon
+        icon: data.icon,
+        slug: data.slug,
+        description: data.description
       };
       
       setTaskTypes(prev => [...prev, newTaskType]);

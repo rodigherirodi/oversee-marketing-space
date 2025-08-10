@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -10,15 +11,15 @@ export interface Task {
   priority: 'low' | 'medium' | 'high';
   type_id: string;
   assignee_id: string;
-  assignee: { name: string }; // Changed to object with name property
+  assignee: { name: string };
   squad: string;
   client_id: string;
   client: { name: string };
   project_id?: string;
   project?: { name: string };
   due_date: string;
-  dueDate: string; // For compatibility with TaskListView
-  type: string; // For compatibility with TaskListView
+  dueDate: string;
+  type: string;
   tags: string[];
   custom_fields: any;
   created_at: string;
@@ -26,7 +27,6 @@ export interface Task {
   completed_at?: string;
   created_by: string;
   
-  // Joined data
   task_type?: {
     id: string;
     name: string;
@@ -69,12 +69,11 @@ export const useTasks = () => {
     try {
       setLoading(true);
       
-      // Query tarefas and join with profiles to get the responsible person's name
       const { data, error } = await supabase
         .from('tarefas')
         .select(`
           *,
-          profiles!inner(name)
+          assignee:profiles!tarefas_responsavel_fkey(name)
         `)
         .order('criado_em', { ascending: false });
 
@@ -82,24 +81,23 @@ export const useTasks = () => {
 
       console.log('Raw data from tarefas with profiles:', data);
 
-      // Transform the data to match our Task interface
       const transformedTasks: Task[] = (data || []).map((task: any) => ({
         id: task.id,
         title: task.titulo,
         description: task.descricao || '',
         status: task.status,
         priority: task.prioridade,
-        type_id: task.tipo || 'task',
-        type: task.tipo || 'task', // For compatibility
+        type_id: task.tipo_id || task.tipo || 'task',
+        type: task.tipo || 'task',
         assignee_id: task.responsavel || '',
-        assignee: { name: task.profiles?.name || 'Não atribuído' }, // Use name from profiles join
+        assignee: { name: task.assignee?.name || 'Não atribuído' },
         squad: task.squad || 'operacao',
         client_id: task.cliente || '',
-        client: { name: task.cliente || 'Cliente não informado' }, // For compatibility
+        client: { name: task.cliente || 'Cliente não informado' },
         project_id: task.projeto,
-        project: task.projeto ? { name: task.projeto } : undefined, // For compatibility
+        project: task.projeto ? { name: task.projeto } : undefined,
         due_date: task.data_entrega || '',
-        dueDate: task.data_entrega || '', // For compatibility
+        dueDate: task.data_entrega || '',
         tags: task.tags || [],
         custom_fields: task.campos_customizados || {},
         created_at: task.criado_em,
@@ -128,7 +126,6 @@ export const useTasks = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // Ensure status is a valid enum value
       const validStatus = taskData.status === 'todo' || taskData.status === 'in_progress' || 
                          taskData.status === 'review' || taskData.status === 'completed' || 
                          taskData.status === 'cancelled' ? taskData.status : 'todo';
@@ -140,17 +137,21 @@ export const useTasks = () => {
           descricao: taskData.description,
           status: validStatus,
           prioridade: taskData.priority || 'medium',
-          responsavel: taskData.assignee_id || taskData.assignee?.name,
+          responsavel: taskData.assignee_id,
           cliente: taskData.client_id || taskData.client?.name,
           projeto: taskData.project_id || taskData.project?.name,
           data_entrega: taskData.due_date || taskData.dueDate,
           squad: taskData.squad || 'operacao',
+          tipo_id: taskData.type_id,
           tipo: taskData.type_id || taskData.type || 'task',
           tags: taskData.tags || [],
           campos_customizados: taskData.custom_fields || {},
           criado_por: user.id
         })
-        .select()
+        .select(`
+          *,
+          assignee:profiles!tarefas_responsavel_fkey(name)
+        `)
         .single();
 
       if (error) throw error;
@@ -161,10 +162,10 @@ export const useTasks = () => {
         description: data.descricao || '',
         status: data.status,
         priority: data.prioridade,
-        type_id: data.tipo || 'task',
+        type_id: data.tipo_id || data.tipo || 'task',
         type: data.tipo || 'task',
         assignee_id: data.responsavel || '',
-        assignee: { name: data.responsavel || 'Não atribuído' },
+        assignee: { name: data.assignee?.name || 'Não atribuído' },
         squad: data.squad || 'operacao',
         client_id: data.cliente || '',
         client: { name: data.cliente || 'Cliente não informado' },
@@ -200,15 +201,14 @@ export const useTasks = () => {
       if (updates.title !== undefined) updateData.titulo = updates.title;
       if (updates.description !== undefined) updateData.descricao = updates.description;
       if (updates.status !== undefined) {
-        // Ensure status is a valid enum value
         const validStatus = updates.status === 'todo' || updates.status === 'in_progress' || 
                            updates.status === 'review' || updates.status === 'completed' || 
                            updates.status === 'cancelled' ? updates.status : 'todo';
         updateData.status = validStatus;
       }
       if (updates.priority !== undefined) updateData.prioridade = updates.priority;
-      if (updates.assignee_id !== undefined || updates.assignee !== undefined) {
-        updateData.responsavel = updates.assignee_id || updates.assignee?.name;
+      if (updates.assignee_id !== undefined) {
+        updateData.responsavel = updates.assignee_id;
       }
       if (updates.client_id !== undefined || updates.client?.name !== undefined) {
         updateData.cliente = updates.client_id || updates.client?.name;
@@ -220,8 +220,9 @@ export const useTasks = () => {
         updateData.data_entrega = updates.due_date || updates.dueDate;
       }
       if (updates.squad !== undefined) updateData.squad = updates.squad;
-      if (updates.type_id !== undefined || updates.type !== undefined) {
-        updateData.tipo = updates.type_id || updates.type;
+      if (updates.type_id !== undefined) {
+        updateData.tipo_id = updates.type_id;
+        updateData.tipo = updates.type_id;
       }
       if (updates.tags !== undefined) updateData.tags = updates.tags;
       if (updates.custom_fields !== undefined) updateData.campos_customizados = updates.custom_fields;
@@ -230,7 +231,10 @@ export const useTasks = () => {
         .from('tarefas')
         .update(updateData)
         .eq('id', taskId)
-        .select()
+        .select(`
+          *,
+          assignee:profiles!tarefas_responsavel_fkey(name)
+        `)
         .single();
 
       if (error) throw error;
@@ -241,10 +245,10 @@ export const useTasks = () => {
         description: data.descricao || '',
         status: data.status,
         priority: data.prioridade,
-        type_id: data.tipo || 'task',
+        type_id: data.tipo_id || data.tipo || 'task',
         type: data.tipo || 'task',
         assignee_id: data.responsavel || '',
-        assignee: { name: data.responsavel || 'Não atribuído' },
+        assignee: { name: data.assignee?.name || 'Não atribuído' },
         squad: data.squad || 'operacao',
         client_id: data.cliente || '',
         client: { name: data.cliente || 'Cliente não informado' },

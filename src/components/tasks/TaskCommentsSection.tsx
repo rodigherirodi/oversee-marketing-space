@@ -36,8 +36,7 @@ export const TaskCommentsSection: React.FC<TaskCommentsSectionProps> = ({ taskId
 
   const fetchComments = async () => {
     try {
-      // Usando query raw até types.ts ser atualizado
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('task_comments')
         .select(`
           id, content, author_id, created_at,
@@ -50,6 +49,7 @@ export const TaskCommentsSection: React.FC<TaskCommentsSectionProps> = ({ taskId
       setComments(data || []);
     } catch (err) {
       console.error('Error fetching comments:', err);
+      toast.error('Erro ao carregar comentários');
     } finally {
       setLoading(false);
     }
@@ -63,7 +63,7 @@ export const TaskCommentsSection: React.FC<TaskCommentsSectionProps> = ({ taskId
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('task_comments')
         .insert([{
           task_id: taskId,
@@ -91,6 +91,13 @@ export const TaskCommentsSection: React.FC<TaskCommentsSectionProps> = ({ taskId
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      addComment();
+    }
   };
 
   return (
@@ -137,9 +144,10 @@ export const TaskCommentsSection: React.FC<TaskCommentsSectionProps> = ({ taskId
           {/* Add new comment */}
           <div className="space-y-2">
             <Textarea
-              placeholder="Adicionar um comentário..."
+              placeholder="Adicionar um comentário... (Ctrl+Enter para enviar)"
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
+              onKeyDown={handleKeyPress}
               rows={3}
               className="resize-none"
             />

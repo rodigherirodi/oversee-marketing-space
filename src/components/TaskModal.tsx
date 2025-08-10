@@ -37,7 +37,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   onClose,
   onSubmit
 }) => {
-  const { taskTypes } = useTaskTypes();
+  const { taskTypes, loading: taskTypesLoading } = useTaskTypes();
   const { kanbanConfigs, currentKanban } = useKanbanConfigs();
   const { clients } = useClients();
   const { projects } = useProjects();
@@ -84,7 +84,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         priority: 'medium',
         assignee_id: '',
         due_date: '',
-        status: 'todo',
+        status: currentKanban?.stages?.[0]?.id || 'todo',
         type_id: '',
         squad: 'operacao',
         client_id: '',
@@ -93,7 +93,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         watchers: []
       });
     }
-  }, [editTask, isOpen]);
+  }, [editTask, isOpen, currentKanban]);
 
   // Filter projects based on selected client
   useEffect(() => {
@@ -112,9 +112,6 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const client = clients.find(c => c.id === formData.client_id);
-    const project = projects.find(p => p.id === formData.project_id);
     
     const taskData: Partial<Task> = {
       title: formData.title,
@@ -222,14 +219,18 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                       <SelectValue placeholder="Selecione o tipo" />
                     </SelectTrigger>
                     <SelectContent>
-                      {taskTypes.map(type => (
-                        <SelectItem key={type.id} value={type.id}>
-                          <div className="flex items-center gap-2">
-                            <span>{type.icon}</span>
-                            <span>{type.name}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
+                      {taskTypesLoading ? (
+                        <SelectItem value="" disabled>Carregando...</SelectItem>
+                      ) : (
+                        taskTypes.map(type => (
+                          <SelectItem key={type.id} value={type.id}>
+                            <div className="flex items-center gap-2">
+                              <span>{type.icon}</span>
+                              <span>{type.name}</span>
+                            </div>
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
