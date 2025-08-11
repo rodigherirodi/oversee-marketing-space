@@ -308,6 +308,62 @@ const ClientProfile = () => {
     }
   };
 
+  // Helper function to map Supabase temperature to Client interface temperature
+  const mapSupabaseTemperatureToClientTemperature = (supabaseTemperature: string): 'cold' | 'warm' | 'hot' => {
+    switch (supabaseTemperature) {
+      case 'frio':
+        return 'cold';
+      case 'morno':
+        return 'warm';
+      case 'quente':
+        return 'hot';
+      default:
+        return 'cold';
+    }
+  };
+
+  // Helper function to map Client temperature back to Supabase
+  const mapClientTemperatureToSupabaseTemperature = (clientTemperature: string): 'frio' | 'morno' | 'quente' => {
+    switch (clientTemperature) {
+      case 'cold':
+        return 'frio';
+      case 'warm':
+        return 'morno';
+      case 'hot':
+        return 'quente';
+      default:
+        return 'frio';
+    }
+  };
+
+  // Helper function to map Supabase contract type to Client interface contract type
+  const mapSupabaseContractTypeToClientContractType = (supabaseContractType: string): 'recurring' | 'project' | 'one-time' => {
+    switch (supabaseContractType) {
+      case 'recorrente':
+        return 'recurring';
+      case 'projeto_unico':
+        return 'project';
+      case 'pontual':
+        return 'one-time';
+      default:
+        return 'one-time';
+    }
+  };
+
+  // Helper function to map Client contract type back to Supabase
+  const mapClientContractTypeToSupabaseContractType = (clientContractType: string): 'recorrente' | 'pontual' | 'projeto_unico' => {
+    switch (clientContractType) {
+      case 'recurring':
+        return 'recorrente';
+      case 'project':
+        return 'projeto_unico';
+      case 'one-time':
+        return 'pontual';
+      default:
+        return 'pontual';
+    }
+  };
+
   // Converte o cliente do Supabase para o formato esperado pelos componentes
   const clientForComponents: Client = {
     id: client.id,
@@ -315,8 +371,8 @@ const ClientProfile = () => {
     segment: client.segmento || '',
     size: mapSupabaseSizeToClientSize(client.porte || 'pequeno'),
     status: mapSupabaseStatusToClientStatus(client.status),
-    temperature: client.temperatura || 'frio',
-    contractType: client.tipo_contrato || 'pontual',
+    temperature: mapSupabaseTemperatureToClientTemperature(client.temperatura || 'frio'),
+    contractType: mapSupabaseContractTypeToClientContractType(client.tipo_contrato || 'pontual'),
     entryDate: client.cliente_desde || client.criado_em,
     nps: client.nps_atual,
     address: client.endereco || '',
@@ -348,8 +404,8 @@ const ClientProfile = () => {
       segmento: data.segment,
       porte: mapClientSizeToSupabaseSize(data.size),
       status: mapClientStatusToSupabaseStatus(data.status),
-      temperatura: data.temperature,
-      tipo_contrato: data.contractType,
+      temperatura: mapClientTemperatureToSupabaseTemperature(data.temperature),
+      tipo_contrato: mapClientContractTypeToSupabaseContractType(data.contractType),
       cliente_desde: data.entryDate,
       nps_atual: data.nps,
       endereco: data.address,
