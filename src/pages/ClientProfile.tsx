@@ -730,7 +730,6 @@ const ClientProfile = () => {
         open={isAccessDialogOpen}
         onOpenChange={setIsAccessDialogOpen}
         access={currentAccess}
-        clientId={client.id}
         onSave={handleSaveAccess}
       />
     </div>
