@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
-import { useProjects } from '@/hooks/useProjects';
-import { useClients } from '@/hooks/useClients';
+import { useSupabaseProjects } from '@/hooks/useSupabaseProjects';
 import {
   Dialog,
   DialogContent,
@@ -14,7 +13,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
 
 interface ProjectFormDialogProps {
   children: React.ReactNode;
@@ -22,74 +20,60 @@ interface ProjectFormDialogProps {
 
 const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { addProject } = useProjects();
-  const { clients } = useClients();
-  const { toast } = useToast();
+  const { createProject, profiles } = useSupabaseProjects();
 
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    clientId: '',
-    status: 'planning' as 'planning' | 'in-progress' | 'review' | 'completed' | 'paused',
-    priority: 'medium' as 'low' | 'medium' | 'high',
-    startDate: '',
-    endDate: '',
-    budget: '',
-    teamMembers: [] as string[],
-    progress: 0,
-    tags: [] as string[]
+    titulo: '',
+    cliente: '',
+    status: 'planejamento' as 'planejamento' | 'em_andamento' | 'em_revisao' | 'em_pausa' | 'concluido',
+    prioridade: 'Média' as 'Alta' | 'Média' | 'Baixa',
+    data_inicio: '',
+    data_entrega: '',
+    progresso: 0,
+    equipe: '',
+    responsavel: '',
+    briefing: '',
+    escopo: '',
+    observacoes: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const client = clients.find(c => c.id === formData.clientId);
-    if (!client) {
-      toast({
-        title: "Erro",
-        description: "Selecione um cliente válido",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const newProject = {
-      name: formData.name,
-      description: formData.description,
-      clientId: formData.clientId,
-      client,
+    const project = await createProject({
+      titulo: formData.titulo,
+      cliente: formData.cliente || null,
       status: formData.status,
-      priority: formData.priority,
-      startDate: formData.startDate,
-      endDate: formData.endDate,
-      budget: formData.budget ? parseFloat(formData.budget) : 0,
-      teamMembers: formData.teamMembers,
-      progress: formData.progress,
-      tags: formData.tags,
-      cover: ''
-    };
+      prioridade: formData.prioridade,
+      data_inicio: formData.data_inicio || null,
+      data_entrega: formData.data_entrega || null,
+      progresso: formData.progresso,
+      equipe: formData.equipe || null,
+      responsavel: formData.responsavel || null,
+      briefing: formData.briefing || null,
+      escopo: formData.escopo || null,
+      observacoes: formData.observacoes || null,
+      tags: [],
+      materiais: null
+    });
 
-    addProject(newProject);
-    
-    toast({
-      title: "Projeto criado",
-      description: "Projeto foi criado com sucesso!",
-    });
-    
-    setIsOpen(false);
-    setFormData({
-      name: '',
-      description: '',
-      clientId: '',
-      status: 'planning',
-      priority: 'medium',
-      startDate: '',
-      endDate: '',
-      budget: '',
-      teamMembers: [],
-      progress: 0,
-      tags: []
-    });
+    if (project) {
+      setIsOpen(false);
+      setFormData({
+        titulo: '',
+        cliente: '',
+        status: 'planejamento',
+        prioridade: 'Média',
+        data_inicio: '',
+        data_entrega: '',
+        progresso: 0,
+        equipe: '',
+        responsavel: '',
+        briefing: '',
+        escopo: '',
+        observacoes: ''
+      });
+    }
   };
 
   return (
@@ -97,7 +81,7 @@ const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({ children }) => {
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Novo Projeto</DialogTitle>
         </DialogHeader>
@@ -105,43 +89,44 @@ const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({ children }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Nome do Projeto *</Label>
+              <Label htmlFor="titulo">Título do Projeto *</Label>
               <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Digite o nome do projeto"
+                id="titulo"
+                value={formData.titulo}
+                onChange={(e) => setFormData(prev => ({ ...prev, titulo: e.target.value }))}
+                placeholder="Digite o título do projeto"
                 required
               />
             </div>
             
             <div className="space-y-2">
-              <Label>Cliente *</Label>
-              <Select 
-                value={formData.clientId} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, clientId: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o cliente" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clients.map(client => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>Cliente</Label>
+              <Input
+                value={formData.cliente}
+                onChange={(e) => setFormData(prev => ({ ...prev, cliente: e.target.value }))}
+                placeholder="Nome do cliente"
+              />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Descrição</Label>
+            <Label htmlFor="briefing">Briefing</Label>
             <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Descreva o projeto"
+              id="briefing"
+              value={formData.briefing}
+              onChange={(e) => setFormData(prev => ({ ...prev, briefing: e.target.value }))}
+              placeholder="Descreva os objetivos do projeto..."
+              rows={3}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="escopo">Escopo / Serviços Contratados</Label>
+            <Textarea
+              id="escopo"
+              value={formData.escopo}
+              onChange={(e) => setFormData(prev => ({ ...prev, escopo: e.target.value }))}
+              placeholder="Liste todos os serviços e entregas..."
               rows={3}
             />
           </div>
@@ -151,65 +136,104 @@ const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({ children }) => {
               <Label>Status</Label>
               <Select value={formData.status} onValueChange={(value: any) => setFormData(prev => ({ ...prev, status: value }))}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione o status" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="planning">Planejamento</SelectItem>
-                  <SelectItem value="in-progress">Em Progresso</SelectItem>
-                  <SelectItem value="review">Em Revisão</SelectItem>
-                  <SelectItem value="completed">Concluído</SelectItem>
-                  <SelectItem value="paused">Pausado</SelectItem>
+                  <SelectItem value="planejamento">Planejamento</SelectItem>
+                  <SelectItem value="em_andamento">Em andamento</SelectItem>
+                  <SelectItem value="em_revisao">Em revisão</SelectItem>
+                  <SelectItem value="concluido">Concluído</SelectItem>
+                  <SelectItem value="em_pausa">Em pausa</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
               <Label>Prioridade</Label>
-              <Select value={formData.priority} onValueChange={(value: any) => setFormData(prev => ({ ...prev, priority: value }))}>
+              <Select value={formData.prioridade} onValueChange={(value: any) => setFormData(prev => ({ ...prev, prioridade: value }))}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione a prioridade" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="low">Baixa</SelectItem>
-                  <SelectItem value="medium">Média</SelectItem>
-                  <SelectItem value="high">Alta</SelectItem>
+                  <SelectItem value="Baixa">Baixa</SelectItem>
+                  <SelectItem value="Média">Média</SelectItem>
+                  <SelectItem value="Alta">Alta</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="budget">Orçamento</Label>
+              <Label htmlFor="progresso">Progresso (%)</Label>
               <Input
-                id="budget"
+                id="progresso"
                 type="number"
-                value={formData.budget}
-                onChange={(e) => setFormData(prev => ({ ...prev, budget: e.target.value }))}
-                placeholder="0.00"
-                step="0.01"
+                min="0"
+                max="100"
+                value={formData.progresso}
+                onChange={(e) => setFormData(prev => ({ ...prev, progresso: parseInt(e.target.value) || 0 }))}
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="startDate">Data de Início</Label>
+              <Label htmlFor="data_inicio">Data de Início</Label>
               <Input
-                id="startDate"
+                id="data_inicio"
                 type="date"
-                value={formData.startDate}
-                onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
+                value={formData.data_inicio}
+                onChange={(e) => setFormData(prev => ({ ...prev, data_inicio: e.target.value }))}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="endDate">Data de Fim</Label>
+              <Label htmlFor="data_entrega">Data de Entrega</Label>
               <Input
-                id="endDate"
+                id="data_entrega"
                 type="date"
-                value={formData.endDate}
-                onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
+                value={formData.data_entrega}
+                onChange={(e) => setFormData(prev => ({ ...prev, data_entrega: e.target.value }))}
               />
             </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Responsável</Label>
+              <Select value={formData.responsavel} onValueChange={(value) => setFormData(prev => ({ ...prev, responsavel: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o responsável" />
+                </SelectTrigger>
+                <SelectContent>
+                  {profiles.map(profile => (
+                    <SelectItem key={profile.id} value={profile.name}>
+                      {profile.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="equipe">Equipe</Label>
+              <Input
+                id="equipe"
+                value={formData.equipe}
+                onChange={(e) => setFormData(prev => ({ ...prev, equipe: e.target.value }))}
+                placeholder="Nome1, Nome2, Nome3"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="observacoes">Observações Adicionais</Label>
+            <Textarea
+              id="observacoes"
+              value={formData.observacoes}
+              onChange={(e) => setFormData(prev => ({ ...prev, observacoes: e.target.value }))}
+              placeholder="Adicione observações importantes..."
+              rows={2}
+            />
           </div>
 
           <div className="flex justify-end gap-2 pt-4">

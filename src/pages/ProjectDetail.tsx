@@ -1,8 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { mockProjects } from '@/data/mockData';
-import { Check } from 'lucide-react';
+import { Check, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { TaskProvider } from '@/contexts/TaskContext';
@@ -10,20 +9,15 @@ import ProjectHeader from '@/components/project/ProjectHeader';
 import ProjectMetaInfo from '@/components/project/ProjectMetaInfo';
 import ProjectChecklist from '@/components/project/ProjectChecklist';
 import EditableSection from '@/components/project/EditableSection';
-import { Project } from '@/types/entities';
+import { useSupabaseProjects, SupabaseProject } from '@/hooks/useSupabaseProjects';
 
 const ProjectDetailContent = () => {
   const { id } = useParams();
   const { toast } = useToast();
-  const project = mockProjects.find(p => p.id === id);
+  const { getProjectById, updateProject, profiles } = useSupabaseProjects();
   
   const [isEditing, setIsEditing] = useState(false);
-  const [editedProject, setEditedProject] = useState<Project | null>(project || null);
-  const [briefing, setBriefing] = useState("Desenvolver uma campanha completa para o período da Black Friday, focando em aumentar as vendas online através de uma estratégia integrada de marketing digital. A campanha deve incluir criação de landing page, e-mails marketing, conteúdo para redes sociais e materiais promocionais.");
-  const [scope, setScope] = useState("• Criação de landing page responsiva\n• 4 e-mails marketing (teaser, lançamento, lembrete, last call)\n• 6 peças para Instagram e Facebook\n• 1 vídeo vertical com roteiro para Stories\n• Configuração de campanhas de tráfego pago\n• Relatório de performance pós-campanha");
-  const [observations, setObservations] = useState("Cliente solicitou alteração no tom de voz para mais jovial. Aguardando aprovação final das peças gráficas. Necessário alinhar datas de disparo dos e-mails com equipe de TI do cliente.");
-  const [materials, setMaterials] = useState("• Manual da marca: https://drive.google.com/...\n• Figma com layouts: https://figma.com/...\n• Briefing original: [arquivo anexado]\n• Referências visuais: https://pinterest.com/...");
-
+  const [editedProject, setEditedProject] = useState<SupabaseProject | null>(null);
   const [checklist, setChecklist] = useState([
     { id: 1, task: "Criação de wireframe da landing page", completed: true, date: "05/10/2024", isLinked: false },
     { id: 2, task: "Aprovação do layout pelo cliente", completed: true, date: "08/10/2024", isLinked: false },
@@ -34,7 +28,16 @@ const ProjectDetailContent = () => {
     { id: 7, task: "Lançamento da campanha", completed: false, date: "01/11/2024", isLinked: false }
   ]);
 
-  if (!project || !editedProject) {
+  useEffect(() => {
+    if (id) {
+      const project = getProjectById(id);
+      if (project) {
+        setEditedProject(project);
+      }
+    }
+  }, [id, getProjectById]);
+
+  if (!editedProject) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -45,27 +48,67 @@ const ProjectDetailContent = () => {
     );
   }
 
-  const handleProjectUpdate = (updates: Partial<Project>) => {
+  const handleProjectUpdate = (updates: Partial<SupabaseProject>) => {
     setEditedProject(prev => prev ? { ...prev, ...updates } : null);
   };
 
   const handleToggleEdit = () => {
-    if (isEditing) {
+    if (isEditing && id) {
       // Reset to original state when canceling
-      setEditedProject(project);
+      const originalProject = getProjectById(id);
+      if (originalProject) {
+        setEditedProject(originalProject);
+      }
     }
     setIsEditing(!isEditing);
   };
 
-  const handleSave = () => {
-    // Here you would typically save to a backend
-    // For now, we'll just show a success message
-    toast({
-      title: "Alterações salvas",
-      description: "As informações do projeto foram atualizadas com sucesso.",
-    });
+  const handleSave = async () => {
+    if (!id || !editedProject) return;
+
+    // Validação de datas
+    if (editedProject.data_inicio && editedProject.data_entrega && 
+        new Date(editedProject.data_inicio) > new Date(editedProject.data_entrega)) {
+      toast({
+        title: "Erro de validação",
+        description: "A data de início não pode ser posterior à data de entrega",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    await updateProject(id, editedProject);
     setIsEditing(false);
   };
+
+  const formatMaterials = (materials: any) => {
+    if (!materials || !Array.isArray(materials)) return '';
+    return materials.map((item: any) => `• ${item.nome}: ${item.url}`).join('\n');
+  };
+
+  const parseMaterials = (materialsText: string) => {
+    if (!materialsText.trim()) return null;
+    try {
+      const lines = materialsText.split('\n').filter(line => line.trim());
+      return lines.map(line => {
+        const match = line.match(/^•?\s*([^:]+):\s*(.+)$/);
+        if (match) {
+          return { nome: match[1].trim(), url: match[2].trim() };
+        }
+        return { nome: line.trim(), url: '' };
+      });
+    } catch {
+      return null;
+    }
+  };
+
+  const handleMaterialsUpdate = (materialsText: string) => {
+    const parsedMaterials = parseMaterials(materialsText);
+    handleProjectUpdate({ materiais: parsedMaterials });
+  };
+
+  const isDateInvalid = editedProject.data_inicio && editedProject.data_entrega && 
+    new Date(editedProject.data_inicio) > new Date(editedProject.data_entrega);
 
   return (
     <div className="min-h-screen bg-white">
@@ -79,22 +122,23 @@ const ProjectDetailContent = () => {
         <ProjectMetaInfo 
           project={editedProject} 
           isEditing={isEditing} 
-          onUpdate={handleProjectUpdate} 
+          onUpdate={handleProjectUpdate}
+          profiles={profiles}
         />
 
         <EditableSection
           title="Briefing"
-          content={briefing}
+          content={editedProject.briefing || ''}
           isEditing={isEditing}
-          onUpdate={setBriefing}
+          onUpdate={(value) => handleProjectUpdate({ briefing: value })}
           placeholder="Descreva aqui os objetivos do projeto, entregas esperadas, público-alvo e demais expectativas..."
         />
 
         <EditableSection
           title="Escopo / Serviços Contratados"
-          content={scope}
+          content={editedProject.escopo || ''}
           isEditing={isEditing}
-          onUpdate={setScope}
+          onUpdate={(value) => handleProjectUpdate({ escopo: value })}
           placeholder="Liste aqui todos os serviços e entregas incluídos no projeto..."
         />
 
@@ -102,31 +146,38 @@ const ProjectDetailContent = () => {
           checklist={checklist}
           isEditing={isEditing}
           onUpdate={setChecklist}
-          projectId={project.id}
+          projectId={editedProject.id}
         />
 
         <EditableSection
           title="Observações Adicionais"
-          content={observations}
+          content={editedProject.observacoes || ''}
           isEditing={isEditing}
-          onUpdate={setObservations}
+          onUpdate={(value) => handleProjectUpdate({ observacoes: value })}
           placeholder="Adicione observações, comentários da equipe ou notas importantes..."
           minHeight="100px"
         />
 
         <EditableSection
           title="Materiais e Referências"
-          content={materials}
+          content={formatMaterials(editedProject.materiais)}
           isEditing={isEditing}
-          onUpdate={setMaterials}
-          placeholder="Links, documentos, referências e materiais de apoio..."
+          onUpdate={handleMaterialsUpdate}
+          placeholder="Links, documentos, referências e materiais de apoio...&#10;• Manual da marca: https://drive.google.com/...&#10;• Figma com layouts: https://figma.com/..."
           minHeight="100px"
         />
+
+        {isDateInvalid && (
+          <div className="mb-6 flex items-center gap-2 text-red-600 text-sm">
+            <AlertCircle className="w-4 h-4" />
+            <span>A data de início não pode ser posterior à data de entrega</span>
+          </div>
+        )}
 
         {/* Save button when editing */}
         {isEditing && (
           <div className="fixed bottom-6 right-6">
-            <Button onClick={handleSave} className="shadow-lg">
+            <Button onClick={handleSave} className="shadow-lg" disabled={isDateInvalid}>
               <Check className="w-4 h-4 mr-2" />
               Salvar alterações
             </Button>

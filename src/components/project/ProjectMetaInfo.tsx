@@ -1,104 +1,96 @@
+
 import React, { useState } from 'react';
 import { Calendar, User, Users, Tag, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Project, Client } from '@/types/entities';
-import { mockClients } from '@/data/mockData';
+import { SupabaseProject, ProfileOption } from '@/hooks/useSupabaseProjects';
 
 interface ProjectMetaInfoProps {
-  project: Project;
+  project: SupabaseProject;
   isEditing: boolean;
-  onUpdate: (updates: Partial<Project>) => void;
+  onUpdate: (updates: Partial<SupabaseProject>) => void;
+  profiles: ProfileOption[];
 }
 
-const ProjectMetaInfo = ({ project, isEditing, onUpdate }: ProjectMetaInfoProps) => {
-  const [editedProject, setEditedProject] = useState(project);
-
+const ProjectMetaInfo = ({ project, isEditing, onUpdate, profiles }: ProjectMetaInfoProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'in-progress': return 'bg-green-100 text-green-700';
-      case 'planning': return 'bg-blue-100 text-blue-700';
-      case 'review': return 'bg-yellow-100 text-yellow-700';
-      case 'paused': return 'bg-red-100 text-red-700';
-      case 'completed': return 'bg-gray-100 text-gray-700';
+      case 'em_andamento': return 'bg-blue-100 text-blue-700';
+      case 'planejamento': return 'bg-gray-100 text-gray-700';
+      case 'em_revisao': return 'bg-purple-100 text-purple-700';
+      case 'em_pausa': return 'bg-orange-100 text-orange-700';
+      case 'concluido': return 'bg-green-100 text-green-700';
       default: return 'bg-gray-100 text-gray-700';
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'in-progress': return 'Em andamento';
-      case 'planning': return 'Planejamento';
-      case 'review': return 'Em revisão';
-      case 'paused': return 'Em pausa';
-      case 'completed': return 'Concluído';
+      case 'em_andamento': return 'Em andamento';
+      case 'planejamento': return 'Planejamento';
+      case 'em_revisao': return 'Em revisão';
+      case 'em_pausa': return 'Em pausa';
+      case 'concluido': return 'Concluído';
       default: return 'Concluído';
     }
   };
 
-  const handleClientChange = (clientId: string) => {
-    const selectedClient = mockClients.find(c => c.id === clientId);
-    if (selectedClient) {
-      const updates = { 
-        clientId, 
-        client: selectedClient 
-      };
-      setEditedProject(prev => ({ ...prev, ...updates }));
-      onUpdate(updates);
-    }
-  };
-
-  const handleStatusChange = (status: 'planning' | 'in-progress' | 'review' | 'completed' | 'paused') => {
-    const updates = { status };
-    setEditedProject(prev => ({ ...prev, ...updates }));
-    onUpdate(updates);
+  const handleStatusChange = (status: 'planejamento' | 'em_andamento' | 'em_revisao' | 'concluido' | 'em_pausa') => {
+    onUpdate({ status });
   };
 
   const handleTeamChange = (teamString: string) => {
-    const teamMembers = teamString.split(',').map(member => member.trim()).filter(Boolean);
-    const updates = { teamMembers };
-    setEditedProject(prev => ({ ...prev, ...updates }));
-    onUpdate(updates);
+    onUpdate({ equipe: teamString });
   };
 
   const handleTagsChange = (tagsString: string) => {
     const tags = tagsString.split(',').map(tag => tag.trim()).filter(Boolean);
-    const updates = { tags };
-    setEditedProject(prev => ({ ...prev, ...updates }));
-    onUpdate(updates);
+    onUpdate({ tags });
   };
 
-  const handleDateChange = (field: 'startDate' | 'endDate', value: string) => {
-    const updates = { [field]: value };
-    setEditedProject(prev => ({ ...prev, ...updates }));
-    onUpdate(updates);
+  const handleDateChange = (field: 'data_inicio' | 'data_entrega', value: string) => {
+    onUpdate({ [field]: value });
+  };
+
+  const handleResponsibleChange = (responsibleName: string) => {
+    onUpdate({ responsavel: responsibleName });
+  };
+
+  const handleProgressChange = (progress: number) => {
+    if (progress >= 0 && progress <= 100) {
+      onUpdate({ progresso: progress });
+    }
+  };
+
+  const handlePriorityChange = (priority: 'Alta' | 'Média' | 'Baixa') => {
+    onUpdate({ prioridade: priority });
   };
 
   // Validação de datas
-  const isDateInvalid = editedProject.startDate && editedProject.endDate && 
-    new Date(editedProject.startDate) > new Date(editedProject.endDate);
+  const isDateInvalid = project.data_inicio && project.data_entrega && 
+    new Date(project.data_inicio) > new Date(project.data_entrega);
 
   return (
     <div className="mb-12 pb-6 border-b border-gray-100">
       {/* Status Badge */}
       <div className="mb-6">
         {isEditing ? (
-          <Select value={editedProject.status} onValueChange={handleStatusChange}>
+          <Select value={project.status} onValueChange={handleStatusChange}>
             <SelectTrigger className="w-48">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="planning">Planejamento</SelectItem>
-              <SelectItem value="in-progress">Em andamento</SelectItem>
-              <SelectItem value="review">Em revisão</SelectItem>
-              <SelectItem value="paused">Em pausa</SelectItem>
-              <SelectItem value="completed">Concluído</SelectItem>
+              <SelectItem value="planejamento">Planejamento</SelectItem>
+              <SelectItem value="em_andamento">Em andamento</SelectItem>
+              <SelectItem value="em_revisao">Em revisão</SelectItem>
+              <SelectItem value="em_pausa">Em pausa</SelectItem>
+              <SelectItem value="concluido">Concluído</SelectItem>
             </SelectContent>
           </Select>
         ) : (
-          <Badge className={`${getStatusColor(editedProject.status)} border-0`}>
-            {getStatusText(editedProject.status)}
+          <Badge className={`${getStatusColor(project.status)} border-0`}>
+            {getStatusText(project.status)}
           </Badge>
         )}
       </div>
@@ -108,20 +100,14 @@ const ProjectMetaInfo = ({ project, isEditing, onUpdate }: ProjectMetaInfoProps)
           <User className="w-4 h-4" />
           <span className="font-medium">Cliente:</span>
           {isEditing ? (
-            <Select value={editedProject.clientId} onValueChange={handleClientChange}>
-              <SelectTrigger className="w-48 h-8 text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {mockClients.map(client => (
-                  <SelectItem key={client.id} value={client.id}>
-                    {client.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Input
+              value={project.cliente || ''}
+              onChange={(e) => onUpdate({ cliente: e.target.value })}
+              className="w-48 h-8 text-sm"
+              placeholder="Nome do cliente"
+            />
           ) : (
-            <span>{editedProject.client.name}</span>
+            <span>{project.cliente || 'Não informado'}</span>
           )}
         </div>
         
@@ -129,19 +115,39 @@ const ProjectMetaInfo = ({ project, isEditing, onUpdate }: ProjectMetaInfoProps)
           <User className="w-4 h-4" />
           <span className="font-medium">Responsável:</span>
           {isEditing ? (
-            <Input
-              value={editedProject.client.responsibleManager}
-              onChange={(e) => {
-                const updates = {
-                  client: { ...editedProject.client, responsibleManager: e.target.value }
-                };
-                setEditedProject(prev => ({ ...prev, ...updates }));
-                onUpdate(updates);
-              }}
-              className="w-48 h-8 text-sm"
-            />
+            <Select value={project.responsavel || ''} onValueChange={handleResponsibleChange}>
+              <SelectTrigger className="w-48 h-8 text-sm">
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent>
+                {profiles.map(profile => (
+                  <SelectItem key={profile.id} value={profile.name}>
+                    {profile.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           ) : (
-            <span>{editedProject.client.responsibleManager}</span>
+            <span>{project.responsavel || 'Não definido'}</span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2 text-gray-600">
+          <Tag className="w-4 h-4" />
+          <span className="font-medium">Prioridade:</span>
+          {isEditing ? (
+            <Select value={project.prioridade || 'Média'} onValueChange={handlePriorityChange}>
+              <SelectTrigger className="w-48 h-8 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Baixa">Baixa</SelectItem>
+                <SelectItem value="Média">Média</SelectItem>
+                <SelectItem value="Alta">Alta</SelectItem>
+              </SelectContent>
+            </Select>
+          ) : (
+            <span>{project.prioridade || 'Não definido'}</span>
           )}
         </div>
         
@@ -152,14 +158,16 @@ const ProjectMetaInfo = ({ project, isEditing, onUpdate }: ProjectMetaInfoProps)
             <div className="flex items-center gap-2">
               <Input
                 type="date"
-                value={editedProject.startDate}
-                onChange={(e) => handleDateChange('startDate', e.target.value)}
+                value={project.data_inicio || ''}
+                onChange={(e) => handleDateChange('data_inicio', e.target.value)}
                 className="w-48 h-8 text-sm"
               />
               {isDateInvalid && <AlertCircle className="w-4 h-4 text-red-500" />}
             </div>
           ) : (
-            <span>{new Date(editedProject.startDate).toLocaleDateString('pt-BR')}</span>
+            <span>
+              {project.data_inicio ? new Date(project.data_inicio).toLocaleDateString('pt-BR') : 'Não definido'}
+            </span>
           )}
         </div>
         
@@ -170,14 +178,33 @@ const ProjectMetaInfo = ({ project, isEditing, onUpdate }: ProjectMetaInfoProps)
             <div className="flex items-center gap-2">
               <Input
                 type="date"
-                value={editedProject.endDate}
-                onChange={(e) => handleDateChange('endDate', e.target.value)}
+                value={project.data_entrega || ''}
+                onChange={(e) => handleDateChange('data_entrega', e.target.value)}
                 className="w-48 h-8 text-sm"
               />
               {isDateInvalid && <AlertCircle className="w-4 h-4 text-red-500" />}
             </div>
           ) : (
-            <span>{new Date(editedProject.endDate).toLocaleDateString('pt-BR')}</span>
+            <span>
+              {project.data_entrega ? new Date(project.data_entrega).toLocaleDateString('pt-BR') : 'Não definido'}
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2 text-gray-600">
+          <Tag className="w-4 h-4" />
+          <span className="font-medium">Progresso:</span>
+          {isEditing ? (
+            <Input
+              type="number"
+              min="0"
+              max="100"
+              value={project.progresso}
+              onChange={(e) => handleProgressChange(parseInt(e.target.value) || 0)}
+              className="w-20 h-8 text-sm"
+            />
+          ) : (
+            <span>{project.progresso}%</span>
           )}
         </div>
         
@@ -186,13 +213,13 @@ const ProjectMetaInfo = ({ project, isEditing, onUpdate }: ProjectMetaInfoProps)
           <span className="font-medium">Equipe:</span>
           {isEditing ? (
             <Input
-              value={editedProject.teamMembers.join(', ')}
+              value={project.equipe || ''}
               onChange={(e) => handleTeamChange(e.target.value)}
               placeholder="Nome1, Nome2, Nome3"
               className="w-48 h-8 text-sm"
             />
           ) : (
-            <span>{editedProject.teamMembers.join(', ')}</span>
+            <span>{project.equipe || 'Não definido'}</span>
           )}
         </div>
         
@@ -201,18 +228,18 @@ const ProjectMetaInfo = ({ project, isEditing, onUpdate }: ProjectMetaInfoProps)
           <span className="font-medium">Tags:</span>
           {isEditing ? (
             <Input
-              value={editedProject.tags.join(', ')}
+              value={project.tags?.join(', ') || ''}
               onChange={(e) => handleTagsChange(e.target.value)}
               placeholder="tag1, tag2, tag3"
               className="w-48 h-8 text-sm"
             />
           ) : (
             <div className="flex gap-1">
-              {editedProject.tags.map((tag, index) => (
+              {project.tags?.map((tag, index) => (
                 <Badge key={index} variant="outline" className="text-xs">
                   {tag}
                 </Badge>
-              ))}
+              )) || <span>Nenhuma tag</span>}
             </div>
           )}
         </div>

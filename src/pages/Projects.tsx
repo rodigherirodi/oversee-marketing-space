@@ -1,52 +1,80 @@
+
 import React, { useState } from 'react';
-import { Plus, Search, Filter, LayoutGrid, List } from 'lucide-react';
+import { Plus, Search, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import ProjectFormDialog from '@/components/ProjectFormDialog';
-import { useProjects } from '@/hooks/useProjects';
+import { useSupabaseProjects } from '@/hooks/useSupabaseProjects';
 import { useNavigate } from 'react-router-dom';
 
 const Projects = () => {
   const navigate = useNavigate();
-  const { projects, addProject } = useProjects();
+  const { projects, loading } = useSupabaseProjects();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'planning': return 'bg-yellow-100 text-yellow-800';
-      case 'in-progress': return 'bg-blue-100 text-blue-800';
-      case 'review': return 'bg-purple-100 text-purple-800';
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'paused': return 'bg-gray-100 text-gray-800';
+      case 'planejamento': return 'bg-gray-100 text-gray-800';
+      case 'em_andamento': return 'bg-blue-100 text-blue-800';
+      case 'em_revisao': return 'bg-purple-100 text-purple-800';
+      case 'concluido': return 'bg-green-100 text-green-800';
+      case 'em_pausa': return 'bg-orange-100 text-orange-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800';
-      case 'medium': return 'bg-orange-100 text-orange-800';
-      case 'low': return 'bg-green-100 text-green-800';
+      case 'Alta': return 'bg-red-100 text-red-800';
+      case 'Média': return 'bg-yellow-100 text-yellow-800';
+      case 'Baixa': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'planejamento': return 'Planejamento';
+      case 'em_andamento': return 'Em andamento';
+      case 'em_revisao': return 'Em revisão';
+      case 'em_pausa': return 'Em pausa';
+      case 'concluido': return 'Concluído';
+      default: return status;
+    }
+  };
+
+  const getTeamInitials = (equipe: string | null) => {
+    if (!equipe) return [];
+    return equipe.split(',').map(name => 
+      name.trim().split(' ').map(n => n[0]).join('').toUpperCase()
+    ).slice(0, 3);
+  };
+
   const filteredProjects = projects.filter(project => {
-    const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         project.client.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = project.titulo.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         (project.cliente && project.cliente.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
-    const matchesPriority = priorityFilter === 'all' || project.priority === priorityFilter;
+    const matchesPriority = priorityFilter === 'all' || project.prioridade === priorityFilter;
     
     return matchesSearch && matchesStatus && matchesPriority;
   });
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h1 className="text-2xl font-semibold text-gray-900 mb-2">Carregando projetos...</h1>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -87,11 +115,11 @@ const Projects = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os Status</SelectItem>
-              <SelectItem value="planning">Planejamento</SelectItem>
-              <SelectItem value="in-progress">Em Progresso</SelectItem>
-              <SelectItem value="review">Em Revisão</SelectItem>
-              <SelectItem value="completed">Concluído</SelectItem>
-              <SelectItem value="paused">Pausado</SelectItem>
+              <SelectItem value="planejamento">Planejamento</SelectItem>
+              <SelectItem value="em_andamento">Em andamento</SelectItem>
+              <SelectItem value="em_revisao">Em revisão</SelectItem>
+              <SelectItem value="concluido">Concluído</SelectItem>
+              <SelectItem value="em_pausa">Em pausa</SelectItem>
             </SelectContent>
           </Select>
           
@@ -101,9 +129,9 @@ const Projects = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas</SelectItem>
-              <SelectItem value="high">Alta</SelectItem>
-              <SelectItem value="medium">Média</SelectItem>
-              <SelectItem value="low">Baixa</SelectItem>
+              <SelectItem value="Alta">Alta</SelectItem>
+              <SelectItem value="Média">Média</SelectItem>
+              <SelectItem value="Baixa">Baixa</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -117,24 +145,20 @@ const Projects = () => {
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <CardTitle className="text-lg mb-2">{project.name}</CardTitle>
-                  <p className="text-sm text-muted-foreground mb-3">{project.client.name}</p>
+                  <CardTitle className="text-lg mb-2">{project.titulo}</CardTitle>
+                  <p className="text-sm text-muted-foreground mb-3">{project.cliente || 'Cliente não informado'}</p>
                 </div>
               </div>
               
               <div className="flex gap-2 flex-wrap">
                 <Badge className={getStatusColor(project.status)}>
-                  {project.status === 'planning' && 'Planejamento'}
-                  {project.status === 'in-progress' && 'Em Progresso'}
-                  {project.status === 'review' && 'Em Revisão'}
-                  {project.status === 'completed' && 'Concluído'}
-                  {project.status === 'paused' && 'Pausado'}
+                  {getStatusText(project.status)}
                 </Badge>
-                <Badge variant="outline" className={getPriorityColor(project.priority)}>
-                  {project.priority === 'high' && 'Alta'}
-                  {project.priority === 'medium' && 'Média'}
-                  {project.priority === 'low' && 'Baixa'}
-                </Badge>
+                {project.prioridade && (
+                  <Badge variant="outline" className={getPriorityColor(project.prioridade)}>
+                    {project.prioridade}
+                  </Badge>
+                )}
               </div>
             </CardHeader>
             
@@ -143,30 +167,30 @@ const Projects = () => {
                 <div>
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm text-muted-foreground">Progresso</span>
-                    <span className="text-sm font-medium">{project.progress}%</span>
+                    <span className="text-sm font-medium">{project.progresso}%</span>
                   </div>
-                  <Progress value={project.progress} className="h-2" />
+                  <Progress value={project.progresso} className="h-2" />
                 </div>
                 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground">Prazo:</span>
                     <span className="text-sm">
-                      {new Date(project.endDate).toLocaleDateString('pt-BR')}
+                      {project.data_entrega ? new Date(project.data_entrega).toLocaleDateString('pt-BR') : 'Não definido'}
                     </span>
                   </div>
                   
                   <div className="flex -space-x-2">
-                    {project.teamMembers.slice(0, 3).map((member, index) => (
+                    {getTeamInitials(project.equipe).map((initials, index) => (
                       <Avatar key={index} className="w-6 h-6 border-2 border-background">
                         <AvatarFallback className="text-xs">
-                          {member.slice(0, 2)}
+                          {initials}
                         </AvatarFallback>
                       </Avatar>
                     ))}
-                    {project.teamMembers.length > 3 && (
+                    {project.equipe && getTeamInitials(project.equipe).length > 3 && (
                       <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs">
-                        +{project.teamMembers.length - 3}
+                        +{getTeamInitials(project.equipe).length - 3}
                       </div>
                     )}
                   </div>

@@ -1,12 +1,13 @@
 
 import React from 'react';
-import { ArrowLeft, Edit3, Check, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Edit3, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Project } from '@/types/entities';
+import { Input } from '@/components/ui/input';
+import { useNavigate } from 'react-router-dom';
+import { SupabaseProject } from '@/hooks/useSupabaseProjects';
 
 interface ProjectHeaderProps {
-  project: Project;
+  project: SupabaseProject;
   isEditing: boolean;
   onToggleEdit: () => void;
 }
@@ -14,41 +15,57 @@ interface ProjectHeaderProps {
 const ProjectHeader = ({ project, isEditing, onToggleEdit }: ProjectHeaderProps) => {
   const navigate = useNavigate();
 
-  const handleBack = () => {
-    navigate('/projects');
-  };
-
   return (
-    <>
-      {/* Header with back button */}
-      <div className="flex items-center gap-4 mb-8">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={handleBack}
-          className="text-gray-500 hover:text-gray-700"
-        >
-          <ArrowLeft className="w-4 h-4 mr-1" />
-          Voltar
-        </Button>
+    <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center gap-4">
         <Button
           variant="ghost"
           size="sm"
-          onClick={onToggleEdit}
-          className="text-gray-500 hover:text-gray-700"
+          onClick={() => navigate('/projects')}
+          className="text-gray-600 hover:text-gray-900"
         >
-          {isEditing ? <X className="w-4 h-4 mr-1" /> : <Edit3 className="w-4 h-4 mr-1" />}
-          {isEditing ? 'Cancelar' : 'Editar'}
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Voltar aos Projetos
         </Button>
       </div>
 
-      {/* Project Title */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-3 leading-tight">
-          {project.name}
-        </h1>
+      <div className="flex-1 mx-8">
+        {isEditing ? (
+          <Input
+            value={project.titulo}
+            onChange={(e) => {
+              // This would need to be handled by the parent component
+              // For now, we'll just display it as read-only in edit mode
+            }}
+            className="text-2xl font-bold border-none px-0 focus:ring-0 focus:border-none"
+            placeholder="Título do projeto"
+          />
+        ) : (
+          <h1 className="text-2xl font-bold text-gray-900 text-center">
+            {project.titulo}
+          </h1>
+        )}
       </div>
-    </>
+
+      <Button
+        variant={isEditing ? "ghost" : "outline"}
+        size="sm"
+        onClick={onToggleEdit}
+        className={isEditing ? "text-gray-600" : ""}
+      >
+        {isEditing ? (
+          <>
+            <X className="w-4 h-4 mr-2" />
+            Cancelar
+          </>
+        ) : (
+          <>
+            <Edit3 className="w-4 h-4 mr-2" />
+            Editar
+          </>
+        )}
+      </Button>
+    </div>
   );
 };
 
