@@ -22,17 +22,16 @@ export const useSupabaseClientNotes = (clientId: string) => {
   const fetchNotes = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      // First get the notes
+      const { data: notesData, error: notesError } = await supabase
         .from('cliente_anotacoes')
-        .select(`
-          *,
-          profiles!inner(name)
-        `)
+        .select('*')
         .eq('cliente_id', clientId)
         .order('criado_em', { ascending: false });
 
-      if (error) {
-        console.error('Erro ao buscar anotações:', error);
+      if (notesError) {
+        console.error('Erro ao buscar anotações:', notesError);
         toast({
           title: "Erro",
           description: "Falha ao carregar anotações do cliente.",
@@ -41,11 +40,27 @@ export const useSupabaseClientNotes = (clientId: string) => {
         return;
       }
 
-      // Mapear os dados para incluir o nome do autor
-      const notesWithAuthor = (data || []).map(note => ({
-        ...note,
-        autor_nome: note.profiles?.name || 'Usuário desconhecido'
-      }));
+      // Then get author names for each note
+      const notesWithAuthor = await Promise.all(
+        (notesData || []).map(async (note) => {
+          if (note.autor_id) {
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('name')
+              .eq('id', note.autor_id)
+              .single();
+            
+            return {
+              ...note,
+              autor_nome: profileData?.name || 'Usuário desconhecido'
+            };
+          }
+          return {
+            ...note,
+            autor_nome: 'Usuário desconhecido'
+          };
+        })
+      );
 
       setNotes(notesWithAuthor);
     } catch (error) {
@@ -76,10 +91,7 @@ export const useSupabaseClientNotes = (clientId: string) => {
           conteudo: content,
           autor_id: user.id 
         }])
-        .select(`
-          *,
-          profiles!inner(name)
-        `)
+        .select()
         .single();
 
       if (error) {
@@ -92,9 +104,16 @@ export const useSupabaseClientNotes = (clientId: string) => {
         return null;
       }
 
+      // Get author name for the new note
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('name')
+        .eq('id', user.id)
+        .single();
+
       const noteWithAuthor = {
         ...data,
-        autor_nome: data.profiles?.name || 'Usuário desconhecido'
+        autor_nome: profileData?.name || 'Usuário desconhecido'
       };
 
       setNotes(prev => [noteWithAuthor, ...prev]);

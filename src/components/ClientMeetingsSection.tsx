@@ -3,186 +3,208 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Plus, MoreHorizontal, Calendar, ExternalLink, Clock, Users } from 'lucide-react';
+import { Calendar, Plus, Clock, Users, Edit, Trash2, ExternalLink } from 'lucide-react';
 import { useSupabaseClientMeetings, MeetingFormData } from '@/hooks/useSupabaseClientMeetings';
 import { MeetingFormDialog } from '@/components/MeetingFormDialog';
+import { useToast } from '@/hooks/use-toast';
 
 interface ClientMeetingsSectionProps {
   clientId: string;
 }
 
 export const ClientMeetingsSection: React.FC<ClientMeetingsSectionProps> = ({ clientId }) => {
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingMeeting, setEditingMeeting] = useState<any | undefined>();
-  const { meetings, addMeeting, updateMeeting, deleteMeeting } = useSupabaseClientMeetings(clientId);
+  const [showDialog, setShowDialog] = useState(false);
+  const [editingMeeting, setEditingMeeting] = useState<any>(null);
+  const { meetings, loading, addMeeting, updateMeeting, deleteMeeting } = useSupabaseClientMeetings(clientId);
+  const { toast } = useToast();
 
-  const handleSaveMeeting = async (data: MeetingFormData) => {
-    if (editingMeeting) {
-      await updateMeeting(editingMeeting.id, data);
-      setEditingMeeting(undefined);
-    } else {
-      await addMeeting(data);
+  const handleAddMeeting = async (data: MeetingFormData) => {
+    const result = await addMeeting(data);
+    if (result) {
+      setShowDialog(false);
     }
-    setIsFormOpen(false);
   };
 
-  const handleEditMeeting = (meeting: any) => {
-    setEditingMeeting(meeting);
-    setIsFormOpen(true);
+  const handleEditMeeting = async (data: MeetingFormData) => {
+    if (!editingMeeting) return;
+    
+    const result = await updateMeeting(editingMeeting.id, data);
+    if (result) {
+      setEditingMeeting(null);
+      setShowDialog(false);
+    }
   };
 
   const handleDeleteMeeting = async (meetingId: string) => {
-    await deleteMeeting(meetingId);
+    if (window.confirm('Tem certeza que deseja excluir esta reunião?')) {
+      await deleteMeeting(meetingId);
+    }
   };
 
   const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString('pt-BR');
+    return new Date(dateString).toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
   const formatDuration = (minutes: number | null) => {
-    if (!minutes) return '-';
+    if (!minutes) return 'Não definida';
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    return hours > 0 ? `${hours}h ${mins}min` : `${mins}min`;
+    if (hours > 0) {
+      return `${hours}h${mins > 0 ? ` ${mins}min` : ''}`;
+    }
+    return `${mins}min`;
   };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="w-5 h-5" />
+            Reuniões
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <>
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="w-5 h-5" />
-            Histórico de Reuniões
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-5 h-5" />
+              Reuniões
+            </div>
+            <Button onClick={() => setShowDialog(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Nova Reunião
+            </Button>
           </CardTitle>
-          <Button onClick={() => setIsFormOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Nova Reunião
-          </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           {meetings.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
               <p>Nenhuma reunião registrada ainda.</p>
-              <p className="text-sm">Clique em "Nova Reunião" para adicionar a primeira.</p>
+              <p className="text-sm">Clique em "Nova Reunião" para agendar a primeira.</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Data/Hora</TableHead>
-                  <TableHead>Título</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Duração</TableHead>
-                  <TableHead>Participantes</TableHead>
-                  <TableHead>Link</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {meetings.map((meeting) => (
-                  <TableRow key={meeting.id}>
-                    <TableCell>
-                      {formatDateTime(meeting.data_hora)}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      <div>
-                        <p>{meeting.titulo}</p>
-                        {meeting.resumo && (
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {meeting.resumo}
-                          </p>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {meeting.tipo && (
-                        <Badge variant="outline">
-                          {meeting.tipo}
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
+            meetings.map((meeting) => (
+              <div
+                key={meeting.id}
+                className="border rounded-lg p-4 hover:bg-muted/50 transition-colors"
+              >
+                <div className="flex items-start justify-between gap-4 mb-3">
+                  <div className="flex-1">
+                    <h4 className="font-medium text-lg mb-1">{meeting.titulo}</h4>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
                       <div className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {formatDuration(meeting.duracao)}
+                        <Calendar className="w-4 h-4" />
+                        <span>{formatDateTime(meeting.data_hora)}</span>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      {meeting.participantes && meeting.participantes.length > 0 && (
-                        <div className="flex items-center gap-1">
-                          <Users className="w-3 h-3" />
-                          <span className="text-sm">
-                            {meeting.participantes.join(', ')}
-                          </span>
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-4 h-4" />
+                        <span>{formatDuration(meeting.duracao)}</span>
+                      </div>
+                      {meeting.tipo && (
+                        <Badge variant="outline">{meeting.tipo}</Badge>
+                      )}
+                    </div>
+                    
+                    {meeting.participantes && meeting.participantes.length > 0 && (
+                      <div className="flex items-center gap-2 mb-2">
+                        <Users className="w-4 h-4 text-muted-foreground" />
+                        <div className="flex flex-wrap gap-1">
+                          {meeting.participantes.map((participant, index) => (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {participant}
+                            </Badge>
+                          ))}
                         </div>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {meeting.link_gravacao ? (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          asChild
+                      </div>
+                    )}
+                    
+                    {meeting.resumo && (
+                      <p className="text-sm text-muted-foreground mb-2">
+                        {meeting.resumo}
+                      </p>
+                    )}
+                    
+                    {meeting.link_gravacao && (
+                      <div className="flex items-center gap-1 text-sm text-blue-600">
+                        <ExternalLink className="w-4 h-4" />
+                        <a 
+                          href={meeting.link_gravacao} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="hover:underline"
                         >
-                          <a href={meeting.link_gravacao} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="w-4 h-4" />
-                          </a>
-                        </Button>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleEditMeeting(meeting)}>
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            className="text-red-600"
-                            onClick={() => handleDeleteMeeting(meeting.id)}
-                          >
-                            Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                          Ver gravação
+                        </a>
+                      </div>
+                    )}
+                    
+                    {meeting.observacoes && (
+                      <div className="mt-2 p-2 bg-muted/30 rounded text-sm">
+                        <strong>Observações:</strong> {meeting.observacoes}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        setEditingMeeting(meeting);
+                        setShowDialog(true);
+                      }}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteMeeting(meeting.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))
           )}
         </CardContent>
       </Card>
 
       <MeetingFormDialog
-        open={isFormOpen}
-        onClose={() => {
-          setIsFormOpen(false);
-          setEditingMeeting(undefined);
-        }}
-        onSubmit={handleSaveMeeting}
-        meeting={editingMeeting}
+        open={showDialog}
+        onOpenChange={setShowDialog}
+        onSubmit={editingMeeting ? handleEditMeeting : handleAddMeeting}
+        initialData={editingMeeting ? {
+          titulo: editingMeeting.titulo,
+          data_hora: editingMeeting.data_hora,
+          duracao: editingMeeting.duracao,
+          tipo: editingMeeting.tipo,
+          resumo: editingMeeting.resumo,
+          participantes: editingMeeting.participantes,
+          link_gravacao: editingMeeting.link_gravacao,
+          observacoes: editingMeeting.observacoes,
+        } : undefined}
+        isEditing={!!editingMeeting}
       />
     </>
   );

@@ -7,7 +7,7 @@ export interface SupabaseClient {
   id: string;
   nome: string;
   segmento?: string;
-  descricao?: string; // Adicionando campo descricao
+  descricao?: string;
   porte?: 'micro' | 'pequeno' | 'medio' | 'grande';
   status?: 'ativo' | 'inativo' | 'prospect';
   temperatura?: 'frio' | 'morno' | 'quente';
@@ -16,6 +16,8 @@ export interface SupabaseClient {
   cliente_desde?: string;
   nps_atual?: number;
   endereco?: string;
+  cidade?: string;
+  uf?: string;
   site?: string;
   redes_sociais?: any;
   logo_url?: string;
@@ -34,6 +36,8 @@ export interface ClientFormData {
   cliente_desde?: string;
   nps_atual?: number;
   endereco?: string;
+  cidade?: string;
+  uf?: string;
   site?: string;
   redes_sociais?: any;
   logo_url?: string;
@@ -125,6 +129,9 @@ export const useSupabaseClients = () => {
     }
   };
 
+  // Alias for createClient to maintain compatibility
+  const addClient = createClient;
+
   // Atualizar cliente existente
   const updateClient = async (id: string, updates: Partial<ClientFormData>): Promise<SupabaseClient | null> => {
     try {
@@ -201,6 +208,7 @@ export const useSupabaseClients = () => {
     fetchClients,
     getClient,
     createClient,
+    addClient, // Add alias for compatibility
     updateClient,
     deleteClient,
   };
