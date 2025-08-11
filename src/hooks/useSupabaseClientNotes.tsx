@@ -10,6 +10,7 @@ export interface SupabaseClientNote {
   autor_id: string | null;
   criado_em: string;
   atualizado_em: string;
+  autor_nome?: string;
 }
 
 export const useSupabaseClientNotes = (clientId: string) => {
@@ -17,13 +18,16 @@ export const useSupabaseClientNotes = (clientId: string) => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  // Buscar anotações do cliente
+  // Buscar anotações do cliente com nome do autor
   const fetchNotes = async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
         .from('cliente_anotacoes')
-        .select('*')
+        .select(`
+          *,
+          autor:profiles!cliente_anotacoes_autor_id_fkey(name)
+        `)
         .eq('cliente_id', clientId)
         .order('criado_em', { ascending: false });
 
@@ -37,7 +41,13 @@ export const useSupabaseClientNotes = (clientId: string) => {
         return;
       }
 
-      setNotes(data || []);
+      // Mapear os dados para incluir o nome do autor
+      const notesWithAuthor = (data || []).map(note => ({
+        ...note,
+        autor_nome: note.autor?.name || 'Usuário desconhecido'
+      }));
+
+      setNotes(notesWithAuthor);
     } catch (error) {
       console.error('Erro ao buscar anotações:', error);
     } finally {
@@ -66,7 +76,10 @@ export const useSupabaseClientNotes = (clientId: string) => {
           conteudo: content,
           autor_id: user.id 
         }])
-        .select()
+        .select(`
+          *,
+          autor:profiles!cliente_anotacoes_autor_id_fkey(name)
+        `)
         .single();
 
       if (error) {
@@ -79,14 +92,19 @@ export const useSupabaseClientNotes = (clientId: string) => {
         return null;
       }
 
-      setNotes(prev => [data, ...prev]);
+      const noteWithAuthor = {
+        ...data,
+        autor_nome: data.autor?.name || 'Usuário desconhecido'
+      };
+
+      setNotes(prev => [noteWithAuthor, ...prev]);
       
       toast({
         title: "Sucesso",
         description: "Anotação adicionada com sucesso!",
       });
 
-      return data;
+      return noteWithAuthor;
     } catch (error) {
       console.error('Erro ao criar anotação:', error);
       return null;

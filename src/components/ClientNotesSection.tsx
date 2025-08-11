@@ -94,7 +94,7 @@ export const ClientNotesSection: React.FC<ClientNotesSectionProps> = ({ clientId
                 <div className="flex items-start justify-between gap-4 mb-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <User className="w-4 h-4" />
-                    <span>Usuário</span>
+                    <span>{note.autor_nome}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-muted-foreground" />

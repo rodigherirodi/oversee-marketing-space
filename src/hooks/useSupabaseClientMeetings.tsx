@@ -7,28 +7,27 @@ export interface SupabaseClientMeeting {
   id: string;
   cliente_id: string;
   titulo: string;
-  tipo: string | null;
   data_hora: string;
   duracao: number | null;
-  participantes: string[] | null;
+  tipo: string | null;
   resumo: string | null;
-  observacoes: string | null;
+  participantes: string[] | null;
   link_gravacao: string | null;
+  observacoes: string | null;
   criado_por: string | null;
   criado_em: string;
   atualizado_em: string;
 }
 
-export interface ClientMeetingFormData {
+export interface MeetingFormData {
   titulo: string;
-  tipo?: string;
   data_hora: string;
   duracao?: number;
-  participantes?: string[];
+  tipo?: string;
   resumo?: string;
-  observacoes?: string;
+  participantes?: string[];
   link_gravacao?: string;
-  cliente_id: string;
+  observacoes?: string;
 }
 
 export const useSupabaseClientMeetings = (clientId: string) => {
@@ -65,11 +64,26 @@ export const useSupabaseClientMeetings = (clientId: string) => {
   };
 
   // Adicionar nova reunião
-  const addMeeting = async (meetingData: Omit<ClientMeetingFormData, 'cliente_id'>): Promise<SupabaseClientMeeting | null> => {
+  const addMeeting = async (meetingData: MeetingFormData): Promise<SupabaseClientMeeting | null> => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Usuário não autenticado.",
+          variant: "destructive",
+        });
+        return null;
+      }
+
       const { data, error } = await supabase
         .from('cliente_reunioes')
-        .insert([{ ...meetingData, cliente_id: clientId }])
+        .insert([{ 
+          cliente_id: clientId, 
+          ...meetingData,
+          criado_por: user.id 
+        }])
         .select()
         .single();
 
@@ -97,13 +111,13 @@ export const useSupabaseClientMeetings = (clientId: string) => {
     }
   };
 
-  // Atualizar reunião
-  const updateMeeting = async (id: string, updates: Partial<Omit<ClientMeetingFormData, 'cliente_id'>>): Promise<SupabaseClientMeeting | null> => {
+  // Atualizar reunião existente
+  const updateMeeting = async (meetingId: string, updates: Partial<MeetingFormData>): Promise<SupabaseClientMeeting | null> => {
     try {
       const { data, error } = await supabase
         .from('cliente_reunioes')
         .update(updates)
-        .eq('id', id)
+        .eq('id', meetingId)
         .select()
         .single();
 
@@ -118,7 +132,7 @@ export const useSupabaseClientMeetings = (clientId: string) => {
       }
 
       setMeetings(prev => prev.map(meeting => 
-        meeting.id === id ? data : meeting
+        meeting.id === meetingId ? data : meeting
       ));
 
       toast({
@@ -134,12 +148,12 @@ export const useSupabaseClientMeetings = (clientId: string) => {
   };
 
   // Deletar reunião
-  const deleteMeeting = async (id: string): Promise<boolean> => {
+  const deleteMeeting = async (meetingId: string): Promise<boolean> => {
     try {
       const { error } = await supabase
         .from('cliente_reunioes')
         .delete()
-        .eq('id', id);
+        .eq('id', meetingId);
 
       if (error) {
         console.error('Erro ao deletar reunião:', error);
@@ -151,11 +165,11 @@ export const useSupabaseClientMeetings = (clientId: string) => {
         return false;
       }
 
-      setMeetings(prev => prev.filter(meeting => meeting.id !== id));
+      setMeetings(prev => prev.filter(meeting => meeting.id !== meetingId));
       
       toast({
         title: "Sucesso",
-        description: "Reunião removida com sucesso!",
+        description: "Reunião deletada com sucesso!",
       });
 
       return true;

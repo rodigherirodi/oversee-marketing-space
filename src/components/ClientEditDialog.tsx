@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Client } from '@/types/entities';
 import { useProfiles } from '@/hooks/useProfiles';
@@ -63,6 +64,7 @@ const ClientEditDialog: React.FC<ClientEditDialogProps> = ({
               value={formData.logo}
               onChange={(value) => handleInputChange('logo', value)}
               fallbackText={formData.name.charAt(0)}
+              clientId={formData.id}
             />
           </div>
 
@@ -81,6 +83,17 @@ const ClientEditDialog: React.FC<ClientEditDialogProps> = ({
               id="segment"
               value={formData.segment}
               onChange={(e) => handleInputChange('segment', e.target.value)}
+            />
+          </div>
+
+          <div className="col-span-2">
+            <Label htmlFor="description">Sobre o cliente</Label>
+            <Textarea
+              id="description"
+              value={formData.description || ''}
+              onChange={(e) => handleInputChange('description', e.target.value)}
+              placeholder="Breve descrição sobre o cliente..."
+              rows={3}
             />
           </div>
 
@@ -143,7 +156,7 @@ const ClientEditDialog: React.FC<ClientEditDialogProps> = ({
           <div>
             <Label htmlFor="responsibleManager">Gestor Responsável</Label>
             <Select 
-              value={formData.responsibleManager} 
+              value={formData.responsibleManager || ''} 
               onValueChange={(value) => handleInputChange('responsibleManager', value)}
             >
               <SelectTrigger>

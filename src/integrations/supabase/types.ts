@@ -201,6 +201,7 @@ export type Database = {
           cidade: string | null
           cliente_desde: string | null
           criado_em: string | null
+          descricao: string | null
           endereco: string | null
           gestor_id: string | null
           id: string
@@ -223,6 +224,7 @@ export type Database = {
           cidade?: string | null
           cliente_desde?: string | null
           criado_em?: string | null
+          descricao?: string | null
           endereco?: string | null
           gestor_id?: string | null
           id?: string
@@ -245,6 +247,7 @@ export type Database = {
           cidade?: string | null
           cliente_desde?: string | null
           criado_em?: string | null
+          descricao?: string | null
           endereco?: string | null
           gestor_id?: string | null
           id?: string

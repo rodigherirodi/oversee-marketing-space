@@ -29,16 +29,16 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Meeting, MeetingFormData } from '@/types/client-history';
+import { MeetingFormData } from '@/hooks/useSupabaseClientMeetings';
 
 const meetingFormSchema = z.object({
-  date: z.string().min(1, 'Data é obrigatória'),
-  type: z.enum(['alinhamento', 'aprovacao', 'planejamento', 'apresentacao', 'outro']),
-  summary: z.string().min(5, 'Resumo deve ter pelo menos 5 caracteres'),
-  participants: z.array(z.string()).default([]),
-  duration: z.string().min(1, 'Duração é obrigatória'),
-  link: z.string().url('Link deve ser uma URL válida').optional().or(z.literal('')),
-  notes: z.string().optional(),
+  titulo: z.string().min(1, 'Título é obrigatório'),
+  data_hora: z.string().min(1, 'Data e hora são obrigatórias'),
+  tipo: z.enum(['alinhamento', 'aprovacao', 'planejamento', 'apresentacao', 'outro']).optional(),
+  resumo: z.string().optional(),
+  duracao: z.number().optional(),
+  link_gravacao: z.string().url('Link deve ser uma URL válida').optional().or(z.literal('')),
+  observacoes: z.string().optional(),
 });
 
 const meetingTypes = [
@@ -53,7 +53,7 @@ interface MeetingFormDialogProps {
   open: boolean;
   onClose: () => void;
   onSubmit: (data: MeetingFormData) => void;
-  meeting?: Meeting;
+  meeting?: any;
 }
 
 export const MeetingFormDialog: React.FC<MeetingFormDialogProps> = ({
@@ -65,25 +65,25 @@ export const MeetingFormDialog: React.FC<MeetingFormDialogProps> = ({
   const form = useForm<z.infer<typeof meetingFormSchema>>({
     resolver: zodResolver(meetingFormSchema),
     defaultValues: {
-      date: meeting?.date || '',
-      type: meeting?.type || 'alinhamento',
-      summary: meeting?.summary || '',
-      participants: meeting?.participants || [],
-      duration: meeting?.duration || '',
-      link: meeting?.link || '',
-      notes: meeting?.notes || '',
+      titulo: meeting?.titulo || '',
+      data_hora: meeting?.data_hora ? new Date(meeting.data_hora).toISOString().slice(0, 16) : '',
+      tipo: meeting?.tipo || 'alinhamento',
+      resumo: meeting?.resumo || '',
+      duracao: meeting?.duracao || undefined,
+      link_gravacao: meeting?.link_gravacao || '',
+      observacoes: meeting?.observacoes || '',
     },
   });
 
   const handleSubmit = (values: z.infer<typeof meetingFormSchema>) => {
     const formData: MeetingFormData = {
-      date: values.date,
-      type: values.type,
-      summary: values.summary,
-      participants: values.participants,
-      duration: values.duration,
-      link: values.link || undefined,
-      notes: values.notes || undefined,
+      titulo: values.titulo,
+      data_hora: values.data_hora,
+      tipo: values.tipo,
+      resumo: values.resumo || undefined,
+      duracao: values.duracao || undefined,
+      link_gravacao: values.link_gravacao || undefined,
+      observacoes: values.observacoes || undefined,
     };
     onSubmit(formData);
     onClose();
@@ -104,15 +104,29 @@ export const MeetingFormDialog: React.FC<MeetingFormDialogProps> = ({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="titulo"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Título *</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Título da reunião" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="date"
+                name="data_hora"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Data *</FormLabel>
+                    <FormLabel>Data e Hora *</FormLabel>
                     <FormControl>
-                      <Input {...field} type="date" />
+                      <Input {...field} type="datetime-local" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -121,10 +135,10 @@ export const MeetingFormDialog: React.FC<MeetingFormDialogProps> = ({
 
               <FormField
                 control={form.control}
-                name="type"
+                name="tipo"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Tipo *</FormLabel>
+                    <FormLabel>Tipo</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -146,12 +160,17 @@ export const MeetingFormDialog: React.FC<MeetingFormDialogProps> = ({
 
               <FormField
                 control={form.control}
-                name="duration"
+                name="duracao"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Duração *</FormLabel>
+                    <FormLabel>Duração (minutos)</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Ex: 1h30min" />
+                      <Input 
+                        {...field} 
+                        type="number" 
+                        placeholder="60"
+                        onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -160,10 +179,10 @@ export const MeetingFormDialog: React.FC<MeetingFormDialogProps> = ({
 
               <FormField
                 control={form.control}
-                name="link"
+                name="link_gravacao"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Link da Reunião</FormLabel>
+                    <FormLabel>Link da Gravação</FormLabel>
                     <FormControl>
                       <Input {...field} placeholder="https://..." />
                     </FormControl>
@@ -175,12 +194,12 @@ export const MeetingFormDialog: React.FC<MeetingFormDialogProps> = ({
 
             <FormField
               control={form.control}
-              name="summary"
+              name="resumo"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Resumo *</FormLabel>
+                  <FormLabel>Resumo</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Breve descrição da reunião" />
+                    <Textarea {...field} placeholder="Breve resumo da reunião..." rows={3} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -189,12 +208,12 @@ export const MeetingFormDialog: React.FC<MeetingFormDialogProps> = ({
 
             <FormField
               control={form.control}
-              name="notes"
+              name="observacoes"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Observações</FormLabel>
                   <FormControl>
-                    <Textarea {...field} placeholder="Anotações adicionais..." rows={3} />
+                    <Textarea {...field} placeholder="Observações adicionais..." rows={3} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
