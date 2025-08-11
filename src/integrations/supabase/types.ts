@@ -170,6 +170,8 @@ export type Database = {
           id: string
           materiais: Json | null
           observacoes: string | null
+          prioridade: string | null
+          progresso: number | null
           responsavel: string | null
           status: string | null
           tags: string[] | null
@@ -187,6 +189,8 @@ export type Database = {
           id?: string
           materiais?: Json | null
           observacoes?: string | null
+          prioridade?: string | null
+          progresso?: number | null
           responsavel?: string | null
           status?: string | null
           tags?: string[] | null
@@ -204,6 +208,8 @@ export type Database = {
           id?: string
           materiais?: Json | null
           observacoes?: string | null
+          prioridade?: string | null
+          progresso?: number | null
           responsavel?: string | null
           status?: string | null
           tags?: string[] | null

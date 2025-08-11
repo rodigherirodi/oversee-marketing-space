@@ -47,10 +47,23 @@ export const useSupabaseProjects = () => {
       
       // Transform the data to match our interface
       const transformedData: SupabaseProject[] = (data || []).map(project => ({
-        ...project,
+        id: project.id,
+        titulo: project.titulo,
+        cliente: project.cliente,
+        status: (project.status as SupabaseProject['status']) || 'planejamento',
+        prioridade: (project.prioridade as SupabaseProject['prioridade']) || null,
+        data_inicio: project.data_inicio,
+        data_entrega: project.data_entrega,
         progresso: project.progresso ?? 0,
-        prioridade: project.prioridade || null,
-        status: project.status as SupabaseProject['status'] || 'planejamento'
+        equipe: project.equipe,
+        tags: project.tags,
+        responsavel: project.responsavel,
+        briefing: project.briefing,
+        escopo: project.escopo,
+        observacoes: project.observacoes,
+        materiais: project.materiais,
+        criado_em: project.criado_em,
+        atualizado_em: project.atualizado_em
       }));
       
       setProjects(transformedData);
@@ -132,10 +145,23 @@ export const useSupabaseProjects = () => {
 
       // Transform the data to match our interface
       const transformedProject: SupabaseProject = {
-        ...data,
+        id: data.id,
+        titulo: data.titulo,
+        cliente: data.cliente,
+        status: (data.status as SupabaseProject['status']) || 'planejamento',
+        prioridade: (data.prioridade as SupabaseProject['prioridade']) || null,
+        data_inicio: data.data_inicio,
+        data_entrega: data.data_entrega,
         progresso: data.progresso ?? 0,
-        prioridade: data.prioridade || null,
-        status: data.status as SupabaseProject['status'] || 'planejamento'
+        equipe: data.equipe,
+        tags: data.tags,
+        responsavel: data.responsavel,
+        briefing: data.briefing,
+        escopo: data.escopo,
+        observacoes: data.observacoes,
+        materiais: data.materiais,
+        criado_em: data.criado_em,
+        atualizado_em: data.atualizado_em
       };
 
       setProjects(prev => [transformedProject, ...prev]);
@@ -192,10 +218,23 @@ export const useSupabaseProjects = () => {
 
       // Transform the data to match our interface
       const transformedProject: SupabaseProject = {
-        ...data,
+        id: data.id,
+        titulo: data.titulo,
+        cliente: data.cliente,
+        status: (data.status as SupabaseProject['status']) || 'planejamento',
+        prioridade: (data.prioridade as SupabaseProject['prioridade']) || null,
+        data_inicio: data.data_inicio,
+        data_entrega: data.data_entrega,
         progresso: data.progresso ?? 0,
-        prioridade: data.prioridade || null,
-        status: data.status as SupabaseProject['status'] || 'planejamento'
+        equipe: data.equipe,
+        tags: data.tags,
+        responsavel: data.responsavel,
+        briefing: data.briefing,
+        escopo: data.escopo,
+        observacoes: data.observacoes,
+        materiais: data.materiais,
+        criado_em: data.criado_em,
+        atualizado_em: data.atualizado_em
       };
 
       setProjects(prev => prev.map(project => 
