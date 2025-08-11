@@ -48,8 +48,9 @@ export const useSupabaseProjects = () => {
       // Transform the data to match our interface
       const transformedData: SupabaseProject[] = (data || []).map(project => ({
         ...project,
-        progresso: project.progresso || 0,
-        prioridade: project.prioridade || null
+        progresso: project.progresso ?? 0,
+        prioridade: project.prioridade || null,
+        status: project.status as SupabaseProject['status'] || 'planejamento'
       }));
       
       setProjects(transformedData);
@@ -132,8 +133,9 @@ export const useSupabaseProjects = () => {
       // Transform the data to match our interface
       const transformedProject: SupabaseProject = {
         ...data,
-        progresso: data.progresso || 0,
-        prioridade: data.prioridade || null
+        progresso: data.progresso ?? 0,
+        prioridade: data.prioridade || null,
+        status: data.status as SupabaseProject['status'] || 'planejamento'
       };
 
       setProjects(prev => [transformedProject, ...prev]);
@@ -191,8 +193,9 @@ export const useSupabaseProjects = () => {
       // Transform the data to match our interface
       const transformedProject: SupabaseProject = {
         ...data,
-        progresso: data.progresso || 0,
-        prioridade: data.prioridade || null
+        progresso: data.progresso ?? 0,
+        prioridade: data.prioridade || null,
+        status: data.status as SupabaseProject['status'] || 'planejamento'
       };
 
       setProjects(prev => prev.map(project => 
