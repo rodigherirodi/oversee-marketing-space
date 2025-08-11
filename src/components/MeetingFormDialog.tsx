@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -69,7 +68,7 @@ export const MeetingFormDialog: React.FC<MeetingFormDialogProps> = ({
     defaultValues: {
       titulo: initialData?.titulo || '',
       data_hora: initialData?.data_hora ? new Date(initialData.data_hora).toISOString().slice(0, 16) : '',
-      tipo: initialData?.tipo || 'alinhamento',
+      tipo: (initialData?.tipo as 'alinhamento' | 'aprovacao' | 'planejamento' | 'apresentacao' | 'outro') || 'alinhamento',
       resumo: initialData?.resumo || '',
       duracao: initialData?.duracao || undefined,
       link_gravacao: initialData?.link_gravacao || '',
