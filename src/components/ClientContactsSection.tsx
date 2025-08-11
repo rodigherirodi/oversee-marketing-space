@@ -31,8 +31,8 @@ const getContactTypeLabel = (type: string) => {
       return 'Principal';
     case 'financeiro':
       return 'Financeiro';
-    case 'tecnico':
-      return 'Técnico';
+    case 'operacional':
+      return 'Operacional';
     case 'outro':
       return 'Outro';
     default:
@@ -46,7 +46,7 @@ const getContactTypeColor = (type: string) => {
       return 'bg-blue-100 text-blue-800';
     case 'financeiro':
       return 'bg-green-100 text-green-800';
-    case 'tecnico':
+    case 'operacional':
       return 'bg-purple-100 text-purple-800';
     case 'outro':
       return 'bg-gray-100 text-gray-800';

@@ -10,7 +10,7 @@ export interface SupabaseClientContact {
   email: string | null;
   telefone: string | null;
   cargo: string | null;
-  tipo: 'principal' | 'financeiro' | 'tecnico' | 'outro';
+  tipo: 'principal' | 'financeiro' | 'operacional' | 'outro';
   is_primary: boolean;
   observacoes: string | null;
   criado_em: string;
@@ -22,7 +22,7 @@ export interface ClientContactFormData {
   email?: string;
   telefone?: string;
   cargo?: string;
-  tipo: 'principal' | 'financeiro' | 'tecnico' | 'outro';
+  tipo: 'principal' | 'financeiro' | 'operacional' | 'outro';
   is_primary?: boolean;
   observacoes?: string;
   cliente_id: string;
