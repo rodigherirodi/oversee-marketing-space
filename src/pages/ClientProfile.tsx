@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -54,6 +53,7 @@ import SLASection from '@/components/SLASection';
 import ClientEditDialog from '@/components/ClientEditDialog';
 import StakeholderDialog from '@/components/StakeholderDialog';
 import AccessDialog from '@/components/AccessDialog';
+import { Client } from '@/types/entities';
 
 const ClientProfile = () => {
   const { id } = useParams();
@@ -251,21 +251,21 @@ const ClientProfile = () => {
   };
 
   // Helper function to map Supabase status to Client interface status
-  const mapSupabaseStatusToClientStatus = (supabaseStatus: string) => {
+  const mapSupabaseStatusToClientStatus = (supabaseStatus: string): 'active' | 'inactive' | 'onboarding' => {
     switch (supabaseStatus) {
       case 'ativo':
-        return 'active' as const;
+        return 'active';
       case 'inativo':
-        return 'inactive' as const;
+        return 'inactive';
       case 'prospect':
-        return 'onboarding' as const;
+        return 'onboarding';
       default:
-        return 'active' as const;
+        return 'active';
     }
   };
 
   // Helper function to map Client status back to Supabase
-  const mapClientStatusToSupabaseStatus = (clientStatus: string) => {
+  const mapClientStatusToSupabaseStatus = (clientStatus: string): 'ativo' | 'inativo' | 'prospect' => {
     switch (clientStatus) {
       case 'active':
         return 'ativo';
@@ -278,12 +278,42 @@ const ClientProfile = () => {
     }
   };
 
+  // Helper function to map Supabase size to Client interface size
+  const mapSupabaseSizeToClientSize = (supabaseSize: string): 'MEI' | 'PME' | 'large' => {
+    switch (supabaseSize) {
+      case 'micro':
+        return 'MEI';
+      case 'pequeno':
+        return 'PME';
+      case 'medio':
+        return 'large';
+      case 'grande':
+        return 'large';
+      default:
+        return 'PME';
+    }
+  };
+
+  // Helper function to map Client size back to Supabase
+  const mapClientSizeToSupabaseSize = (clientSize: string): 'micro' | 'pequeno' | 'medio' | 'grande' => {
+    switch (clientSize) {
+      case 'MEI':
+        return 'micro';
+      case 'PME':
+        return 'pequeno';
+      case 'large':
+        return 'grande';
+      default:
+        return 'pequeno';
+    }
+  };
+
   // Converte o cliente do Supabase para o formato esperado pelos componentes
-  const clientForComponents = {
+  const clientForComponents: Client = {
     id: client.id,
     name: client.nome,
     segment: client.segmento || '',
-    size: client.porte || 'micro',
+    size: mapSupabaseSizeToClientSize(client.porte || 'pequeno'),
     status: mapSupabaseStatusToClientStatus(client.status),
     temperature: client.temperatura || 'frio',
     contractType: client.tipo_contrato || 'pontual',
@@ -311,12 +341,12 @@ const ClientProfile = () => {
     createdAt: client.criado_em
   };
 
-  const handleClientUpdate = async (data: any) => {
+  const handleClientUpdate = async (data: Client) => {
     // Map the client data back to Supabase format
     const supabaseData = {
       nome: data.name,
       segmento: data.segment,
-      porte: data.size,
+      porte: mapClientSizeToSupabaseSize(data.size),
       status: mapClientStatusToSupabaseStatus(data.status),
       temperatura: data.temperature,
       tipo_contrato: data.contractType,
