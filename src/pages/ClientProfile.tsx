@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useClients } from '@/hooks/useClients';
 import { useProjects } from '@/hooks/useProjects';
 import { useStakeholders } from '@/hooks/useStakeholders';
-import { useClientAccesses } from '@/hooks/useClientAccesses';
+import { useSupabaseClientAccesses } from '@/hooks/useSupabaseClientAccesses';
 import PersonalInfoSection from '@/components/PersonalInfoSection';
 import { ClientNotesSection } from '@/components/ClientNotesSection';
 import { MeetingHistorySection } from '@/components/MeetingHistorySection';
@@ -60,7 +60,7 @@ const ClientProfile = () => {
   const { clients, updateClient } = useClients();
   const { projects } = useProjects();
   const { stakeholders, addStakeholder, updateStakeholder, deleteStakeholder } = useStakeholders(id || '');
-  const { accesses, addAccess, updateAccess, deleteAccess } = useClientAccesses(id || '');
+  const { accesses, addAccess, updateAccess, deleteAccess } = useSupabaseClientAccesses(id || '');
   
   const [isClientEditDialogOpen, setIsClientEditDialogOpen] = useState(false);
   const [isStakeholderDialogOpen, setIsStakeholderDialogOpen] = useState(false);
@@ -191,11 +191,11 @@ const ClientProfile = () => {
     setIsAccessDialogOpen(true);
   };
 
-  const handleSaveAccess = (data: any) => {
+  const handleSaveAccess = async (data: any) => {
     if (currentAccess) {
-      updateAccess(currentAccess.id, data);
+      await updateAccess(currentAccess.id, data);
     } else {
-      addAccess(data);
+      await addAccess(data);
     }
     setCurrentAccess(null);
   };
@@ -419,12 +419,12 @@ const ClientProfile = () => {
                   <TableBody>
                     {accesses.map((access) => (
                       <TableRow key={access.id}>
-                        <TableCell>{access.platform}</TableCell>
-                        <TableCell>{access.username}</TableCell>
+                        <TableCell>{access.plataforma}</TableCell>
+                        <TableCell>{access.usuario}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <span>
-                              {visiblePasswords[access.id] ? access.password : '••••••••••'}
+                              {visiblePasswords[access.id] ? access.senha : '••••••••••'}
                             </span>
                             <Button
                               variant="ghost"
@@ -435,7 +435,7 @@ const ClientProfile = () => {
                             </Button>
                           </div>
                         </TableCell>
-                        <TableCell>{access.notes}</TableCell>
+                        <TableCell>{access.notas}</TableCell>
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
