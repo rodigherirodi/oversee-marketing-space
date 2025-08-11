@@ -40,7 +40,7 @@ export const useSupabaseProjects = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('projetos')
-        .select('*')
+        .select('id, titulo, cliente, status, prioridade, data_inicio, data_entrega, progresso, equipe, tags, responsavel, briefing, escopo, observacoes, materiais, criado_em, atualizado_em')
         .order('data_entrega', { ascending: true });
 
       if (error) throw error;
@@ -125,7 +125,7 @@ export const useSupabaseProjects = () => {
           observacoes: projectData.observacoes,
           materiais: projectData.materiais
         })
-        .select()
+        .select('id, titulo, cliente, status, prioridade, data_inicio, data_entrega, progresso, equipe, tags, responsavel, briefing, escopo, observacoes, materiais, criado_em, atualizado_em')
         .single();
 
       if (error) throw error;
@@ -185,7 +185,7 @@ export const useSupabaseProjects = () => {
           atualizado_em: new Date().toISOString()
         })
         .eq('id', projectId)
-        .select()
+        .select('id, titulo, cliente, status, prioridade, data_inicio, data_entrega, progresso, equipe, tags, responsavel, briefing, escopo, observacoes, materiais, criado_em, atualizado_em')
         .single();
 
       if (error) throw error;
