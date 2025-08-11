@@ -250,13 +250,41 @@ const ClientProfile = () => {
     }));
   };
 
+  // Helper function to map Supabase status to Client interface status
+  const mapSupabaseStatusToClientStatus = (supabaseStatus: string) => {
+    switch (supabaseStatus) {
+      case 'ativo':
+        return 'active' as const;
+      case 'inativo':
+        return 'inactive' as const;
+      case 'prospect':
+        return 'onboarding' as const;
+      default:
+        return 'active' as const;
+    }
+  };
+
+  // Helper function to map Client status back to Supabase
+  const mapClientStatusToSupabaseStatus = (clientStatus: string) => {
+    switch (clientStatus) {
+      case 'active':
+        return 'ativo';
+      case 'inactive':
+        return 'inativo';
+      case 'onboarding':
+        return 'prospect';
+      default:
+        return 'ativo';
+    }
+  };
+
   // Converte o cliente do Supabase para o formato esperado pelos componentes
   const clientForComponents = {
     id: client.id,
     name: client.nome,
     segment: client.segmento || '',
     size: client.porte || 'micro',
-    status: client.status,
+    status: mapSupabaseStatusToClientStatus(client.status),
     temperature: client.temperatura || 'frio',
     contractType: client.tipo_contrato || 'pontual',
     entryDate: client.cliente_desde || client.criado_em,
@@ -274,7 +302,32 @@ const ClientProfile = () => {
       name: 'Contato Financeiro',
       phone: '(00) 00000-0000',
       email: 'financeiro@empresa.com'
-    }
+    },
+    socialMedia: {
+      facebook: client.redes_sociais?.facebook || '',
+      instagram: client.redes_sociais?.instagram || '',
+      linkedin: client.redes_sociais?.linkedin || ''
+    },
+    createdAt: client.criado_em
+  };
+
+  const handleClientUpdate = async (data: any) => {
+    // Map the client data back to Supabase format
+    const supabaseData = {
+      nome: data.name,
+      segmento: data.segment,
+      porte: data.size,
+      status: mapClientStatusToSupabaseStatus(data.status),
+      temperatura: data.temperature,
+      tipo_contrato: data.contractType,
+      cliente_desde: data.entryDate,
+      nps_atual: data.nps,
+      endereco: data.address,
+      site: data.website,
+      redes_sociais: data.socialMedia
+    };
+    
+    return await updateClient(client.id, supabaseData);
   };
 
   return (
@@ -765,7 +818,7 @@ const ClientProfile = () => {
         open={isClientEditDialogOpen}
         onOpenChange={setIsClientEditDialogOpen}
         client={clientForComponents}
-        onSave={(data) => updateClient(client.id, data)}
+        onSave={handleClientUpdate}
       />
 
       <StakeholderDialog
