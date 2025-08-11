@@ -20,14 +20,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ClientAccess } from '@/types/client-data';
+import { SupabaseClientAccess } from '@/hooks/useSupabaseClientAccesses';
 
 const accessSchema = z.object({
-  platform: z.string().min(1, 'Plataforma é obrigatória'),
-  username: z.string().min(1, 'Usuário é obrigatório'),
-  password: z.string().min(1, 'Senha é obrigatória'),
-  url: z.string().optional(),
-  notes: z.string().optional(),
+  plataforma: z.string().min(1, 'Plataforma é obrigatória'),
+  usuario: z.string().optional(),
+  senha: z.string().optional(),
+  notas: z.string().optional(),
 });
 
 type AccessFormData = z.infer<typeof accessSchema>;
@@ -35,38 +34,28 @@ type AccessFormData = z.infer<typeof accessSchema>;
 interface AccessDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  access?: ClientAccess;
-  clientId: string;
-  onSave: (data: Omit<ClientAccess, 'id' | 'createdAt'>) => void;
+  access?: SupabaseClientAccess;
+  onSave: (data: AccessFormData) => Promise<void>;
 }
 
 const AccessDialog: React.FC<AccessDialogProps> = ({
   open,
   onOpenChange,
   access,
-  clientId,
   onSave,
 }) => {
   const form = useForm<AccessFormData>({
     resolver: zodResolver(accessSchema),
     defaultValues: {
-      platform: access?.platform || '',
-      username: access?.username || '',
-      password: access?.password || '',
-      url: access?.url || '',
-      notes: access?.notes || '',
+      plataforma: access?.plataforma || '',
+      usuario: access?.usuario || '',
+      senha: access?.senha || '',
+      notas: access?.notas || '',
     },
   });
 
-  const handleSubmit = (data: AccessFormData) => {
-    onSave({
-      platform: data.platform,
-      username: data.username,
-      password: data.password,
-      url: data.url,
-      notes: data.notes,
-      clientId,
-    });
+  const handleSubmit = async (data: AccessFormData) => {
+    await onSave(data);
     onOpenChange(false);
     form.reset();
   };
@@ -84,7 +73,7 @@ const AccessDialog: React.FC<AccessDialogProps> = ({
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="platform"
+              name="plataforma"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Plataforma</FormLabel>
@@ -98,7 +87,7 @@ const AccessDialog: React.FC<AccessDialogProps> = ({
 
             <FormField
               control={form.control}
-              name="username"
+              name="usuario"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Usuário/Email</FormLabel>
@@ -112,7 +101,7 @@ const AccessDialog: React.FC<AccessDialogProps> = ({
 
             <FormField
               control={form.control}
-              name="password"
+              name="senha"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Senha</FormLabel>
@@ -126,21 +115,7 @@ const AccessDialog: React.FC<AccessDialogProps> = ({
 
             <FormField
               control={form.control}
-              name="url"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>URL (opcional)</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="notes"
+              name="notas"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Notas</FormLabel>

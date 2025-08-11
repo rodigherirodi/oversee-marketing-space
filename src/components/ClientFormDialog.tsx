@@ -11,7 +11,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
 
 interface ClientFormDialogProps {
   open: boolean;
@@ -24,54 +23,39 @@ const ClientFormDialog: React.FC<ClientFormDialogProps> = ({
   onOpenChange, 
   onClientAdded 
 }) => {
-  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
-    phone: '',
     segment: '',
-    size: 'PME' as 'MEI' | 'PME' | 'large',
-    status: 'active' as 'active' | 'inactive' | 'onboarding',
-    temperature: 'warm' as 'hot' | 'warm' | 'cold',
-    contractType: 'recurring' as 'recurring' | 'project' | 'one-time',
-    responsibleManager: '',
+    size: 'pequeno' as 'micro' | 'pequeno' | 'medio' | 'grande',
+    status: 'ativo' as 'ativo' | 'inativo' | 'prospect',
+    temperature: 'morno' as 'frio' | 'morno' | 'quente',
+    contractType: 'recorrente' as 'recorrente' | 'pontual' | 'projeto_unico',
     entryDate: new Date().toISOString().split('T')[0],
     nps: 8,
     address: '',
-    observations: ''
+    city: '',
+    state: '',
+    website: ''
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    onClientAdded(formData);
     
-    const newClient = {
-      ...formData,
-      entryDate: formData.entryDate,
-      logo: '/placeholder.svg'
-    };
-
-    onClientAdded(newClient);
-    
-    toast({
-      title: "Cliente adicionado",
-      description: "Cliente foi adicionado com sucesso!",
-    });
-    
-    onOpenChange(false);
+    // Reset form
     setFormData({
       name: '',
-      email: '',
-      phone: '',
       segment: '',
-      size: 'PME',
-      status: 'active',
-      temperature: 'warm',
-      contractType: 'recurring',
-      responsibleManager: '',
+      size: 'pequeno',
+      status: 'ativo',
+      temperature: 'morno',
+      contractType: 'recorrente',
       entryDate: new Date().toISOString().split('T')[0],
       nps: 8,
       address: '',
-      observations: ''
+      city: '',
+      state: '',
+      website: ''
     });
   };
 
@@ -96,30 +80,6 @@ const ClientFormDialog: React.FC<ClientFormDialogProps> = ({
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                placeholder="cliente@email.com"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="phone">Telefone</Label>
-              <Input
-                id="phone"
-                value={formData.phone}
-                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                placeholder="(11) 99999-9999"
-              />
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="segment">Segmento</Label>
               <Input
                 id="segment"
@@ -138,9 +98,10 @@ const ClientFormDialog: React.FC<ClientFormDialogProps> = ({
                   <SelectValue placeholder="Selecione o porte" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="MEI">MEI</SelectItem>
-                  <SelectItem value="PME">PME</SelectItem>
-                  <SelectItem value="large">Grande</SelectItem>
+                  <SelectItem value="micro">Micro</SelectItem>
+                  <SelectItem value="pequeno">Pequeno</SelectItem>
+                  <SelectItem value="medio">Médio</SelectItem>
+                  <SelectItem value="grande">Grande</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -152,9 +113,9 @@ const ClientFormDialog: React.FC<ClientFormDialogProps> = ({
                   <SelectValue placeholder="Selecione o status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="active">Ativo</SelectItem>
-                  <SelectItem value="inactive">Inativo</SelectItem>
-                  <SelectItem value="onboarding">Onboarding</SelectItem>
+                  <SelectItem value="ativo">Ativo</SelectItem>
+                  <SelectItem value="inativo">Inativo</SelectItem>
+                  <SelectItem value="prospect">Prospect</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -166,9 +127,9 @@ const ClientFormDialog: React.FC<ClientFormDialogProps> = ({
                   <SelectValue placeholder="Selecione a temperatura" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="hot">Quente</SelectItem>
-                  <SelectItem value="warm">Morno</SelectItem>
-                  <SelectItem value="cold">Frio</SelectItem>
+                  <SelectItem value="quente">Quente</SelectItem>
+                  <SelectItem value="morno">Morno</SelectItem>
+                  <SelectItem value="frio">Frio</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -182,25 +143,13 @@ const ClientFormDialog: React.FC<ClientFormDialogProps> = ({
                   <SelectValue placeholder="Selecione o tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="recurring">Recorrente</SelectItem>
-                  <SelectItem value="project">Projeto</SelectItem>
-                  <SelectItem value="one-time">Pontual</SelectItem>
+                  <SelectItem value="recorrente">Recorrente</SelectItem>
+                  <SelectItem value="pontual">Pontual</SelectItem>
+                  <SelectItem value="projeto_unico">Projeto Único</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="responsibleManager">Gestor Responsável</Label>
-              <Input
-                id="responsibleManager"
-                value={formData.responsibleManager}
-                onChange={(e) => setFormData(prev => ({ ...prev, responsibleManager: e.target.value }))}
-                placeholder="Nome do gestor"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="entryDate">Data de Entrada</Label>
               <Input
@@ -210,7 +159,9 @@ const ClientFormDialog: React.FC<ClientFormDialogProps> = ({
                 onChange={(e) => setFormData(prev => ({ ...prev, entryDate: e.target.value }))}
               />
             </div>
+          </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="nps">NPS (0-10)</Label>
               <Input
@@ -222,26 +173,48 @@ const ClientFormDialog: React.FC<ClientFormDialogProps> = ({
                 onChange={(e) => setFormData(prev => ({ ...prev, nps: parseInt(e.target.value) }))}
               />
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="website">Website</Label>
+              <Input
+                id="website"
+                value={formData.website}
+                onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
+                placeholder="https://exemplo.com"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="address">Endereço</Label>
+              <Input
+                id="address"
+                value={formData.address}
+                onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                placeholder="Endereço completo"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="city">Cidade</Label>
+              <Input
+                id="city"
+                value={formData.city}
+                onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                placeholder="Cidade"
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="address">Endereço</Label>
+            <Label htmlFor="state">Estado (UF)</Label>
             <Input
-              id="address"
-              value={formData.address}
-              onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-              placeholder="Endereço completo"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="observations">Observações</Label>
-            <Textarea
-              id="observations"
-              value={formData.observations}
-              onChange={(e) => setFormData(prev => ({ ...prev, observations: e.target.value }))}
-              placeholder="Observações adicionais"
-              rows={3}
+              id="state"
+              value={formData.state}
+              onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value }))}
+              placeholder="SP, RJ, MG..."
+              maxLength={2}
             />
           </div>
 

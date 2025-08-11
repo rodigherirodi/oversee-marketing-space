@@ -14,6 +14,237 @@ export type Database = {
   }
   public: {
     Tables: {
+      cliente_acessos: {
+        Row: {
+          atualizado_em: string | null
+          cliente_id: string
+          criado_em: string | null
+          id: string
+          notas: string | null
+          plataforma: string
+          senha: string | null
+          usuario: string | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          cliente_id: string
+          criado_em?: string | null
+          id?: string
+          notas?: string | null
+          plataforma: string
+          senha?: string | null
+          usuario?: string | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          cliente_id?: string
+          criado_em?: string | null
+          id?: string
+          notas?: string | null
+          plataforma?: string
+          senha?: string | null
+          usuario?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cliente_acessos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cliente_contatos: {
+        Row: {
+          atualizado_em: string | null
+          cargo: string | null
+          cliente_id: string
+          criado_em: string | null
+          email: string | null
+          id: string
+          is_primary: boolean | null
+          nome: string
+          observacoes: string | null
+          telefone: string | null
+          tipo: Database["public"]["Enums"]["contact_type"] | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          cargo?: string | null
+          cliente_id: string
+          criado_em?: string | null
+          email?: string | null
+          id?: string
+          is_primary?: boolean | null
+          nome: string
+          observacoes?: string | null
+          telefone?: string | null
+          tipo?: Database["public"]["Enums"]["contact_type"] | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          cargo?: string | null
+          cliente_id?: string
+          criado_em?: string | null
+          email?: string | null
+          id?: string
+          is_primary?: boolean | null
+          nome?: string
+          observacoes?: string | null
+          telefone?: string | null
+          tipo?: Database["public"]["Enums"]["contact_type"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cliente_contatos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cliente_reunioes: {
+        Row: {
+          atualizado_em: string | null
+          cliente_id: string
+          criado_em: string | null
+          criado_por: string | null
+          data_hora: string
+          duracao: number | null
+          id: string
+          link_gravacao: string | null
+          observacoes: string | null
+          participantes: string[] | null
+          resumo: string | null
+          tipo: string | null
+          titulo: string
+        }
+        Insert: {
+          atualizado_em?: string | null
+          cliente_id: string
+          criado_em?: string | null
+          criado_por?: string | null
+          data_hora: string
+          duracao?: number | null
+          id?: string
+          link_gravacao?: string | null
+          observacoes?: string | null
+          participantes?: string[] | null
+          resumo?: string | null
+          tipo?: string | null
+          titulo: string
+        }
+        Update: {
+          atualizado_em?: string | null
+          cliente_id?: string
+          criado_em?: string | null
+          criado_por?: string | null
+          data_hora?: string
+          duracao?: number | null
+          id?: string
+          link_gravacao?: string | null
+          observacoes?: string | null
+          participantes?: string[] | null
+          resumo?: string | null
+          tipo?: string | null
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cliente_reunioes_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cliente_reunioes_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clientes: {
+        Row: {
+          atualizado_em: string | null
+          cidade: string | null
+          cliente_desde: string | null
+          criado_em: string | null
+          endereco: string | null
+          gestor_id: string | null
+          id: string
+          logo_url: string | null
+          nome: string
+          nps_atual: number | null
+          nps_atual_data: string | null
+          porte: Database["public"]["Enums"]["company_size"] | null
+          redes_sociais: Json | null
+          segmento: string | null
+          site: string | null
+          status: Database["public"]["Enums"]["client_status"] | null
+          tags: string[] | null
+          temperatura: Database["public"]["Enums"]["client_temperature"] | null
+          tipo_contrato: Database["public"]["Enums"]["contract_type"] | null
+          uf: string | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          cidade?: string | null
+          cliente_desde?: string | null
+          criado_em?: string | null
+          endereco?: string | null
+          gestor_id?: string | null
+          id?: string
+          logo_url?: string | null
+          nome: string
+          nps_atual?: number | null
+          nps_atual_data?: string | null
+          porte?: Database["public"]["Enums"]["company_size"] | null
+          redes_sociais?: Json | null
+          segmento?: string | null
+          site?: string | null
+          status?: Database["public"]["Enums"]["client_status"] | null
+          tags?: string[] | null
+          temperatura?: Database["public"]["Enums"]["client_temperature"] | null
+          tipo_contrato?: Database["public"]["Enums"]["contract_type"] | null
+          uf?: string | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          cidade?: string | null
+          cliente_desde?: string | null
+          criado_em?: string | null
+          endereco?: string | null
+          gestor_id?: string | null
+          id?: string
+          logo_url?: string | null
+          nome?: string
+          nps_atual?: number | null
+          nps_atual_data?: string | null
+          porte?: Database["public"]["Enums"]["company_size"] | null
+          redes_sociais?: Json | null
+          segmento?: string | null
+          site?: string | null
+          status?: Database["public"]["Enums"]["client_status"] | null
+          tags?: string[] | null
+          temperatura?: Database["public"]["Enums"]["client_temperature"] | null
+          tipo_contrato?: Database["public"]["Enums"]["contract_type"] | null
+          uf?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clientes_gestor_id_fkey"
+            columns: ["gestor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       departments: {
         Row: {
           created_at: string
@@ -843,6 +1074,11 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "manager" | "team_lead" | "user"
+      client_status: "ativo" | "inativo" | "prospect"
+      client_temperature: "frio" | "morno" | "quente"
+      company_size: "micro" | "pequeno" | "medio" | "grande"
+      contact_type: "principal" | "financeiro" | "operacional" | "outro"
+      contract_type: "recorrente" | "pontual" | "projeto_unico"
       department_type:
         | "operacao"
         | "academy"
@@ -979,6 +1215,11 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "manager", "team_lead", "user"],
+      client_status: ["ativo", "inativo", "prospect"],
+      client_temperature: ["frio", "morno", "quente"],
+      company_size: ["micro", "pequeno", "medio", "grande"],
+      contact_type: ["principal", "financeiro", "operacional", "outro"],
+      contract_type: ["recorrente", "pontual", "projeto_unico"],
       department_type: [
         "operacao",
         "academy",
