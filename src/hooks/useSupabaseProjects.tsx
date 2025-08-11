@@ -44,7 +44,15 @@ export const useSupabaseProjects = () => {
         .order('data_entrega', { ascending: true });
 
       if (error) throw error;
-      setProjects(data || []);
+      
+      // Transform the data to match our interface
+      const transformedData: SupabaseProject[] = (data || []).map(project => ({
+        ...project,
+        progresso: project.progresso || 0,
+        prioridade: project.prioridade || null
+      }));
+      
+      setProjects(transformedData);
     } catch (err) {
       console.error('Error fetching projects:', err);
       setError(err instanceof Error ? err.message : 'Error fetching projects');
@@ -121,13 +129,20 @@ export const useSupabaseProjects = () => {
 
       if (error) throw error;
 
-      setProjects(prev => [data, ...prev]);
+      // Transform the data to match our interface
+      const transformedProject: SupabaseProject = {
+        ...data,
+        progresso: data.progresso || 0,
+        prioridade: data.prioridade || null
+      };
+
+      setProjects(prev => [transformedProject, ...prev]);
       toast({
         title: "Sucesso",
         description: "Projeto criado com sucesso!",
       });
       
-      return data;
+      return transformedProject;
     } catch (err) {
       console.error('Error creating project:', err);
       toast({
@@ -173,8 +188,15 @@ export const useSupabaseProjects = () => {
 
       if (error) throw error;
 
+      // Transform the data to match our interface
+      const transformedProject: SupabaseProject = {
+        ...data,
+        progresso: data.progresso || 0,
+        prioridade: data.prioridade || null
+      };
+
       setProjects(prev => prev.map(project => 
-        project.id === projectId ? data : project
+        project.id === projectId ? transformedProject : project
       ));
       
       toast({
@@ -182,7 +204,7 @@ export const useSupabaseProjects = () => {
         description: "Projeto atualizado com sucesso!",
       });
       
-      return data;
+      return transformedProject;
     } catch (err) {
       console.error('Error updating project:', err);
       toast({
