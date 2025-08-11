@@ -232,9 +232,8 @@ const ClientProfile = () => {
 
     const logoUrl = await uploadLogo(file, client.id);
     if (logoUrl) {
-      // Atualiza o estado local do cliente
-      // O hook já atualiza o banco de dados
-      window.location.reload(); // Simples reload para atualizar a interface
+      // Refresh the page to see the updated logo
+      window.location.reload();
     }
   };
 

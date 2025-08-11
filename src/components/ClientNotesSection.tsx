@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { StickyNote, Plus, User, Calendar } from 'lucide-react';
-import { useClientNotes } from '@/hooks/useClientNotes';
+import { useSupabaseClientNotes } from '@/hooks/useSupabaseClientNotes';
 import { useToast } from '@/hooks/use-toast';
 
 interface ClientNotesSectionProps {
@@ -15,22 +15,18 @@ interface ClientNotesSectionProps {
 export const ClientNotesSection: React.FC<ClientNotesSectionProps> = ({ clientId }) => {
   const [newNote, setNewNote] = useState('');
   const [isAdding, setIsAdding] = useState(false);
-  const { getNotesByClient, addNote } = useClientNotes();
+  const { notes, addNote } = useSupabaseClientNotes(clientId);
   const { toast } = useToast();
-
-  const notes = getNotesByClient(clientId);
 
   const handleAddNote = async () => {
     if (!newNote.trim()) return;
 
     setIsAdding(true);
     try {
-      addNote(clientId, newNote.trim());
-      setNewNote('');
-      toast({
-        title: "Anotação adicionada",
-        description: "A anotação foi salva com sucesso.",
-      });
+      const result = await addNote(newNote.trim());
+      if (result) {
+        setNewNote('');
+      }
     } catch (error) {
       toast({
         title: "Erro",
@@ -98,17 +94,17 @@ export const ClientNotesSection: React.FC<ClientNotesSectionProps> = ({ clientId
                 <div className="flex items-start justify-between gap-4 mb-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <User className="w-4 h-4" />
-                    <span>{note.author}</span>
+                    <span>Usuário</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-muted-foreground" />
                     <Badge variant="outline" className="text-xs">
-                      {formatDateTime(note.createdAt)}
+                      {formatDateTime(note.criado_em)}
                     </Badge>
                   </div>
                 </div>
                 <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                  {note.content}
+                  {note.conteudo}
                 </p>
               </div>
             ))

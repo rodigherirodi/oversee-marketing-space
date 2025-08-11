@@ -32,6 +32,19 @@ export const useClientLogo = () => {
     setIsUploading(true);
 
     try {
+      // Remove existing logo if any
+      const { data: existingFiles } = await supabase.storage
+        .from('avatars')
+        .list(`client-logos/${clientId}`);
+
+      if (existingFiles && existingFiles.length > 0) {
+        for (const existingFile of existingFiles) {
+          await supabase.storage
+            .from('avatars')
+            .remove([`client-logos/${clientId}/${existingFile.name}`]);
+        }
+      }
+
       const fileExt = file.name.split('.').pop();
       const fileName = `client-logos/${clientId}/${Date.now()}.${fileExt}`;
       

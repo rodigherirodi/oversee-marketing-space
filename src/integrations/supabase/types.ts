@@ -55,6 +55,33 @@ export type Database = {
           },
         ]
       }
+      cliente_anotacoes: {
+        Row: {
+          atualizado_em: string
+          autor_id: string | null
+          cliente_id: string
+          conteudo: string
+          criado_em: string
+          id: string
+        }
+        Insert: {
+          atualizado_em?: string
+          autor_id?: string | null
+          cliente_id: string
+          conteudo: string
+          criado_em?: string
+          id?: string
+        }
+        Update: {
+          atualizado_em?: string
+          autor_id?: string | null
+          cliente_id?: string
+          conteudo?: string
+          criado_em?: string
+          id?: string
+        }
+        Relationships: []
+      }
       cliente_contatos: {
         Row: {
           atualizado_em: string | null

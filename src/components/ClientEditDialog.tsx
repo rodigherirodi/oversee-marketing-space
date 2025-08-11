@@ -1,58 +1,19 @@
 
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { Client } from '@/types/entities';
-
-const clientSchema = z.object({
-  name: z.string().min(1, 'Nome é obrigatório'),
-  segment: z.string().min(1, 'Segmento é obrigatório'),
-  status: z.enum(['active', 'inactive', 'onboarding']),
-  size: z.enum(['MEI', 'PME', 'large']),
-  address: z.string().min(1, 'Endereço é obrigatório'),
-  website: z.string().optional(),
-  primaryContact: z.object({
-    name: z.string().min(1, 'Nome do contato principal é obrigatório'),
-    phone: z.string().min(1, 'Telefone é obrigatório'),
-    email: z.string().email('Email inválido'),
-  }),
-  financialContact: z.object({
-    name: z.string().min(1, 'Nome do contato financeiro é obrigatório'),
-    phone: z.string().min(1, 'Telefone é obrigatório'),
-    email: z.string().email('Email inválido'),
-  }),
-  contractType: z.enum(['recurring', 'project', 'one-time']),
-  temperature: z.enum(['cold', 'warm', 'hot']),
-  entryDate: z.string().min(1, 'Data de entrada é obrigatória'),
-  responsibleManager: z.string().min(1, 'Gestor responsável é obrigatório'),
-});
-
-type ClientFormData = z.infer<typeof clientSchema>;
+import { useProfiles } from '@/hooks/useProfiles';
+import ImageUpload from '@/components/ImageUpload';
 
 interface ClientEditDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   client: Client;
-  onSave: (data: Partial<Client>) => void;
+  onSave: (client: Client) => Promise<any>;
 }
 
 const ClientEditDialog: React.FC<ClientEditDialogProps> = ({
@@ -61,361 +22,228 @@ const ClientEditDialog: React.FC<ClientEditDialogProps> = ({
   client,
   onSave,
 }) => {
-  const form = useForm<ClientFormData>({
-    resolver: zodResolver(clientSchema),
-    defaultValues: {
-      name: client.name,
-      segment: client.segment,
-      status: client.status,
-      size: client.size,
-      address: client.address,
-      website: client.website || '',
-      primaryContact: client.primaryContact,
-      financialContact: client.financialContact,
-      contractType: client.contractType,
-      temperature: client.temperature,
-      entryDate: client.entryDate,
-      responsibleManager: client.responsibleManager,
-    },
-  });
+  const [formData, setFormData] = useState<Client>(client);
+  const [isSaving, setIsSaving] = useState(false);
+  const { profiles } = useProfiles();
 
-  const handleSubmit = (data: ClientFormData) => {
-    const updateData: Partial<Client> = {
-      name: data.name,
-      segment: data.segment,
-      status: data.status,
-      size: data.size,
-      address: data.address,
-      website: data.website,
-      primaryContact: {
-        name: data.primaryContact.name,
-        phone: data.primaryContact.phone,
-        email: data.primaryContact.email,
-      },
-      financialContact: {
-        name: data.financialContact.name,
-        phone: data.financialContact.phone,
-        email: data.financialContact.email,
-      },
-      contractType: data.contractType,
-      temperature: data.temperature,
-      entryDate: data.entryDate,
-      responsibleManager: data.responsibleManager,
-    };
-    
-    onSave(updateData);
-    onOpenChange(false);
+  useEffect(() => {
+    setFormData(client);
+  }, [client]);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await onSave(formData);
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Erro ao salvar cliente:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleInputChange = (field: keyof Client, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar Cliente</DialogTitle>
         </DialogHeader>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div className="col-span-2">
+            <Label>Logo do Cliente</Label>
+            <ImageUpload
+              value={formData.logo}
+              onChange={(value) => handleInputChange('logo', value)}
+              fallbackText={formData.name.charAt(0)}
+            />
+          </div>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            {/* Informações Principais */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Informações Principais</h3>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          <div>
+            <Label htmlFor="name">Nome da Empresa</Label>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) => handleInputChange('name', e.target.value)}
+            />
+          </div>
 
-                <FormField
-                  control={form.control}
-                  name="segment"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Segmento</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+          <div>
+            <Label htmlFor="segment">Segmento</Label>
+            <Input
+              id="segment"
+              value={formData.segment}
+              onChange={(e) => handleInputChange('segment', e.target.value)}
+            />
+          </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="active">Ativo</SelectItem>
-                          <SelectItem value="inactive">Inativo</SelectItem>
-                          <SelectItem value="onboarding">Onboarding</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          <div>
+            <Label htmlFor="size">Porte da Empresa</Label>
+            <Select value={formData.size} onValueChange={(value) => handleInputChange('size', value)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="MEI">Microempresa</SelectItem>
+                <SelectItem value="PME">Pequena/Média Empresa</SelectItem>
+                <SelectItem value="large">Grande Empresa</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-                <FormField
-                  control={form.control}
-                  name="size"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tamanho</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="MEI">MEI</SelectItem>
-                          <SelectItem value="PME">PME</SelectItem>
-                          <SelectItem value="large">Grande Porte</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+          <div>
+            <Label htmlFor="status">Status</Label>
+            <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Ativo</SelectItem>
+                <SelectItem value="inactive">Inativo</SelectItem>
+                <SelectItem value="onboarding">Prospect</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Endereço</FormLabel>
-                    <FormControl>
-                      <Textarea {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <div>
+            <Label htmlFor="temperature">Temperatura</Label>
+            <Select value={formData.temperature} onValueChange={(value) => handleInputChange('temperature', value)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cold">Frio</SelectItem>
+                <SelectItem value="warm">Morno</SelectItem>
+                <SelectItem value="hot">Quente</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-              <FormField
-                control={form.control}
-                name="website"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Website</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+          <div>
+            <Label htmlFor="contractType">Tipo de Contrato</Label>
+            <Select value={formData.contractType} onValueChange={(value) => handleInputChange('contractType', value)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="recurring">Recorrente</SelectItem>
+                <SelectItem value="project">Projeto</SelectItem>
+                <SelectItem value="one-time">Pontual</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-            {/* Contato Principal */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Contato Principal</h3>
-              
-              <FormField
-                control={form.control}
-                name="primaryContact.name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <div>
+            <Label htmlFor="responsibleManager">Gestor Responsável</Label>
+            <Select 
+              value={formData.responsibleManager} 
+              onValueChange={(value) => handleInputChange('responsibleManager', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um gestor" />
+              </SelectTrigger>
+              <SelectContent>
+                {profiles.map((profile) => (
+                  <SelectItem key={profile.id} value={profile.id}>
+                    {profile.name} - {profile.position || profile.department}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="primaryContact.phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Telefone</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          <div>
+            <Label htmlFor="entryDate">Data de Entrada</Label>
+            <Input
+              id="entryDate"
+              type="date"
+              value={formData.entryDate?.split('T')[0] || ''}
+              onChange={(e) => handleInputChange('entryDate', e.target.value)}
+            />
+          </div>
 
-                <FormField
-                  control={form.control}
-                  name="primaryContact.email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
+          <div>
+            <Label htmlFor="nps">NPS Atual</Label>
+            <Input
+              id="nps"
+              type="number"
+              min="0"
+              max="10"
+              value={formData.nps || ''}
+              onChange={(e) => handleInputChange('nps', parseInt(e.target.value))}
+            />
+          </div>
 
-            {/* Contato Financeiro */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Contato Financeiro</h3>
-              
-              <FormField
-                control={form.control}
-                name="financialContact.name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <div className="col-span-2">
+            <Label htmlFor="address">Endereço</Label>
+            <Input
+              id="address"
+              value={formData.address}
+              onChange={(e) => handleInputChange('address', e.target.value)}
+            />
+          </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="financialContact.phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Telefone</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          <div className="col-span-2">
+            <Label htmlFor="website">Website</Label>
+            <Input
+              id="website"
+              value={formData.website}
+              onChange={(e) => handleInputChange('website', e.target.value)}
+            />
+          </div>
 
-                <FormField
-                  control={form.control}
-                  name="financialContact.email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
+          <div>
+            <Label htmlFor="facebook">Facebook</Label>
+            <Input
+              id="facebook"
+              value={formData.socialMedia?.facebook || ''}
+              onChange={(e) => handleInputChange('socialMedia', { 
+                ...formData.socialMedia, 
+                facebook: e.target.value 
+              })}
+            />
+          </div>
 
-            {/* Detalhes do Contrato */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Detalhes do Contrato</h3>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="contractType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tipo de Contrato</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="recurring">Recorrente</SelectItem>
-                          <SelectItem value="project">Projeto</SelectItem>
-                          <SelectItem value="one-time">Único</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          <div>
+            <Label htmlFor="instagram">Instagram</Label>
+            <Input
+              id="instagram"
+              value={formData.socialMedia?.instagram || ''}
+              onChange={(e) => handleInputChange('socialMedia', { 
+                ...formData.socialMedia, 
+                instagram: e.target.value 
+              })}
+            />
+          </div>
 
-                <FormField
-                  control={form.control}
-                  name="temperature"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Temperatura</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="cold">Frio</SelectItem>
-                          <SelectItem value="warm">Morno</SelectItem>
-                          <SelectItem value="hot">Quente</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+          <div className="col-span-2">
+            <Label htmlFor="linkedin">LinkedIn</Label>
+            <Input
+              id="linkedin"
+              value={formData.socialMedia?.linkedin || ''}
+              onChange={(e) => handleInputChange('socialMedia', { 
+                ...formData.socialMedia, 
+                linkedin: e.target.value 
+              })}
+            />
+          </div>
+        </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="entryDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Data de Entrada</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="responsibleManager"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Gestor Responsável</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit">Salvar</Button>
-            </div>
-          </form>
-        </Form>
+        <div className="flex justify-end gap-2 mt-6">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancelar
+          </Button>
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving ? 'Salvando...' : 'Salvar'}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
