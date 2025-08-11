@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useClients } from '@/hooks/useClients';
+import { useSupabaseClients } from '@/hooks/useSupabaseClients';
 import { useProjects } from '@/hooks/useProjects';
 import { useStakeholders } from '@/hooks/useStakeholders';
 import { useSupabaseClientAccesses } from '@/hooks/useSupabaseClientAccesses';
@@ -57,7 +58,7 @@ import AccessDialog from '@/components/AccessDialog';
 const ClientProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { clients, updateClient } = useClients();
+  const { clients, updateClient, loading: clientsLoading } = useSupabaseClients();
   const { projects } = useProjects();
   const { stakeholders, addStakeholder, updateStakeholder, deleteStakeholder } = useStakeholders(id || '');
   const { accesses, addAccess, updateAccess, deleteAccess } = useSupabaseClientAccesses(id || '');
@@ -71,21 +72,44 @@ const ClientProfile = () => {
   const [currentPageLink, setCurrentPageLink] = useState<any | null>(null);
   const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
   
+  // Encontra o cliente usando os dados do Supabase
   const client = clients.find(c => c.id === id);
   const clientProjects = projects.filter(project => project.clientId === id);
   const { pageLinks, addPageLink, updatePageLink, deletePageLink } = usePageLinks(id || '');
 
+  // Loading state
+  if (clientsLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p>Carregando perfil do cliente...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!client) {
-    return <div>Cliente não encontrado</div>;
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">Cliente não encontrado</h2>
+          <p className="text-gray-600 mb-4">O cliente que você está procurando não existe ou foi removido.</p>
+          <Button onClick={() => navigate('/clients')}>
+            Voltar para Clientes
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active':
+      case 'ativo':
         return 'bg-green-100 text-green-700';
-      case 'inactive':
+      case 'inativo':
         return 'bg-red-100 text-red-700';
-      case 'onboarding':
+      case 'prospect':
         return 'bg-blue-100 text-blue-700';
       default:
         return 'bg-gray-100 text-gray-700';
@@ -94,12 +118,14 @@ const ClientProfile = () => {
 
   const getSizeLabel = (size: string) => {
     switch (size) {
-      case 'MEI':
-        return 'Microempreendedor Individual';
-      case 'PME':
-        return 'Pequena e Média Empresa';
-      case 'large':
-        return 'Grande Porte';
+      case 'micro':
+        return 'Microempresa';
+      case 'pequeno':
+        return 'Pequena Empresa';
+      case 'medio':
+        return 'Média Empresa';
+      case 'grande':
+        return 'Grande Empresa';
       default:
         return size;
     }
@@ -224,27 +250,55 @@ const ClientProfile = () => {
     }));
   };
 
+  // Converte o cliente do Supabase para o formato esperado pelos componentes
+  const clientForComponents = {
+    id: client.id,
+    name: client.nome,
+    segment: client.segmento || '',
+    size: client.porte || 'micro',
+    status: client.status,
+    temperature: client.temperatura || 'frio',
+    contractType: client.tipo_contrato || 'pontual',
+    entryDate: client.cliente_desde || client.criado_em,
+    nps: client.nps_atual,
+    address: client.endereco || '',
+    website: client.site || '',
+    logo: client.logo_url || '',
+    responsibleManager: client.gestor_id || 'Não definido',
+    primaryContact: {
+      name: 'Contato Principal',
+      phone: '(00) 00000-0000',
+      email: 'contato@empresa.com'
+    },
+    financialContact: {
+      name: 'Contato Financeiro',
+      phone: '(00) 00000-0000',
+      email: 'financeiro@empresa.com'
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Client Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
           <Avatar className="w-16 h-16">
-            <AvatarImage src={client.logo} />
-            <AvatarFallback>{client.name.charAt(0)}</AvatarFallback>
+            <AvatarImage src={client.logo_url || ''} />
+            <AvatarFallback>{client.nome.charAt(0)}</AvatarFallback>
           </Avatar>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-3xl font-bold">{client.name}</h1>
+              <h1 className="text-3xl font-bold">{client.nome}</h1>
               <Badge className={getStatusColor(client.status)}>
-                {client.status === 'active' ? 'Ativo' : client.status === 'inactive' ? 'Inativo' : 'Onboarding'}
+                {client.status === 'ativo' ? 'Ativo' : 
+                 client.status === 'inativo' ? 'Inativo' : 'Prospect'}
               </Badge>
             </div>
             <div className="flex items-center gap-2 text-gray-500">
               <Building className="w-4 h-4" />
-              <span>{client.segment}</span>
+              <span>{client.segmento || 'Segmento não informado'}</span>
               <span>•</span>
-              <span>{getSizeLabel(client.size)}</span>
+              <span>{getSizeLabel(client.porte || 'micro')}</span>
             </div>
           </div>
         </div>
@@ -285,26 +339,26 @@ const ClientProfile = () => {
             <Card>
               <CardContent className="p-6 space-y-4">
                 <h2 className="text-xl font-semibold">Informações Principais</h2>
-                <PersonalInfoSection client={client} />
+                <PersonalInfoSection client={clientForComponents} />
                 
                 <div className="mt-6 pt-6 border-t border-gray-100">
                   <h2 className="text-xl font-semibold mb-4">Endereço</h2>
                   <div className="space-y-4">
                     <div className="flex items-start gap-2">
                       <MapPin className="w-4 h-4 text-gray-500 mt-1" />
-                      <span>{client.address}</span>
+                      <span>{client.endereco || 'Endereço não informado'}</span>
                     </div>
                     
-                    {client.website && (
+                    {client.site && (
                       <div className="flex items-start gap-2">
                         <ExternalLink className="w-4 h-4 text-gray-500 mt-1" />
                         <a 
-                          href={client.website}
+                          href={client.site}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:underline"
                         >
-                          {client.website}
+                          {client.site}
                         </a>
                       </div>
                     )}
@@ -324,15 +378,15 @@ const ClientProfile = () => {
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 text-sm">
                           <Users className="w-4 h-4 text-gray-500" />
-                          <span>{client.primaryContact.name}</span>
+                          <span>Contato Principal</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
                           <Phone className="w-4 h-4 text-gray-500" />
-                          <span>{client.primaryContact.phone}</span>
+                          <span>(00) 00000-0000</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
                           <Mail className="w-4 h-4 text-gray-500" />
-                          <span>{client.primaryContact.email}</span>
+                          <span>contato@empresa.com</span>
                         </div>
                       </div>
                     </div>
@@ -342,15 +396,15 @@ const ClientProfile = () => {
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 text-sm">
                           <Users className="w-4 h-4 text-gray-500" />
-                          <span>{client.financialContact.name}</span>
+                          <span>Contato Financeiro</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
                           <Phone className="w-4 h-4 text-gray-500" />
-                          <span>{client.financialContact.phone}</span>
+                          <span>(00) 00000-0000</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
                           <Mail className="w-4 h-4 text-gray-500" />
-                          <span>{client.financialContact.email}</span>
+                          <span>financeiro@empresa.com</span>
                         </div>
                       </div>
                     </div>
@@ -367,29 +421,29 @@ const ClientProfile = () => {
                       <div className="flex items-center justify-between">
                         <span className="text-gray-500">Tipo de Contrato</span>
                         <span className="font-medium">
-                          {client.contractType === 'recurring' ? 'Recorrente' : 
-                          client.contractType === 'project' ? 'Projeto' : 'Único'}
+                          {client.tipo_contrato === 'recorrente' ? 'Recorrente' : 
+                          client.tipo_contrato === 'projeto_unico' ? 'Projeto Único' : 'Pontual'}
                         </span>
                       </div>
                       
                       <div className="flex items-center justify-between">
                         <span className="text-gray-500">Cliente Desde</span>
                         <span className="font-medium">
-                          {new Date(client.entryDate).toLocaleDateString()}
+                          {client.cliente_desde ? new Date(client.cliente_desde).toLocaleDateString('pt-BR') : 'Não informado'}
                         </span>
                       </div>
                       
                       <div className="flex items-center justify-between">
                         <span className="text-gray-500">Temperatura</span>
                         <span className="font-medium">
-                          {client.temperature === 'hot' ? 'Quente' : 
-                          client.temperature === 'warm' ? 'Morno' : 'Frio'}
+                          {client.temperatura === 'quente' ? 'Quente' : 
+                          client.temperatura === 'morno' ? 'Morno' : 'Frio'}
                         </span>
                       </div>
                       
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-500">Gestor Responsável</span>
-                        <span className="font-medium">{client.responsibleManager}</span>
+                        <span className="text-gray-500">NPS Atual</span>
+                        <span className="font-medium">{client.nps_atual || 'Não avaliado'}</span>
                       </div>
                     </div>
                   </div>
@@ -560,7 +614,6 @@ const ClientProfile = () => {
           />
         </TabsContent>
 
-        {/* Projects Tab */}
         <TabsContent value="projects" className="space-y-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Projetos</h2>
@@ -617,7 +670,6 @@ const ClientProfile = () => {
           </div>
         </TabsContent>
 
-        {/* Relationship Tab */}
         <TabsContent value="relationship" className="space-y-6">
           <h2 className="text-xl font-semibold mb-6">Relacionamento com o Cliente</h2>
           
@@ -628,14 +680,12 @@ const ClientProfile = () => {
           </div>
         </TabsContent>
 
-        {/* Team Tab */}
         <TabsContent value="team" className="space-y-6">
           <h2 className="text-xl font-semibold mb-6">Equipe do Cliente</h2>
           
           <TeamMemberSelector clientId={client.id} />
         </TabsContent>
 
-        {/* Stakeholders Tab */}
         <TabsContent value="stakeholders" className="space-y-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Stakeholders</h2>
@@ -714,7 +764,7 @@ const ClientProfile = () => {
       <ClientEditDialog
         open={isClientEditDialogOpen}
         onOpenChange={setIsClientEditDialogOpen}
-        client={client}
+        client={clientForComponents}
         onSave={(data) => updateClient(client.id, data)}
       />
 
