@@ -16,7 +16,7 @@ import {
   Edit,
   Upload
 } from 'lucide-react';
-import { useSupabaseClients } from '@/hooks/useSupabaseClients';
+import { useSupabaseClients, ClientFormData } from '@/hooks/useSupabaseClients';
 import { useClientLogo } from '@/hooks/useClientLogo';
 import { transformSupabaseClientToClient } from '@/utils/clientTransforms';
 import ClientEditDialog from '@/components/ClientEditDialog';
@@ -61,8 +61,8 @@ const ClientProfile = () => {
   const handleSaveClient = async (updatedClient: any) => {
     if (!client?.id) return;
     
-    // Convert Client interface back to Supabase format
-    const supabaseData = {
+    // Convert Client interface back to Supabase format with proper typing
+    const supabaseData: Partial<ClientFormData> = {
       nome: updatedClient.name,
       segmento: updatedClient.segment,
       descricao: updatedClient.description,

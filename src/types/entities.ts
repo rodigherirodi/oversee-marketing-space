@@ -3,6 +3,7 @@ export interface Client {
   id: string;
   name: string;
   segment: string;
+  description?: string; // Adicionando campo description
   logo?: string;
   cover?: string;
   status: 'active' | 'inactive' | 'onboarding';

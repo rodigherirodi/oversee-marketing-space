@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Plus, MoreHorizontal, Calendar, ExternalLink, Clock, Users } from 'lucide-react';
-import { useSupabaseClientMeetings } from '@/hooks/useSupabaseClientMeetings';
+import { useSupabaseClientMeetings, MeetingFormData } from '@/hooks/useSupabaseClientMeetings';
 import { MeetingFormDialog } from '@/components/MeetingFormDialog';
 
 interface ClientMeetingsSectionProps {
@@ -30,7 +30,7 @@ export const ClientMeetingsSection: React.FC<ClientMeetingsSectionProps> = ({ cl
   const [editingMeeting, setEditingMeeting] = useState<any | undefined>();
   const { meetings, addMeeting, updateMeeting, deleteMeeting } = useSupabaseClientMeetings(clientId);
 
-  const handleSaveMeeting = async (data: any) => {
+  const handleSaveMeeting = async (data: MeetingFormData) => {
     if (editingMeeting) {
       await updateMeeting(editingMeeting.id, data);
       setEditingMeeting(undefined);

@@ -26,7 +26,7 @@ export const useSupabaseClientNotes = (clientId: string) => {
         .from('cliente_anotacoes')
         .select(`
           *,
-          autor:profiles!cliente_anotacoes_autor_id_fkey(name)
+          profiles!inner(name)
         `)
         .eq('cliente_id', clientId)
         .order('criado_em', { ascending: false });
@@ -44,7 +44,7 @@ export const useSupabaseClientNotes = (clientId: string) => {
       // Mapear os dados para incluir o nome do autor
       const notesWithAuthor = (data || []).map(note => ({
         ...note,
-        autor_nome: note.autor?.name || 'Usuário desconhecido'
+        autor_nome: note.profiles?.name || 'Usuário desconhecido'
       }));
 
       setNotes(notesWithAuthor);
@@ -78,7 +78,7 @@ export const useSupabaseClientNotes = (clientId: string) => {
         }])
         .select(`
           *,
-          autor:profiles!cliente_anotacoes_autor_id_fkey(name)
+          profiles!inner(name)
         `)
         .single();
 
@@ -94,7 +94,7 @@ export const useSupabaseClientNotes = (clientId: string) => {
 
       const noteWithAuthor = {
         ...data,
-        autor_nome: data.autor?.name || 'Usuário desconhecido'
+        autor_nome: data.profiles?.name || 'Usuário desconhecido'
       };
 
       setNotes(prev => [noteWithAuthor, ...prev]);

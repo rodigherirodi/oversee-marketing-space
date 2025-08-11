@@ -6,42 +6,37 @@ import { useToast } from '@/hooks/use-toast';
 export interface SupabaseClient {
   id: string;
   nome: string;
-  segmento: string | null;
-  porte: 'micro' | 'pequeno' | 'medio' | 'grande' | null;
-  status: 'ativo' | 'inativo' | 'prospect';
-  temperatura: 'frio' | 'morno' | 'quente' | null;
-  tipo_contrato: 'recorrente' | 'pontual' | 'projeto_unico' | null;
-  cliente_desde: string | null;
-  gestor_id: string | null;
-  nps_atual: number | null;
-  nps_atual_data: string | null;
-  endereco: string | null;
-  cidade: string | null;
-  uf: string | null;
-  site: string | null;
-  logo_url: string | null;
-  tags: string[] | null;
-  redes_sociais: any | null;
+  segmento?: string;
+  descricao?: string; // Adicionando campo descricao
+  porte?: 'micro' | 'pequeno' | 'medio' | 'grande';
+  status?: 'ativo' | 'inativo' | 'prospect';
+  temperatura?: 'frio' | 'morno' | 'quente';
+  tipo_contrato?: 'recorrente' | 'projeto_unico' | 'pontual';
+  gestor_id?: string;
+  cliente_desde?: string;
+  nps_atual?: number;
+  endereco?: string;
+  site?: string;
+  redes_sociais?: any;
+  logo_url?: string;
   criado_em: string;
-  atualizado_em: string;
 }
 
 export interface ClientFormData {
   nome: string;
   segmento?: string;
+  descricao?: string;
   porte?: 'micro' | 'pequeno' | 'medio' | 'grande';
-  status: 'ativo' | 'inativo' | 'prospect';
+  status?: 'ativo' | 'inativo' | 'prospect';
   temperatura?: 'frio' | 'morno' | 'quente';
-  tipo_contrato?: 'recorrente' | 'pontual' | 'projeto_unico';
-  cliente_desde?: string;
+  tipo_contrato?: 'recorrente' | 'projeto_unico' | 'pontual';
   gestor_id?: string;
+  cliente_desde?: string;
   nps_atual?: number;
   endereco?: string;
-  cidade?: string;
-  uf?: string;
   site?: string;
-  tags?: string[];
   redes_sociais?: any;
+  logo_url?: string;
 }
 
 export const useSupabaseClients = () => {
@@ -71,17 +66,12 @@ export const useSupabaseClients = () => {
       setClients(data || []);
     } catch (error) {
       console.error('Erro ao buscar clientes:', error);
-      toast({
-        title: "Erro",
-        description: "Falha ao carregar clientes.",
-        variant: "destructive",
-      });
     } finally {
       setLoading(false);
     }
   };
 
-  // Buscar cliente por ID
+  // Buscar cliente específico por ID
   const getClient = async (id: string): Promise<SupabaseClient | null> => {
     try {
       const { data, error } = await supabase
@@ -102,8 +92,8 @@ export const useSupabaseClients = () => {
     }
   };
 
-  // Adicionar novo cliente
-  const addClient = async (clientData: ClientFormData): Promise<SupabaseClient | null> => {
+  // Criar novo cliente
+  const createClient = async (clientData: Omit<ClientFormData, 'criado_em'>): Promise<SupabaseClient | null> => {
     try {
       const { data, error } = await supabase
         .from('clientes')
@@ -121,7 +111,7 @@ export const useSupabaseClients = () => {
         return null;
       }
 
-      setClients(prev => [data, ...prev]);
+      await fetchClients(); // Refresh the list
       
       toast({
         title: "Sucesso",
@@ -131,11 +121,6 @@ export const useSupabaseClients = () => {
       return data;
     } catch (error) {
       console.error('Erro ao criar cliente:', error);
-      toast({
-        title: "Erro",
-        description: "Falha ao criar cliente.",
-        variant: "destructive",
-      });
       return null;
     }
   };
@@ -160,9 +145,7 @@ export const useSupabaseClients = () => {
         return null;
       }
 
-      setClients(prev => prev.map(client => 
-        client.id === id ? data : client
-      ));
+      await fetchClients(); // Refresh the list
 
       toast({
         title: "Sucesso",
@@ -172,11 +155,6 @@ export const useSupabaseClients = () => {
       return data;
     } catch (error) {
       console.error('Erro ao atualizar cliente:', error);
-      toast({
-        title: "Erro",
-        description: "Falha ao atualizar cliente.",
-        variant: "destructive",
-      });
       return null;
     }
   };
@@ -199,21 +177,16 @@ export const useSupabaseClients = () => {
         return false;
       }
 
-      setClients(prev => prev.filter(client => client.id !== id));
+      await fetchClients(); // Refresh the list
       
       toast({
         title: "Sucesso",
-        description: "Cliente deletado com sucesso!",
+        description: "Cliente removido com sucesso!",
       });
 
       return true;
     } catch (error) {
       console.error('Erro ao deletar cliente:', error);
-      toast({
-        title: "Erro",
-        description: "Falha ao deletar cliente.",
-        variant: "destructive",
-      });
       return false;
     }
   };
@@ -227,7 +200,7 @@ export const useSupabaseClients = () => {
     loading,
     fetchClients,
     getClient,
-    addClient,
+    createClient,
     updateClient,
     deleteClient,
   };
