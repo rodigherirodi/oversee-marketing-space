@@ -3,13 +3,17 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useSupabaseClients } from '@/hooks/useSupabaseClients';
 import { useProjects } from '@/hooks/useProjects';
 import { useStakeholders } from '@/hooks/useStakeholders';
 import { useSupabaseClientAccesses } from '@/hooks/useSupabaseClientAccesses';
+import { useClientLogo } from '@/hooks/useClientLogo';
 import PersonalInfoSection from '@/components/PersonalInfoSection';
 import { ClientNotesSection } from '@/components/ClientNotesSection';
-import { MeetingHistorySection } from '@/components/MeetingHistorySection';
+import { ClientContactsSection } from '@/components/ClientContactsSection';
+import { ClientMeetingsSection } from '@/components/ClientMeetingsSection';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -24,7 +28,13 @@ import {
   Users,
   Key,
   Eye,
-  EyeOff 
+  EyeOff,
+  Upload,
+  Facebook,
+  Instagram,
+  Linkedin,
+  Save,
+  Edit
 } from 'lucide-react';
 import { 
   DropdownMenu,
@@ -62,6 +72,7 @@ const ClientProfile = () => {
   const { projects } = useProjects();
   const { stakeholders, addStakeholder, updateStakeholder, deleteStakeholder } = useStakeholders(id || '');
   const { accesses, addAccess, updateAccess, deleteAccess } = useSupabaseClientAccesses(id || '');
+  const { uploadLogo, isUploading } = useClientLogo();
   
   const [isClientEditDialogOpen, setIsClientEditDialogOpen] = useState(false);
   const [isStakeholderDialogOpen, setIsStakeholderDialogOpen] = useState(false);
@@ -71,11 +82,28 @@ const ClientProfile = () => {
   const [isPageLinkDialogOpen, setIsPageLinkDialogOpen] = useState(false);
   const [currentPageLink, setCurrentPageLink] = useState<any | null>(null);
   const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
+  const [isEditingSocialMedia, setIsEditingSocialMedia] = useState(false);
+  const [socialMediaData, setSocialMediaData] = useState({
+    facebook: '',
+    instagram: '',
+    linkedin: ''
+  });
   
   // Encontra o cliente usando os dados do Supabase
   const client = clients.find(c => c.id === id);
   const clientProjects = projects.filter(project => project.clientId === id);
   const { pageLinks, addPageLink, updatePageLink, deletePageLink } = usePageLinks(id || '');
+
+  // Inicializa dados de redes sociais
+  React.useEffect(() => {
+    if (client?.redes_sociais) {
+      setSocialMediaData({
+        facebook: client.redes_sociais.facebook || '',
+        instagram: client.redes_sociais.instagram || '',
+        linkedin: client.redes_sociais.linkedin || ''
+      });
+    }
+  }, [client]);
 
   // Loading state
   if (clientsLoading) {
@@ -195,6 +223,30 @@ const ClientProfile = () => {
         return 'Baixa';
       default:
         return importance;
+    }
+  };
+
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !client) return;
+
+    const logoUrl = await uploadLogo(file, client.id);
+    if (logoUrl) {
+      // Atualiza o estado local do cliente
+      // O hook já atualiza o banco de dados
+      window.location.reload(); // Simples reload para atualizar a interface
+    }
+  };
+
+  const handleSaveSocialMedia = async () => {
+    if (!client) return;
+    
+    const success = await updateClient(client.id, {
+      redes_sociais: socialMediaData
+    });
+    
+    if (success) {
+      setIsEditingSocialMedia(false);
     }
   };
 
@@ -421,10 +473,30 @@ const ClientProfile = () => {
       {/* Client Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
-          <Avatar className="w-16 h-16">
-            <AvatarImage src={client.logo_url || ''} />
-            <AvatarFallback>{client.nome.charAt(0)}</AvatarFallback>
-          </Avatar>
+          <div className="relative">
+            <Avatar className="w-16 h-16">
+              <AvatarImage src={client.logo_url || ''} />
+              <AvatarFallback>{client.nome.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div className="absolute -bottom-2 -right-2">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleLogoUpload}
+                className="hidden"
+                id="logo-upload"
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                className="rounded-full w-8 h-8 p-0"
+                onClick={() => document.getElementById('logo-upload')?.click()}
+                disabled={isUploading}
+              >
+                <Upload className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-3xl font-bold">{client.nome}</h1>
@@ -478,7 +550,6 @@ const ClientProfile = () => {
             <Card>
               <CardContent className="p-6 space-y-4">
                 <h2 className="text-xl font-semibold">Informações Principais</h2>
-                <PersonalInfoSection client={clientForComponents} />
                 
                 <div className="mt-6 pt-6 border-t border-gray-100">
                   <h2 className="text-xl font-semibold mb-4">Endereço</h2>
@@ -503,54 +574,88 @@ const ClientProfile = () => {
                     )}
                   </div>
                 </div>
+
+                {/* Redes Sociais */}
+                <div className="mt-6 pt-6 border-t border-gray-100">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold">Redes Sociais</h2>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsEditingSocialMedia(!isEditingSocialMedia)}
+                    >
+                      {isEditingSocialMedia ? <Save className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
+                    </Button>
+                  </div>
+                  
+                  {isEditingSocialMedia ? (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <Label htmlFor="facebook">Facebook</Label>
+                          <Input
+                            id="facebook"
+                            value={socialMediaData.facebook}
+                            onChange={(e) => setSocialMediaData(prev => ({ ...prev, facebook: e.target.value }))}
+                            placeholder="URL do Facebook"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="instagram">Instagram</Label>
+                          <Input
+                            id="instagram"
+                            value={socialMediaData.instagram}
+                            onChange={(e) => setSocialMediaData(prev => ({ ...prev, instagram: e.target.value }))}
+                            placeholder="URL do Instagram"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="linkedin">LinkedIn</Label>
+                          <Input
+                            id="linkedin"
+                            value={socialMediaData.linkedin}
+                            onChange={(e) => setSocialMediaData(prev => ({ ...prev, linkedin: e.target.value }))}
+                            placeholder="URL do LinkedIn"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button onClick={handleSaveSocialMedia}>Salvar</Button>
+                        <Button variant="outline" onClick={() => setIsEditingSocialMedia(false)}>
+                          Cancelar
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex gap-4">
+                      {socialMediaData.facebook && (
+                        <a href={socialMediaData.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-600 hover:underline">
+                          <Facebook className="w-4 h-4" />
+                          Facebook
+                        </a>
+                      )}
+                      {socialMediaData.instagram && (
+                        <a href={socialMediaData.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-pink-600 hover:underline">
+                          <Instagram className="w-4 h-4" />
+                          Instagram
+                        </a>
+                      )}
+                      {socialMediaData.linkedin && (
+                        <a href={socialMediaData.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-700 hover:underline">
+                          <Linkedin className="w-4 h-4" />
+                          LinkedIn
+                        </a>
+                      )}
+                      {!socialMediaData.facebook && !socialMediaData.instagram && !socialMediaData.linkedin && (
+                        <p className="text-muted-foreground">Nenhuma rede social configurada</p>
+                      )}
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardContent className="p-6 space-y-4">
-                  <h2 className="text-xl font-semibold">Contatos</h2>
-                  
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="font-medium text-gray-700 mb-2">Contato Principal</h3>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-sm">
-                          <Users className="w-4 h-4 text-gray-500" />
-                          <span>Contato Principal</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Phone className="w-4 h-4 text-gray-500" />
-                          <span>(00) 00000-0000</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Mail className="w-4 h-4 text-gray-500" />
-                          <span>contato@empresa.com</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <h3 className="font-medium text-gray-700 mb-2">Contato Financeiro</h3>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-sm">
-                          <Users className="w-4 h-4 text-gray-500" />
-                          <span>Contato Financeiro</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Phone className="w-4 h-4 text-gray-500" />
-                          <span>(00) 00000-0000</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Mail className="w-4 h-4 text-gray-500" />
-                          <span>financeiro@empresa.com</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
               <Card>
                 <CardContent className="p-6 space-y-4">
                   <h2 className="text-xl font-semibold">Detalhes do Contrato</h2>
@@ -662,7 +767,8 @@ const ClientProfile = () => {
             </Card>
           </div>
 
-          <MeetingHistorySection clientId={client.id} />
+          <ClientContactsSection clientId={client.id} />
+          <ClientMeetingsSection clientId={client.id} />
           <ClientNotesSection clientId={client.id} />
         </TabsContent>
 
