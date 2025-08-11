@@ -51,27 +51,29 @@ const meetingTypes = [
 
 interface MeetingFormDialogProps {
   open: boolean;
-  onClose: () => void;
+  onOpenChange: (open: boolean) => void;
   onSubmit: (data: MeetingFormData) => void;
-  meeting?: any;
+  initialData?: Partial<MeetingFormData>;
+  isEditing?: boolean;
 }
 
 export const MeetingFormDialog: React.FC<MeetingFormDialogProps> = ({
   open,
-  onClose,
+  onOpenChange,
   onSubmit,
-  meeting,
+  initialData,
+  isEditing = false,
 }) => {
   const form = useForm<z.infer<typeof meetingFormSchema>>({
     resolver: zodResolver(meetingFormSchema),
     defaultValues: {
-      titulo: meeting?.titulo || '',
-      data_hora: meeting?.data_hora ? new Date(meeting.data_hora).toISOString().slice(0, 16) : '',
-      tipo: meeting?.tipo || 'alinhamento',
-      resumo: meeting?.resumo || '',
-      duracao: meeting?.duracao || undefined,
-      link_gravacao: meeting?.link_gravacao || '',
-      observacoes: meeting?.observacoes || '',
+      titulo: initialData?.titulo || '',
+      data_hora: initialData?.data_hora ? new Date(initialData.data_hora).toISOString().slice(0, 16) : '',
+      tipo: initialData?.tipo || 'alinhamento',
+      resumo: initialData?.resumo || '',
+      duracao: initialData?.duracao || undefined,
+      link_gravacao: initialData?.link_gravacao || '',
+      observacoes: initialData?.observacoes || '',
     },
   });
 
@@ -86,19 +88,19 @@ export const MeetingFormDialog: React.FC<MeetingFormDialogProps> = ({
       observacoes: values.observacoes || undefined,
     };
     onSubmit(formData);
-    onClose();
+    onOpenChange(false);
     form.reset();
   };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>
-            {meeting ? 'Editar Reunião' : 'Nova Reunião'}
+            {isEditing ? 'Editar Reunião' : 'Nova Reunião'}
           </DialogTitle>
           <DialogDescription>
-            {meeting ? 'Edite as informações da reunião' : 'Adicione uma nova reunião ao histórico'}
+            {isEditing ? 'Edite as informações da reunião' : 'Adicione uma nova reunião ao histórico'}
           </DialogDescription>
         </DialogHeader>
 
@@ -221,11 +223,11 @@ export const MeetingFormDialog: React.FC<MeetingFormDialogProps> = ({
             />
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose}>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancelar
               </Button>
               <Button type="submit">
-                {meeting ? 'Salvar' : 'Adicionar'}
+                {isEditing ? 'Salvar' : 'Adicionar'}
               </Button>
             </DialogFooter>
           </form>

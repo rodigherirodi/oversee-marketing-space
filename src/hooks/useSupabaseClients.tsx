@@ -21,6 +21,7 @@ export interface SupabaseClient {
   site?: string;
   redes_sociais?: any;
   logo_url?: string;
+  tags?: string[];
   criado_em: string;
 }
 
@@ -41,6 +42,7 @@ export interface ClientFormData {
   site?: string;
   redes_sociais?: any;
   logo_url?: string;
+  tags?: string[];
 }
 
 export const useSupabaseClients = () => {
