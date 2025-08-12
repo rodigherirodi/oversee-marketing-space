@@ -8,19 +8,33 @@ import { Loader2 } from 'lucide-react';
 
 export const NotesApp = () => {
   const { user } = useAuth();
+  const [isMobile, setIsMobile] = useState(false);
+  const [selectedNote, setSelectedNote] = useState(null);
+
+  // Initialize notes hook with error boundary
+  let notesData;
+  try {
+    notesData = useNotes();
+  } catch (error) {
+    console.error('Error initializing notes:', error);
+    return (
+      <div className="flex items-center justify-center h-full p-4">
+        <div className="text-center text-muted-foreground">
+          <p>Erro ao carregar notas. Tente novamente.</p>
+        </div>
+      </div>
+    );
+  }
+
   const {
-    notes,
-    notebooks,
-    loading,
-    selectedNote,
-    setSelectedNote,
+    notes = [],
+    notebooks = [],
+    loading = false,
     createNote,
     updateNote,
     deleteNote,
     searchNotes
-  } = useNotes();
-
-  const [isMobile, setIsMobile] = useState(false);
+  } = notesData || {};
 
   useEffect(() => {
     const checkMobile = () => {
@@ -34,26 +48,57 @@ export const NotesApp = () => {
   }, []);
 
   const handleCreateNote = async () => {
-    const newNote = await createNote();
-    if (newNote) {
-      setSelectedNote(newNote);
+    if (!createNote) return;
+    
+    try {
+      const newNote = await createNote();
+      if (newNote) {
+        setSelectedNote(newNote);
+      }
+    } catch (error) {
+      console.error('Error creating note:', error);
     }
   };
 
-  const handleTogglePin = async (noteId: string, isPinned: boolean) => {
-    await updateNote(noteId, { is_pinned: isPinned });
+  const handleTogglePin = async (noteId, isPinned) => {
+    if (!updateNote) return;
+    
+    try {
+      await updateNote(noteId, { is_pinned: isPinned });
+    } catch (error) {
+      console.error('Error toggling pin:', error);
+    }
   };
 
-  const handleDeleteNote = (noteId: string) => {
-    deleteNote(noteId);
-    if (selectedNote?.id === noteId) {
-      setSelectedNote(null);
+  const handleDeleteNote = (noteId) => {
+    if (!deleteNote) return;
+    
+    try {
+      deleteNote(noteId);
+      if (selectedNote?.id === noteId) {
+        setSelectedNote(null);
+      }
+    } catch (error) {
+      console.error('Error deleting note:', error);
+    }
+  };
+
+  const handleUpdateNote = async (noteId, updates) => {
+    if (!updateNote) return;
+    
+    try {
+      const updatedNote = await updateNote(noteId, updates);
+      if (selectedNote?.id === noteId && updatedNote) {
+        setSelectedNote(updatedNote);
+      }
+    } catch (error) {
+      console.error('Error updating note:', error);
     }
   };
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center h-full p-4">
         <div className="text-center text-muted-foreground">
           <p>Faça login para acessar suas notas</p>
         </div>
@@ -63,7 +108,7 @@ export const NotesApp = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center h-full p-4">
         <Loader2 className="h-6 w-6 animate-spin" />
       </div>
     );
@@ -76,7 +121,7 @@ export const NotesApp = () => {
         <div className="h-full">
           <NoteEditor
             note={selectedNote}
-            onUpdateNote={updateNote}
+            onUpdateNote={handleUpdateNote}
             onDeleteNote={handleDeleteNote}
             onTogglePin={handleTogglePin}
           />
@@ -117,7 +162,7 @@ export const NotesApp = () => {
       <div className="flex-1">
         <NoteEditor
           note={selectedNote}
-          onUpdateNote={updateNote}
+          onUpdateNote={handleUpdateNote}
           onDeleteNote={handleDeleteNote}
           onTogglePin={handleTogglePin}
         />

@@ -31,13 +31,15 @@ export const useNotes = () => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [notebooks, setNotebooks] = useState<Notebook[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Fetch notes
+  // Fetch notes with error handling
   const fetchNotes = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     
     try {
       const { data, error } = await supabase
@@ -48,19 +50,26 @@ export const useNotes = () => {
         .order('is_pinned', { ascending: false })
         .order('updated_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching notes:', error);
+        throw error;
+      }
+      
       setNotes(data || []);
     } catch (error) {
       console.error('Erro ao buscar notas:', error);
-      toast({
-        title: "Erro",
-        description: "Falha ao carregar notas.",
-        variant: "destructive",
-      });
+      setNotes([]);
+      if (toast) {
+        toast({
+          title: "Erro",
+          description: "Falha ao carregar notas.",
+          variant: "destructive",
+        });
+      }
     }
   }, [user, toast]);
 
-  // Fetch notebooks
+  // Fetch notebooks with error handling
   const fetchNotebooks = useCallback(async () => {
     if (!user) return;
     
@@ -71,14 +80,19 @@ export const useNotes = () => {
         .eq('user_id', user.id)
         .order('name');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching notebooks:', error);
+        throw error;
+      }
+      
       setNotebooks(data || []);
     } catch (error) {
       console.error('Erro ao buscar cadernos:', error);
+      setNotebooks([]);
     }
   }, [user]);
 
-  // Create note
+  // Create note with error handling
   const createNote = useCallback(async (title: string = 'Nova Nota', notebookId?: string) => {
     if (!user) return null;
 
@@ -99,28 +113,31 @@ export const useNotes = () => {
       if (error) throw error;
       
       setNotes(prev => [data, ...prev]);
-      setSelectedNote(data);
       
-      toast({
-        title: "Sucesso",
-        description: "Nova nota criada!",
-      });
+      if (toast) {
+        toast({
+          title: "Sucesso",
+          description: "Nova nota criada!",
+        });
+      }
       
       return data;
     } catch (error) {
       console.error('Erro ao criar nota:', error);
-      toast({
-        title: "Erro",
-        description: "Falha ao criar nota.",
-        variant: "destructive",
-      });
+      if (toast) {
+        toast({
+          title: "Erro",
+          description: "Falha ao criar nota.",
+          variant: "destructive",
+        });
+      }
       return null;
     }
   }, [user, toast]);
 
-  // Update note
+  // Update note with error handling
   const updateNote = useCallback(async (noteId: string, updates: Partial<Note>) => {
-    if (!user) return;
+    if (!user) return null;
 
     try {
       const { data, error } = await supabase
@@ -137,18 +154,14 @@ export const useNotes = () => {
         note.id === noteId ? { ...note, ...data } : note
       ));
       
-      if (selectedNote?.id === noteId) {
-        setSelectedNote(prev => prev ? { ...prev, ...data } : null);
-      }
-      
       return data;
     } catch (error) {
       console.error('Erro ao atualizar nota:', error);
       return null;
     }
-  }, [user, selectedNote]);
+  }, [user]);
 
-  // Soft delete note
+  // Soft delete note with error handling
   const deleteNote = useCallback(async (noteId: string) => {
     if (!user) return;
 
@@ -163,25 +176,25 @@ export const useNotes = () => {
       
       setNotes(prev => prev.filter(note => note.id !== noteId));
       
-      if (selectedNote?.id === noteId) {
-        setSelectedNote(null);
+      if (toast) {
+        toast({
+          title: "Sucesso",
+          description: "Nota excluída!",
+        });
       }
-      
-      toast({
-        title: "Sucesso",
-        description: "Nota excluída!",
-      });
     } catch (error) {
       console.error('Erro ao excluir nota:', error);
-      toast({
-        title: "Erro",
-        description: "Falha ao excluir nota.",
-        variant: "destructive",
-      });
+      if (toast) {
+        toast({
+          title: "Erro",
+          description: "Falha ao excluir nota.",
+          variant: "destructive",
+        });
+      }
     }
-  }, [user, selectedNote, toast]);
+  }, [user, toast]);
 
-  // Search notes
+  // Search notes with error handling
   const searchNotes = useCallback(async (query: string) => {
     if (!user || !query.trim()) {
       fetchNotes();
@@ -202,10 +215,11 @@ export const useNotes = () => {
       setNotes(data || []);
     } catch (error) {
       console.error('Erro ao buscar notas:', error);
+      setNotes([]);
     }
   }, [user, fetchNotes]);
 
-  // Create notebook
+  // Create notebook with error handling
   const createNotebook = useCallback(async (name: string, color: string = '#3B82F6') => {
     if (!user) return null;
 
@@ -224,19 +238,23 @@ export const useNotes = () => {
       
       setNotebooks(prev => [...prev, data]);
       
-      toast({
-        title: "Sucesso",
-        description: "Caderno criado!",
-      });
+      if (toast) {
+        toast({
+          title: "Sucesso",
+          description: "Caderno criado!",
+        });
+      }
       
       return data;
     } catch (error) {
       console.error('Erro ao criar caderno:', error);
-      toast({
-        title: "Erro",
-        description: "Falha ao criar caderno.",
-        variant: "destructive",
-      });
+      if (toast) {
+        toast({
+          title: "Erro",
+          description: "Falha ao criar caderno.",
+          variant: "destructive",
+        });
+      }
       return null;
     }
   }, [user, toast]);
@@ -246,6 +264,8 @@ export const useNotes = () => {
       Promise.all([fetchNotes(), fetchNotebooks()]).finally(() => {
         setLoading(false);
       });
+    } else {
+      setLoading(false);
     }
   }, [user, fetchNotes, fetchNotebooks]);
 
@@ -253,8 +273,6 @@ export const useNotes = () => {
     notes,
     notebooks,
     loading,
-    selectedNote,
-    setSelectedNote,
     createNote,
     updateNote,
     deleteNote,

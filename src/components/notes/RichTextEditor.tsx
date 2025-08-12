@@ -23,14 +23,14 @@ import {
 import { useCallback, useEffect } from 'react';
 
 interface RichTextEditorProps {
-  content: any;
-  onChange: (content: any) => void;
+  content?: any;
+  onChange?: (content: any) => void;
   placeholder?: string;
   editable?: boolean;
 }
 
 export const RichTextEditor = ({
-  content,
+  content = { type: 'doc', content: [] },
   onChange,
   placeholder = "Comece a escrever...",
   editable = true
@@ -69,7 +69,9 @@ export const RichTextEditor = ({
     content,
     editable,
     onUpdate: ({ editor }) => {
-      onChange(editor.getJSON());
+      if (onChange) {
+        onChange(editor.getJSON());
+      }
     },
     editorProps: {
       attributes: {
@@ -79,7 +81,7 @@ export const RichTextEditor = ({
   });
 
   useEffect(() => {
-    if (editor && content !== editor.getJSON()) {
+    if (editor && content && JSON.stringify(content) !== JSON.stringify(editor.getJSON())) {
       editor.commands.setContent(content);
     }
   }, [content, editor]);
