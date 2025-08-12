@@ -206,7 +206,8 @@ const ClientProfile: React.FC = () => {
       status: updatedClient.status === 'active' ? 'ativo' :
               updatedClient.status === 'inactive' ? 'inativo' : 'prospect',
       porte: updatedClient.size === 'MEI' ? 'micro' :
-             updatedClient.size === 'PME' ? 'pequeno' : 'grande',
+             updatedClient.size === 'PME' ? 'pequeno' : 
+             updatedClient.size === 'large' ? 'grande' : 'medio',
       endereco: updatedClient.address,
       site: updatedClient.website,
       redes_sociais: updatedClient.socialMedia,
