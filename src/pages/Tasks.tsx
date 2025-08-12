@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, Filter, Calendar, List, LayoutGrid, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,7 +11,6 @@ import { TaskModal } from '@/components/TaskModal';
 import { TaskConfigDialog } from '@/components/tasks/TaskConfigDialog';
 import { KanbanSelector } from '@/components/tasks/KanbanSelector';
 import { useTaskContext } from '@/contexts/TaskContext';
-import ToolbarShortcuts from '@/components/ToolbarShortcuts';
 
 const Tasks = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -99,7 +97,7 @@ const Tasks = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header with Toolbar */}
+      {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Tarefas</h1>
@@ -108,21 +106,18 @@ const Tasks = () => {
           </p>
         </div>
         
-        <div className="flex items-center gap-4">
-          <ToolbarShortcuts />
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => setIsConfigDialogOpen(true)}
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              Configurações
-            </Button>
-            <Button onClick={handleNewTask}>
-              <Plus className="w-4 h-4 mr-2" />
-              Nova Tarefa
-            </Button>
-          </div>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setIsConfigDialogOpen(true)}
+          >
+            <Settings className="w-4 h-4 mr-2" />
+            Configurações
+          </Button>
+          <Button onClick={handleNewTask}>
+            <Plus className="w-4 h-4 mr-2" />
+            Nova Tarefa
+          </Button>
         </div>
       </div>
 
