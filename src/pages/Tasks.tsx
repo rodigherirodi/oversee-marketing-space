@@ -198,7 +198,6 @@ const Tasks = () => {
             tasks={filteredTasks as any}
             onUpdateTask={handleUpdateTask}
             onEditTask={handleEditTask}
-            onDeleteTask={handleDeleteTask}
             kanbanConfig={currentKanban}
           />
         </TabsContent>
@@ -216,7 +215,6 @@ const Tasks = () => {
           <TaskCalendarView 
             tasks={filteredTasks as any}
             onEditTask={handleEditTask}
-            onDeleteTask={handleDeleteTask}
           />
         </TabsContent>
       </Tabs>

@@ -112,12 +112,16 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         setLoadingProjects(true);
         const { data, error } = await supabase
           .from('projetos')
-          .select('id, titulo as nome, cliente_id')
+          .select('id, titulo, cliente_id')
           .eq('cliente_id', formData.client_id)
           .order('titulo');
 
         if (error) throw error;
-        const projectsData = data || [];
+        const projectsData = (data || []).map(project => ({
+          id: project.id,
+          nome: project.titulo,
+          cliente_id: project.cliente_id
+        }));
         setProjects(projectsData);
         setFilteredProjects(projectsData);
       } catch (err) {
