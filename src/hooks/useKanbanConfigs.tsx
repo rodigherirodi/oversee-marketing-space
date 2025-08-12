@@ -41,12 +41,16 @@ export const useKanbanConfigs = () => {
 
       if (stagesError) throw stagesError;
 
-      const configsWithStages: KanbanConfig[] = (configs || []).map((config) => ({
+      // Filter out any configs or stages with empty or null IDs
+      const validConfigs = (configs || []).filter(config => config.id && config.id.trim() !== '');
+      const validStages = (stages || []).filter(stage => stage.id && stage.id.trim() !== '');
+
+      const configsWithStages: KanbanConfig[] = validConfigs.map((config) => ({
         id: config.id,
         name: config.name,
         department: config.department,
         color: config.color,
-        stages: (stages || []).filter((stage) => stage.kanban_config_id === config.id)
+        stages: validStages.filter((stage) => stage.kanban_config_id === config.id)
       }));
 
       setKanbanConfigs(configsWithStages);
@@ -69,6 +73,11 @@ export const useKanbanConfigs = () => {
     try {
       // Generate a unique ID for the kanban config
       const kanbanId = kanban.name.toLowerCase().replace(/\s+/g, '_');
+      
+      // Ensure the ID is not empty
+      if (!kanbanId || kanbanId.trim() === '') {
+        throw new Error('Invalid kanban name - cannot generate valid ID');
+      }
       
       const kanbanData = {
         id: kanbanId,
