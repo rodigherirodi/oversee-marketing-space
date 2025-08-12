@@ -215,6 +215,14 @@ const ClientProfile: React.FC = () => {
       }
     };
 
+    const getTemperaturaValue = (temperature: string): 'frio' | 'morno' | 'quente' => {
+      switch (temperature) {
+        case 'hot': return 'quente';
+        case 'warm': return 'morno';
+        default: return 'frio';
+      }
+    };
+
     const supabaseUpdate = {
       nome: updatedClient.name,
       segmento: updatedClient.segment,
@@ -227,8 +235,7 @@ const ClientProfile: React.FC = () => {
       redes_sociais: updatedClient.socialMedia,
       tipo_contrato: updatedClient.contractType === 'recurring' ? 'recorrente' :
                      updatedClient.contractType === 'project' ? 'projeto_unico' : 'pontual',
-      temperatura: updatedClient.temperature === 'hot' ? 'quente' :
-                   updatedClient.temperature === 'warm' ? 'morno' : 'frio',
+      temperatura: getTemperaturaValue(updatedClient.temperature),
       nps_atual: updatedClient.nps,
       cliente_desde: updatedClient.entryDate,
       gestor_id: updatedClient.responsibleManager
