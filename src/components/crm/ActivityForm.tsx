@@ -126,7 +126,7 @@ export const ActivityForm: React.FC<ActivityFormProps> = ({
                   <FormLabel>Tipo</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
-                    defaultValue={field.value}
+                    value={field.value || undefined}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -154,7 +154,7 @@ export const ActivityForm: React.FC<ActivityFormProps> = ({
                   <FormLabel>Lead</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
-                    defaultValue={field.value}
+                    value={field.value || undefined}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -162,7 +162,7 @@ export const ActivityForm: React.FC<ActivityFormProps> = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {leads.map((lead) => (
+                      {leads.filter(lead => lead.id && lead.id.trim() !== '').map((lead) => (
                         <SelectItem key={lead.id} value={lead.id}>
                           {lead.name} - {lead.company}
                         </SelectItem>
@@ -214,7 +214,7 @@ export const ActivityForm: React.FC<ActivityFormProps> = ({
                   <FormLabel>Responsável</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
-                    defaultValue={field.value}
+                    value={field.value || undefined}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -222,7 +222,7 @@ export const ActivityForm: React.FC<ActivityFormProps> = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {teamMembers.map((member) => (
+                      {teamMembers.filter(member => member && member.trim() !== '').map((member) => (
                         <SelectItem key={member} value={member}>
                           {member}
                         </SelectItem>
@@ -301,7 +301,7 @@ export const ActivityForm: React.FC<ActivityFormProps> = ({
                     <FormLabel>Resultado</FormLabel>
                     <Select 
                       onValueChange={field.onChange} 
-                      defaultValue={field.value}
+                      value={field.value || undefined}
                     >
                       <FormControl>
                         <SelectTrigger>
