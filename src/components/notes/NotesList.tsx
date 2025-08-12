@@ -35,6 +35,9 @@ interface NotesListProps {
   onSearch: (query: string) => void;
 }
 
+// Type for filter values to ensure no empty strings
+type FilterValue = 'all' | 'none' | string;
+
 export const NotesList = ({
   notes,
   notebooks,
@@ -45,27 +48,47 @@ export const NotesList = ({
   onSearch
 }: NotesListProps) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterNotebook, setFilterNotebook] = useState<string>('all');
-  const [filterTag, setFilterTag] = useState<string>('all');
+  const [filterNotebook, setFilterNotebook] = useState<FilterValue>('all');
+  const [filterTag, setFilterTag] = useState<FilterValue>('all');
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     onSearch(query);
   };
 
-  // Get all unique tags
+  const handleNotebookChange = (value: FilterValue) => {
+    setFilterNotebook(value);
+  };
+
+  const handleTagChange = (value: FilterValue) => {
+    setFilterTag(value);
+  };
+
+  // Get all unique tags with proper filtering
   const allTags = Array.from(
     new Set(notes.flatMap(note => note.tags))
-  ).filter(Boolean);
+  ).filter(tag => tag && tag.trim() !== '');
 
-  // Filter notes
+  // Filter notes based on selections
   const filteredNotes = notes.filter(note => {
-    if (filterNotebook !== 'all' && note.notebook_id !== filterNotebook) {
-      return false;
+    // Notebook filter
+    if (filterNotebook !== 'all') {
+      if (filterNotebook === 'none') {
+        if (note.notebook_id) return false;
+      } else {
+        if (note.notebook_id !== filterNotebook) return false;
+      }
     }
-    if (filterTag !== 'all' && !note.tags.includes(filterTag)) {
-      return false;
+    
+    // Tag filter
+    if (filterTag !== 'all') {
+      if (filterTag === 'none') {
+        if (note.tags.length > 0) return false;
+      } else {
+        if (!note.tags.includes(filterTag)) return false;
+      }
     }
+    
     return true;
   });
 
@@ -171,36 +194,40 @@ export const NotesList = ({
         
         {/* Filters */}
         <div className="flex gap-2">
-          <Select value={filterNotebook} onValueChange={setFilterNotebook}>
+          <Select value={filterNotebook} onValueChange={handleNotebookChange}>
             <SelectTrigger className="flex-1">
-              <SelectValue placeholder="Caderno" />
+              <SelectValue placeholder="Selecione um caderno..." />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os cadernos</SelectItem>
-              <SelectItem value="">Sem caderno</SelectItem>
-              {notebooks.map(notebook => (
-                <SelectItem key={notebook.id} value={notebook.id}>
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: notebook.color }}
-                    />
-                    {notebook.name}
-                  </div>
-                </SelectItem>
-              ))}
+              <SelectItem value="none">Sem caderno</SelectItem>
+              {notebooks
+                .filter(notebook => notebook.id && notebook.id.trim() !== '')
+                .map(notebook => (
+                  <SelectItem key={notebook.id} value={String(notebook.id)}>
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: notebook.color }}
+                      />
+                      {notebook.name}
+                    </div>
+                  </SelectItem>
+                ))
+              }
             </SelectContent>
           </Select>
           
           {allTags.length > 0 && (
-            <Select value={filterTag} onValueChange={setFilterTag}>
+            <Select value={filterTag} onValueChange={handleTagChange}>
               <SelectTrigger className="flex-1">
-                <SelectValue placeholder="Tag" />
+                <SelectValue placeholder="Selecione uma tag..." />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas as tags</SelectItem>
+                <SelectItem value="none">Sem tags</SelectItem>
                 {allTags.map(tag => (
-                  <SelectItem key={tag} value={tag}>
+                  <SelectItem key={tag} value={String(tag)}>
                     {tag}
                   </SelectItem>
                 ))}
