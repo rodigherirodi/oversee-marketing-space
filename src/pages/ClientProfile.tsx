@@ -223,6 +223,14 @@ const ClientProfile: React.FC = () => {
       }
     };
 
+    const getTipoContratoValue = (contractType: string): 'recorrente' | 'projeto_unico' | 'pontual' => {
+      switch (contractType) {
+        case 'recurring': return 'recorrente';
+        case 'project': return 'projeto_unico';
+        default: return 'pontual';
+      }
+    };
+
     const supabaseUpdate = {
       nome: updatedClient.name,
       segmento: updatedClient.segment,
@@ -233,8 +241,7 @@ const ClientProfile: React.FC = () => {
       endereco: updatedClient.address,
       site: updatedClient.website,
       redes_sociais: updatedClient.socialMedia,
-      tipo_contrato: updatedClient.contractType === 'recurring' ? 'recorrente' :
-                     updatedClient.contractType === 'project' ? 'projeto_unico' : 'pontual',
+      tipo_contrato: getTipoContratoValue(updatedClient.contractType),
       temperatura: getTemperaturaValue(updatedClient.temperature),
       nps_atual: updatedClient.nps,
       cliente_desde: updatedClient.entryDate,
