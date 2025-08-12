@@ -84,15 +84,17 @@ export const NotesApp = () => {
   };
 
   const handleUpdateNote = async (noteId, updates) => {
-    if (!updateNote) return;
+    if (!updateNote) return null;
     
     try {
       const updatedNote = await updateNote(noteId, updates);
       if (selectedNote?.id === noteId && updatedNote) {
         setSelectedNote(updatedNote);
       }
+      return updatedNote;
     } catch (error) {
       console.error('Error updating note:', error);
+      return null;
     }
   };
 
