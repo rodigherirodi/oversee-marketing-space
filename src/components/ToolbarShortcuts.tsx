@@ -15,10 +15,18 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
 import UserProfile from './UserProfile';
+import { NotesApp } from './notes/NotesApp';
 
 const ToolbarShortcuts = () => {
   const [notifications, setNotifications] = useState(3);
+  const [isNotesOpen, setIsNotesOpen] = useState(false);
   const navigate = useNavigate();
 
   const shortcuts = [
@@ -42,7 +50,7 @@ const ToolbarShortcuts = () => {
     { 
       icon: FileText, 
       label: 'Bloco de Notas', 
-      onClick: () => console.log('Notas clicked') 
+      onClick: () => setIsNotesOpen(true)
     },
     { 
       icon: Clock, 
@@ -52,53 +60,67 @@ const ToolbarShortcuts = () => {
   ];
 
   return (
-    <div className="flex items-center gap-2">
-      {/* Shortcuts */}
-      <div className="hidden md:flex items-center gap-1">
-        {shortcuts.map((shortcut, index) => (
-          <Tooltip key={index}>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={shortcut.onClick}
-                className="relative h-8 w-8 p-0"
-              >
-                <shortcut.icon className="h-4 w-4" />
-                {shortcut.badge && (
-                  <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-xs text-white flex items-center justify-center">
-                    {shortcut.badge}
-                  </span>
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{shortcut.label}</p>
-            </TooltipContent>
-          </Tooltip>
-        ))}
+    <>
+      <div className="flex items-center gap-2">
+        {/* Shortcuts */}
+        <div className="hidden md:flex items-center gap-1">
+          {shortcuts.map((shortcut, index) => (
+            <Tooltip key={index}>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={shortcut.onClick}
+                  className="relative h-8 w-8 p-0"
+                >
+                  <shortcut.icon className="h-4 w-4" />
+                  {shortcut.badge && (
+                    <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-xs text-white flex items-center justify-center">
+                      {shortcut.badge}
+                    </span>
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{shortcut.label}</p>
+              </TooltipContent>
+            </Tooltip>
+          ))}
+        </div>
+
+        {/* Notifications */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="sm" className="relative h-8 w-8 p-0">
+              <Bell className="h-4 w-4" />
+              {notifications > 0 && (
+                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-xs text-white flex items-center justify-center">
+                  {notifications}
+                </span>
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Notificações</p>
+          </TooltipContent>
+        </Tooltip>
+
+        {/* User Profile */}
+        <UserProfile />
       </div>
 
-      {/* Notifications */}
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button variant="ghost" size="sm" className="relative h-8 w-8 p-0">
-            <Bell className="h-4 w-4" />
-            {notifications > 0 && (
-              <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-xs text-white flex items-center justify-center">
-                {notifications}
-              </span>
-            )}
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>Notificações</p>
-        </TooltipContent>
-      </Tooltip>
-
-      {/* User Profile */}
-      <UserProfile />
-    </div>
+      {/* Notes Drawer */}
+      <Drawer open={isNotesOpen} onOpenChange={setIsNotesOpen}>
+        <DrawerContent className="max-w-5xl mx-auto h-[90vh]">
+          <DrawerHeader className="border-b">
+            <DrawerTitle>Bloco de Notas</DrawerTitle>
+          </DrawerHeader>
+          <div className="flex-1 overflow-hidden">
+            <NotesApp />
+          </div>
+        </DrawerContent>
+      </Drawer>
+    </>
   );
 };
 

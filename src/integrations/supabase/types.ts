@@ -337,6 +337,83 @@ export type Database = {
         }
         Relationships: []
       }
+      notebooks: {
+        Row: {
+          color: string | null
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notes: {
+        Row: {
+          content_json: Json
+          created_at: string
+          deleted_at: string | null
+          id: string
+          is_pinned: boolean | null
+          notebook_id: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+          version: number | null
+        }
+        Insert: {
+          content_json?: Json
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_pinned?: boolean | null
+          notebook_id?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id: string
+          version?: number | null
+        }
+        Update: {
+          content_json?: Json
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_pinned?: boolean | null
+          notebook_id?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          version?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_notes_notebook"
+            columns: ["notebook_id"]
+            isOneToOne: false
+            referencedRelation: "notebooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           active_projects_count: number | null
