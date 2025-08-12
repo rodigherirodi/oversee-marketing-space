@@ -5,33 +5,31 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useSupabaseClients } from '@/hooks/useSupabaseClients';
-import { useStakeholders } from '@/hooks/useStakeholders';
 import { usePageLinks } from '@/hooks/usePageLinks';
 import { useSupabaseClientAccesses } from '@/hooks/useSupabaseClientAccesses';
 import { useSupabaseClientContacts } from '@/hooks/useSupabaseClientContacts';
 import { useSupabaseProjects } from '@/hooks/useSupabaseProjects';
 import { useMeetingHistory } from '@/hooks/useMeetingHistory';
 import { useClientNotes } from '@/hooks/useClientNotes';
+import { useImportantDates } from '@/hooks/useImportantDates';
 import { 
   Building2, 
-  Users, 
   FolderOpen, 
   Globe, 
-  Handshake, 
   TrendingUp, 
   Key, 
   Calendar,
-  MessageSquare,
   FileText,
   Star,
   Phone,
   Mail,
   MapPin,
   ExternalLink,
-  Edit
+  Edit,
+  Plus
 } from 'lucide-react';
-import StakeholderDialog from '@/components/StakeholderDialog';
 import PageLinkDialog from '@/components/PageLinkDialog';
 import SLASection from '@/components/SLASection';
 import NPSHistorySection from '@/components/NPSHistorySection';
@@ -41,20 +39,19 @@ import { MeetingHistorySection } from '@/components/MeetingHistorySection';
 import { ClientNotesSection } from '@/components/ClientNotesSection';
 import { ClientMeetingsSection } from '@/components/ClientMeetingsSection';
 import { ClientContactsSection } from '@/components/ClientContactsSection';
+import ClientEditDialog from '@/components/ClientEditDialog';
 
 const ClientProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { clients, getClient, updateClient } = useSupabaseClients();
-  const { stakeholders, addStakeholder, updateStakeholder, deleteStakeholder } = useStakeholders(id || '');
   const { pageLinks, addPageLink, updatePageLink, deletePageLink } = usePageLinks(id || '');
   const { accesses, addAccess, updateAccess, deleteAccess } = useSupabaseClientAccesses(id || '');
   const { contacts } = useSupabaseClientContacts(id || '');
   const { projects } = useSupabaseProjects();
   const { getMeetingsByClient, addMeeting, updateMeeting, deleteMeeting } = useMeetingHistory();
   const { getNotesByClient, addNote } = useClientNotes();
+  const { importantDates, addImportantDate, updateImportantDate, deleteImportantDate } = useImportantDates(id || '');
 
-  const [stakeholderDialogOpen, setStakeholderDialogOpen] = useState(false);
-  const [selectedStakeholder, setSelectedStakeholder] = useState<any>(null);
   const [pageLinkDialogOpen, setPageLinkDialogOpen] = useState(false);
   const [selectedPageLink, setSelectedPageLink] = useState<any>(null);
   const [accessDialogOpen, setAccessDialogOpen] = useState(false);
@@ -157,6 +154,10 @@ const ClientProfile: React.FC = () => {
     }
   };
 
+  const handleEditClient = async (updatedClient: any) => {
+    await updateClient(client.id, updatedClient);
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header do Cliente */}
@@ -257,24 +258,25 @@ const ClientProfile: React.FC = () => {
 
       {/* Tabs de Conteúdo */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-10">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-          <TabsTrigger value="stakeholders">Stakeholders</TabsTrigger>
           <TabsTrigger value="projects">Projetos</TabsTrigger>
           <TabsTrigger value="pages">Páginas</TabsTrigger>
           <TabsTrigger value="sla">SLA</TabsTrigger>
           <TabsTrigger value="meetings">Reuniões</TabsTrigger>
           <TabsTrigger value="notes">Anotações</TabsTrigger>
           <TabsTrigger value="access">Acessos</TabsTrigger>
-          <TabsTrigger value="dates">Datas</TabsTrigger>
           <TabsTrigger value="contacts">Contatos</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-4">
+        <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* NPS History */}
             <NPSHistorySection 
               clientId={id || ''}
             />
+            
+            {/* Resumo Rápido */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
@@ -284,10 +286,6 @@ const ClientProfile: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">{stakeholders.length}</div>
-                    <div className="text-sm text-muted-foreground">Stakeholders</div>
-                  </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-green-600">{clientProjects.length}</div>
                     <div className="text-sm text-muted-foreground">Projetos</div>
@@ -300,84 +298,19 @@ const ClientProfile: React.FC = () => {
                     <div className="text-2xl font-bold text-orange-600">{accesses.length}</div>
                     <div className="text-sm text-muted-foreground">Acessos</div>
                   </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600">{contacts.length}</div>
+                    <div className="text-sm text-muted-foreground">Contatos</div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
 
-        <TabsContent value="stakeholders">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Users className="w-5 h-5" />
-                    <span>Stakeholders</span>
-                  </CardTitle>
-                  <CardDescription>Pessoas-chave do cliente</CardDescription>
-                </div>
-                <Button onClick={() => {
-                  setSelectedStakeholder(null);
-                  setStakeholderDialogOpen(true);
-                }}>
-                  <Users className="w-4 h-4 mr-2" />
-                  Adicionar Stakeholder
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {stakeholders.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>Nenhum stakeholder cadastrado ainda.</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {stakeholders.map((stakeholder) => (
-                    <Card key={stakeholder.id} className="hover:shadow-md transition-shadow">
-                      <CardContent className="pt-4">
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-semibold">{stakeholder.name}</h4>
-                            <Badge variant={stakeholder.importance === 'high' ? 'destructive' : 
-                                          stakeholder.importance === 'medium' ? 'default' : 'secondary'}>
-                              {stakeholder.importance === 'high' ? 'Alta' : 
-                               stakeholder.importance === 'medium' ? 'Média' : 'Baixa'}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground">{stakeholder.position}</p>
-                          <p className="text-sm text-muted-foreground">{stakeholder.department}</p>
-                          <div className="space-y-1">
-                            <div className="flex items-center space-x-2">
-                              <Mail className="w-3 h-3 text-muted-foreground" />
-                              <span className="text-xs">{stakeholder.email}</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Phone className="w-3 h-3 text-muted-foreground" />
-                              <span className="text-xs">{stakeholder.phone}</span>
-                            </div>
-                          </div>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="w-full"
-                            onClick={() => {
-                              setSelectedStakeholder(stakeholder);
-                              setStakeholderDialogOpen(true);
-                            }}
-                          >
-                            <Edit className="w-3 h-3 mr-1" />
-                            Editar
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {/* Datas Importantes */}
+          <ImportantDatesSection 
+            clientId={id || ''}
+          />
         </TabsContent>
 
         <TabsContent value="projects">
@@ -454,7 +387,7 @@ const ClientProfile: React.FC = () => {
                   setSelectedPageLink(null);
                   setPageLinkDialogOpen(true);
                 }}>
-                  <Globe className="w-4 h-4 mr-2" />
+                  <Plus className="w-4 h-4 mr-2" />
                   Adicionar Página
                 </Button>
               </div>
@@ -466,54 +399,61 @@ const ClientProfile: React.FC = () => {
                   <p>Nenhuma página ou campanha cadastrada ainda.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {pageLinks.map((pageLink) => (
-                    <Card key={pageLink.id} className="hover:shadow-md transition-shadow">
-                      <CardContent className="pt-4">
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-semibold">{pageLink.title}</h4>
-                            <Badge variant={pageLink.status === 'active' ? 'default' : 'secondary'}>
-                              {pageLink.status === 'active' ? 'Ativo' : 'Rascunho'}
-                            </Badge>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Título</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Período</TableHead>
+                      <TableHead>Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {pageLinks.map((pageLink) => (
+                      <TableRow key={pageLink.id}>
+                        <TableCell className="font-medium">{pageLink.title}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">
+                            {pageLink.type === 'website' ? 'Website' :
+                             pageLink.type === 'campaign' ? 'Campanha' : 'Landing Page'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={pageLink.status === 'active' ? 'default' : 'secondary'}>
+                            {pageLink.status === 'active' ? 'Ativo' : 'Rascunho'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {pageLink.dateRange}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => window.open(pageLink.link, '_blank')}
+                            >
+                              <ExternalLink className="w-3 h-3 mr-1" />
+                              Visitar
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                setSelectedPageLink(pageLink);
+                                setPageLinkDialogOpen(true);
+                              }}
+                            >
+                              <Edit className="w-3 h-3 mr-1" />
+                              Editar
+                            </Button>
                           </div>
-                          <div className="space-y-2">
-                            <div className="flex items-center space-x-2">
-                              <Badge variant="outline" className="text-xs">
-                                {pageLink.type === 'website' ? 'Website' :
-                                 pageLink.type === 'campaign' ? 'Campanha' : 'Landing Page'}
-                              </Badge>
-                            </div>
-                            <p className="text-sm text-muted-foreground">{pageLink.dateRange}</p>
-                            <div className="flex space-x-2">
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="flex-1"
-                                onClick={() => window.open(pageLink.link, '_blank')}
-                              >
-                                <ExternalLink className="w-3 h-3 mr-1" />
-                                Visitar
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="flex-1"
-                                onClick={() => {
-                                  setSelectedPageLink(pageLink);
-                                  setPageLinkDialogOpen(true);
-                                }}
-                              >
-                                <Edit className="w-3 h-3 mr-1" />
-                                Editar
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               )}
             </CardContent>
           </Card>
@@ -608,12 +548,6 @@ const ClientProfile: React.FC = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="dates">
-          <ImportantDatesSection 
-            clientId={id || ''}
-          />
-        </TabsContent>
-
         <TabsContent value="contacts">
           <ClientContactsSection 
             clientId={id || ''}
@@ -622,17 +556,6 @@ const ClientProfile: React.FC = () => {
       </Tabs>
 
       {/* Dialogs */}
-      <StakeholderDialog
-        open={stakeholderDialogOpen}
-        onOpenChange={setStakeholderDialogOpen}
-        stakeholder={selectedStakeholder}
-        clientId={id || ''}
-        onSave={selectedStakeholder ? 
-          (data) => updateStakeholder(selectedStakeholder.id, data) : 
-          addStakeholder
-        }
-      />
-
       <PageLinkDialog
         open={pageLinkDialogOpen}
         onOpenChange={setPageLinkDialogOpen}
@@ -648,6 +571,13 @@ const ClientProfile: React.FC = () => {
         onOpenChange={setAccessDialogOpen}
         access={selectedAccess}
         onSave={selectedAccess ? handleUpdateAccess : handleAddAccess}
+      />
+
+      <ClientEditDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        client={client}
+        onSave={handleEditClient}
       />
     </div>
   );
