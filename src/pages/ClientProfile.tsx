@@ -40,6 +40,7 @@ import ImportantDatesSection from '@/components/ImportantDatesSection';
 import { MeetingHistorySection } from '@/components/MeetingHistorySection';
 import { ClientNotesSection } from '@/components/ClientNotesSection';
 import { ClientMeetingsSection } from '@/components/ClientMeetingsSection';
+import { ClientContactsSection } from '@/components/ClientContactsSection';
 
 const ClientProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -62,7 +63,7 @@ const ClientProfile: React.FC = () => {
 
   // Encontrar o cliente nos dados do Supabase
   const client = clients.find(c => c.id === id);
-  const clientProjects = projects.filter(p => p.cliente === client?.nome || p.cliente === client?.name);
+  const clientProjects = projects.filter(p => p.cliente === client?.nome);
 
   // Contato principal (primeiro contato ou dados fictícios se não houver)
   const primaryContact = contacts.find(c => c.is_primary) || contacts[0] || {
@@ -256,7 +257,7 @@ const ClientProfile: React.FC = () => {
 
       {/* Tabs de Conteúdo */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-9">
+        <TabsList className="grid w-full grid-cols-10">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="stakeholders">Stakeholders</TabsTrigger>
           <TabsTrigger value="projects">Projetos</TabsTrigger>
@@ -266,6 +267,7 @@ const ClientProfile: React.FC = () => {
           <TabsTrigger value="notes">Anotações</TabsTrigger>
           <TabsTrigger value="access">Acessos</TabsTrigger>
           <TabsTrigger value="dates">Datas</TabsTrigger>
+          <TabsTrigger value="contacts">Contatos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -608,6 +610,12 @@ const ClientProfile: React.FC = () => {
 
         <TabsContent value="dates">
           <ImportantDatesSection 
+            clientId={id || ''}
+          />
+        </TabsContent>
+
+        <TabsContent value="contacts">
+          <ClientContactsSection 
             clientId={id || ''}
           />
         </TabsContent>
