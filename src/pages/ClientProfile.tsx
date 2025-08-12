@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,12 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useClients } from '@/hooks/useClients';
 import { useStakeholders } from '@/hooks/useStakeholders';
 import { usePageLinks } from '@/hooks/usePageLinks';
-import { useSLA } from '@/hooks/useSLA';
-import { useNPSHistory } from '@/hooks/useNPSHistory';
-import { useClientAccesses } from '@/hooks/useClientAccesses';
-import { useImportantDates } from '@/hooks/useImportantDates';
-import { useMeetingHistory } from '@/hooks/useMeetingHistory';
-import { useClientNotes } from '@/hooks/useClientNotes';
+import { useSupabaseClientAccesses } from '@/hooks/useSupabaseClientAccesses';
 import { useSupabaseProjects } from '@/hooks/useSupabaseProjects';
 import { 
   Building2, 
@@ -47,12 +43,7 @@ const ClientProfile: React.FC = () => {
   const { clients, updateClient } = useClients();
   const { stakeholders, addStakeholder, updateStakeholder, deleteStakeholder } = useStakeholders(id || '');
   const { pageLinks, addPageLink, updatePageLink, deletePageLink } = usePageLinks(id || '');
-  const { slaItems, addSLAItem, updateSLAItem, deleteSLAItem } = useSLA(id || '');
-  const { npsRecords, addNPSRecord, updateNPSRecord, deleteNPSRecord } = useNPSHistory(id || '');
-  const { accesses, addAccess, updateAccess, deleteAccess } = useClientAccesses(id || '');
-  const { importantDates, addImportantDate, updateImportantDate, deleteImportantDate } = useImportantDates(id || '');
-  const { getMeetingsByClient, addMeeting, updateMeeting, deleteMeeting } = useMeetingHistory();
-  const { getNotesByClient, addNote } = useClientNotes();
+  const { accesses, addAccess, updateAccess, deleteAccess } = useSupabaseClientAccesses(id || '');
   const { projects } = useSupabaseProjects();
 
   const [stakeholderDialogOpen, setStakeholderDialogOpen] = useState(false);
@@ -65,8 +56,6 @@ const ClientProfile: React.FC = () => {
 
   const client = clients.find(c => c.id === id);
   const clientProjects = projects.filter(p => p.cliente === client?.name);
-  const meetings = getMeetingsByClient(id || '');
-  const notes = getNotesByClient(id || '');
 
   if (!client) {
     return (
@@ -216,10 +205,7 @@ const ClientProfile: React.FC = () => {
         <TabsContent value="overview" className="space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <NPSHistorySection 
-              npsRecords={npsRecords}
-              onAddRecord={addNPSRecord}
-              onUpdateRecord={updateNPSRecord}
-              onDeleteRecord={deleteNPSRecord}
+              clientId={id || ''}
             />
             <Card>
               <CardHeader>
@@ -243,8 +229,8 @@ const ClientProfile: React.FC = () => {
                     <div className="text-sm text-muted-foreground">Páginas/Campanhas</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-orange-600">{meetings.length}</div>
-                    <div className="text-sm text-muted-foreground">Reuniões</div>
+                    <div className="text-2xl font-bold text-orange-600">{accesses.length}</div>
+                    <div className="text-sm text-muted-foreground">Acessos</div>
                   </div>
                 </div>
               </CardContent>
@@ -470,10 +456,7 @@ const ClientProfile: React.FC = () => {
 
         <TabsContent value="sla">
           <SLASection 
-            slaItems={slaItems}
-            onAddItem={addSLAItem}
-            onUpdateItem={updateSLAItem}
-            onDeleteItem={deleteSLAItem}
+            clientId={id || ''}
           />
         </TabsContent>
 
@@ -521,23 +504,20 @@ const ClientProfile: React.FC = () => {
                     <Card key={access.id} className="hover:shadow-md transition-shadow">
                       <CardContent className="pt-4">
                         <div className="space-y-2">
-                          <h4 className="font-semibold">{access.platform}</h4>
+                          <h4 className="font-semibold">{access.plataforma}</h4>
                           <div className="space-y-1">
                             <div className="flex items-center space-x-2">
                               <span className="text-sm font-medium">Usuário:</span>
-                              <span className="text-sm text-muted-foreground">{access.username}</span>
+                              <span className="text-sm text-muted-foreground">{access.usuario}</span>
                             </div>
                             <div className="flex items-center space-x-2">
                               <span className="text-sm font-medium">Senha:</span>
                               <span className="text-sm text-muted-foreground">••••••••</span>
                             </div>
-                            {access.url && (
+                            {access.notas && (
                               <div className="flex items-center space-x-2">
-                                <ExternalLink className="w-3 h-3 text-muted-foreground" />
-                                <a href={access.url} target="_blank" rel="noopener noreferrer" 
-                                   className="text-sm text-blue-600 hover:underline">
-                                  Acessar
-                                </a>
+                                <span className="text-sm font-medium">Notas:</span>
+                                <span className="text-sm text-muted-foreground">{access.notas}</span>
                               </div>
                             )}
                           </div>
@@ -565,10 +545,7 @@ const ClientProfile: React.FC = () => {
 
         <TabsContent value="dates">
           <ImportantDatesSection 
-            importantDates={importantDates}
-            onAddDate={addImportantDate}
-            onUpdateDate={updateImportantDate}
-            onDeleteDate={deleteImportantDate}
+            clientId={id || ''}
           />
         </TabsContent>
       </Tabs>
@@ -599,7 +576,6 @@ const ClientProfile: React.FC = () => {
         open={accessDialogOpen}
         onOpenChange={setAccessDialogOpen}
         access={selectedAccess}
-        clientId={id || ''}
         onSave={selectedAccess ? 
           (data) => updateAccess(selectedAccess.id, data) : 
           addAccess
