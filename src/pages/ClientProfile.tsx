@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,14 +33,14 @@ import {
   Edit
 } from 'lucide-react';
 import StakeholderDialog from '@/components/StakeholderDialog';
-import { PageLinkDialog } from '@/components/PageLinkDialog';
-import { SLASection } from '@/components/SLASection';
-import { NPSHistorySection } from '@/components/NPSHistorySection';
-import { AccessDialog } from '@/components/AccessDialog';
-import { ImportantDatesSection } from '@/components/ImportantDatesSection';
+import PageLinkDialog from '@/components/PageLinkDialog';
+import SLASection from '@/components/SLASection';
+import NPSHistorySection from '@/components/NPSHistorySection';
+import AccessDialog from '@/components/AccessDialog';
+import ImportantDatesSection from '@/components/ImportantDatesSection';
 import { MeetingHistorySection } from '@/components/MeetingHistorySection';
 import { ClientNotesSection } from '@/components/ClientNotesSection';
-import { ClientEditDialog } from '@/components/ClientEditDialog';
+import ClientEditDialog from '@/components/ClientEditDialog';
 
 const ClientProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -52,8 +51,8 @@ const ClientProfile: React.FC = () => {
   const { npsRecords, addNPSRecord, updateNPSRecord, deleteNPSRecord } = useNPSHistory(id || '');
   const { accesses, addAccess, updateAccess, deleteAccess } = useClientAccesses(id || '');
   const { importantDates, addImportantDate, updateImportantDate, deleteImportantDate } = useImportantDates(id || '');
-  const { meetings, addMeeting, updateMeeting, deleteMeeting } = useMeetingHistory(id || '');
-  const { notes, addNote, updateNote, deleteNote } = useClientNotes(id || '');
+  const { getMeetingsByClient, addMeeting, updateMeeting, deleteMeeting } = useMeetingHistory();
+  const { getNotesByClient, addNote } = useClientNotes();
   const { projects } = useSupabaseProjects();
 
   const [stakeholderDialogOpen, setStakeholderDialogOpen] = useState(false);
@@ -66,6 +65,8 @@ const ClientProfile: React.FC = () => {
 
   const client = clients.find(c => c.id === id);
   const clientProjects = projects.filter(p => p.cliente === client?.name);
+  const meetings = getMeetingsByClient(id || '');
+  const notes = getNotesByClient(id || '');
 
   if (!client) {
     return (
@@ -251,6 +252,7 @@ const ClientProfile: React.FC = () => {
           </div>
         </TabsContent>
 
+        
         <TabsContent value="stakeholders">
           <Card>
             <CardHeader>
@@ -325,6 +327,7 @@ const ClientProfile: React.FC = () => {
           </Card>
         </TabsContent>
 
+        
         <TabsContent value="projects">
           <Card>
             <CardHeader>
@@ -384,6 +387,7 @@ const ClientProfile: React.FC = () => {
           </Card>
         </TabsContent>
 
+        
         <TabsContent value="pages">
           <Card>
             <CardHeader>
@@ -476,20 +480,12 @@ const ClientProfile: React.FC = () => {
         <TabsContent value="meetings">
           <MeetingHistorySection 
             clientId={id || ''}
-            meetings={meetings}
-            onAddMeeting={addMeeting}
-            onUpdateMeeting={updateMeeting}
-            onDeleteMeeting={deleteMeeting}
           />
         </TabsContent>
 
         <TabsContent value="notes">
           <ClientNotesSection 
             clientId={id || ''}
-            notes={notes}
-            onAddNote={addNote}
-            onUpdateNote={updateNote}
-            onDeleteNote={deleteNote}
           />
         </TabsContent>
 
