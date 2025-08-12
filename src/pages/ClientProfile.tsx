@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,7 +27,9 @@ import {
   MapPin,
   ExternalLink,
   Edit,
-  Plus
+  Plus,
+  Users,
+  Handshake
 } from 'lucide-react';
 import PageLinkDialog from '@/components/PageLinkDialog';
 import SLASection from '@/components/SLASection';
@@ -154,8 +155,71 @@ const ClientProfile: React.FC = () => {
     }
   };
 
+  // Transform SupabaseClient to Client type for the edit dialog
+  const transformedClient = client ? {
+    id: client.id,
+    name: client.nome,
+    segment: client.segmento || '',
+    description: client.descricao || '',
+    logo: client.logo_url || '',
+    cover: '',
+    status: client.status === 'ativo' ? 'active' as const : 
+            client.status === 'inativo' ? 'inactive' as const : 'onboarding' as const,
+    size: client.porte === 'micro' ? 'MEI' as const :
+          client.porte === 'pequeno' ? 'PME' as const : 'large' as const,
+    address: client.endereco || '',
+    website: client.site || '',
+    primaryContact: {
+      name: primaryContact.nome,
+      phone: primaryContact.telefone || '',
+      email: primaryContact.email || ''
+    },
+    financialContact: {
+      name: '',
+      phone: '',
+      email: ''
+    },
+    socialMedia: {
+      facebook: client.redes_sociais?.facebook || '',
+      instagram: client.redes_sociais?.instagram || '',
+      linkedin: client.redes_sociais?.linkedin || ''
+    },
+    contractType: client.tipo_contrato === 'recorrente' ? 'recurring' as const :
+                  client.tipo_contrato === 'projeto_unico' ? 'project' as const : 'one-time' as const,
+    temperature: client.temperatura === 'quente' ? 'hot' as const :
+                 client.temperatura === 'morno' ? 'warm' as const : 'cold' as const,
+    nps: client.nps_atual || undefined,
+    entryDate: client.cliente_desde || '',
+    responsibleManager: client.gestor_id || '',
+    createdAt: client.criado_em
+  } : null;
+
   const handleEditClient = async (updatedClient: any) => {
-    await updateClient(client.id, updatedClient);
+    if (!transformedClient) return;
+    
+    // Transform back to Supabase format
+    const supabaseUpdate = {
+      nome: updatedClient.name,
+      segmento: updatedClient.segment,
+      descricao: updatedClient.description,
+      logo_url: updatedClient.logo,
+      status: updatedClient.status === 'active' ? 'ativo' :
+              updatedClient.status === 'inactive' ? 'inativo' : 'prospect',
+      porte: updatedClient.size === 'MEI' ? 'micro' :
+             updatedClient.size === 'PME' ? 'pequeno' : 'grande',
+      endereco: updatedClient.address,
+      site: updatedClient.website,
+      redes_sociais: updatedClient.socialMedia,
+      tipo_contrato: updatedClient.contractType === 'recurring' ? 'recorrente' :
+                     updatedClient.contractType === 'project' ? 'projeto_unico' : 'pontual',
+      temperatura: updatedClient.temperature === 'hot' ? 'quente' :
+                   updatedClient.temperature === 'warm' ? 'morno' : 'frio',
+      nps_atual: updatedClient.nps,
+      cliente_desde: updatedClient.entryDate,
+      gestor_id: updatedClient.responsibleManager
+    };
+    
+    await updateClient(client.id, supabaseUpdate);
   };
 
   return (
@@ -573,12 +637,14 @@ const ClientProfile: React.FC = () => {
         onSave={selectedAccess ? handleUpdateAccess : handleAddAccess}
       />
 
-      <ClientEditDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        client={client}
-        onSave={handleEditClient}
-      />
+      {transformedClient && (
+        <ClientEditDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          client={transformedClient}
+          onSave={handleEditClient}
+        />
+      )}
     </div>
   );
 };
