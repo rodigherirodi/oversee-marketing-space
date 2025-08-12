@@ -1,13 +1,15 @@
+
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useClients } from '@/hooks/useClients';
+import { useSupabaseClients } from '@/hooks/useSupabaseClients';
 import { useStakeholders } from '@/hooks/useStakeholders';
 import { usePageLinks } from '@/hooks/usePageLinks';
 import { useSupabaseClientAccesses } from '@/hooks/useSupabaseClientAccesses';
+import { useSupabaseClientContacts } from '@/hooks/useSupabaseClientContacts';
 import { useSupabaseProjects } from '@/hooks/useSupabaseProjects';
 import { useMeetingHistory } from '@/hooks/useMeetingHistory';
 import { useClientNotes } from '@/hooks/useClientNotes';
@@ -37,14 +39,15 @@ import AccessDialog from '@/components/AccessDialog';
 import ImportantDatesSection from '@/components/ImportantDatesSection';
 import { MeetingHistorySection } from '@/components/MeetingHistorySection';
 import { ClientNotesSection } from '@/components/ClientNotesSection';
-import ClientEditDialog from '@/components/ClientEditDialog';
+import { ClientMeetingsSection } from '@/components/ClientMeetingsSection';
 
 const ClientProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { clients, updateClient } = useClients();
+  const { clients, getClient, updateClient } = useSupabaseClients();
   const { stakeholders, addStakeholder, updateStakeholder, deleteStakeholder } = useStakeholders(id || '');
   const { pageLinks, addPageLink, updatePageLink, deletePageLink } = usePageLinks(id || '');
   const { accesses, addAccess, updateAccess, deleteAccess } = useSupabaseClientAccesses(id || '');
+  const { contacts } = useSupabaseClientContacts(id || '');
   const { projects } = useSupabaseProjects();
   const { getMeetingsByClient, addMeeting, updateMeeting, deleteMeeting } = useMeetingHistory();
   const { getNotesByClient, addNote } = useClientNotes();
@@ -57,8 +60,16 @@ const ClientProfile: React.FC = () => {
   const [selectedAccess, setSelectedAccess] = useState<any>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
+  // Encontrar o cliente nos dados do Supabase
   const client = clients.find(c => c.id === id);
-  const clientProjects = projects.filter(p => p.cliente === client?.name);
+  const clientProjects = projects.filter(p => p.cliente === client?.nome || p.cliente === client?.name);
+
+  // Contato principal (primeiro contato ou dados fictícios se não houver)
+  const primaryContact = contacts.find(c => c.is_primary) || contacts[0] || {
+    nome: 'Não informado',
+    email: 'nao-informado@email.com',
+    telefone: 'Não informado'
+  };
 
   if (!client) {
     return (
@@ -74,19 +85,56 @@ const ClientProfile: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'inactive': return 'bg-red-100 text-red-800';
-      case 'onboarding': return 'bg-yellow-100 text-yellow-800';
+      case 'ativo': return 'bg-green-100 text-green-800';
+      case 'inativo': return 'bg-red-100 text-red-800';
+      case 'prospect': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getTemperatureColor = (temperature: string) => {
     switch (temperature) {
-      case 'hot': return 'bg-red-100 text-red-800';
-      case 'warm': return 'bg-orange-100 text-orange-800';
-      case 'cold': return 'bg-blue-100 text-blue-800';
+      case 'quente': return 'bg-red-100 text-red-800';
+      case 'morno': return 'bg-orange-100 text-orange-800';
+      case 'frio': return 'bg-blue-100 text-blue-800';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getPorteLabel = (porte: string) => {
+    switch (porte) {
+      case 'micro': return 'Micro';
+      case 'pequeno': return 'Pequeno';
+      case 'medio': return 'Médio';
+      case 'grande': return 'Grande';
+      default: return porte;
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'ativo': return 'Ativo';
+      case 'inativo': return 'Inativo';
+      case 'prospect': return 'Prospect';
+      default: return status;
+    }
+  };
+
+  const getTemperatureLabel = (temperature: string) => {
+    switch (temperature) {
+      case 'quente': return 'Quente';
+      case 'morno': return 'Morno';
+      case 'frio': return 'Frio';
+      default: return temperature;
+    }
+  };
+
+  const getContractTypeLabel = (type: string) => {
+    switch (type) {
+      case 'recorrente': return 'Recorrente';
+      case 'projeto_unico': return 'Projeto Único';
+      case 'pontual': return 'Pontual';
+      default: return type;
     }
   };
 
@@ -115,26 +163,24 @@ const ClientProfile: React.FC = () => {
         <CardHeader>
           <div className="flex items-start justify-between">
             <div className="flex items-center space-x-4">
-              {client.logo ? (
-                <img src={client.logo} alt={client.name} className="w-16 h-16 rounded-lg object-cover" />
+              {client.logo_url ? (
+                <img src={client.logo_url} alt={client.nome} className="w-16 h-16 rounded-lg object-cover" />
               ) : (
                 <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                   <Building2 className="w-8 h-8 text-white" />
                 </div>
               )}
               <div>
-                <CardTitle className="text-2xl">{client.name}</CardTitle>
-                <CardDescription className="mt-1">{client.segment}</CardDescription>
+                <CardTitle className="text-2xl">{client.nome}</CardTitle>
+                <CardDescription className="mt-1">{client.segmento}</CardDescription>
                 <div className="flex items-center space-x-2 mt-2">
-                  <Badge className={getStatusColor(client.status)}>
-                    {client.status === 'active' ? 'Ativo' : 
-                     client.status === 'inactive' ? 'Inativo' : 'Onboarding'}
+                  <Badge className={getStatusColor(client.status || 'ativo')}>
+                    {getStatusLabel(client.status || 'ativo')}
                   </Badge>
-                  <Badge className={getTemperatureColor(client.temperature)}>
-                    {client.temperature === 'hot' ? 'Quente' : 
-                     client.temperature === 'warm' ? 'Morno' : 'Frio'}
+                  <Badge className={getTemperatureColor(client.temperatura || 'frio')}>
+                    {getTemperatureLabel(client.temperatura || 'frio')}
                   </Badge>
-                  <Badge variant="outline">{client.size}</Badge>
+                  <Badge variant="outline">{getPorteLabel(client.porte || 'pequeno')}</Badge>
                 </div>
               </div>
             </div>
@@ -151,15 +197,15 @@ const ClientProfile: React.FC = () => {
               <div className="space-y-1">
                 <div className="flex items-center space-x-2">
                   <Users className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">{client.primaryContact.name}</span>
+                  <span className="text-sm">{primaryContact.nome}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Phone className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">{client.primaryContact.phone}</span>
+                  <span className="text-sm">{primaryContact.telefone || 'Não informado'}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Mail className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">{client.primaryContact.email}</span>
+                  <span className="text-sm">{primaryContact.email || 'Não informado'}</span>
                 </div>
               </div>
             </div>
@@ -169,12 +215,12 @@ const ClientProfile: React.FC = () => {
               <div className="space-y-1">
                 <div className="flex items-center space-x-2">
                   <MapPin className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">{client.address}</span>
+                  <span className="text-sm">{client.endereco || 'Não informado'}</span>
                 </div>
-                {client.website && (
+                {client.site && (
                   <div className="flex items-center space-x-2">
                     <ExternalLink className="w-4 h-4 text-muted-foreground" />
-                    <a href={client.website} target="_blank" rel="noopener noreferrer" 
+                    <a href={client.site} target="_blank" rel="noopener noreferrer" 
                        className="text-sm text-blue-600 hover:underline">
                       Website
                     </a>
@@ -182,7 +228,7 @@ const ClientProfile: React.FC = () => {
                 )}
                 <div className="flex items-center space-x-2">
                   <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">Cliente desde {new Date(client.entryDate).toLocaleDateString('pt-BR')}</span>
+                  <span className="text-sm">Cliente desde {client.cliente_desde ? new Date(client.cliente_desde).toLocaleDateString('pt-BR') : 'Não informado'}</span>
                 </div>
               </div>
             </div>
@@ -192,16 +238,15 @@ const ClientProfile: React.FC = () => {
               <div className="space-y-1">
                 <div className="flex items-center space-x-2">
                   <Star className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">NPS: {client.nps || 'N/A'}</span>
+                  <span className="text-sm">NPS: {client.nps_atual || 'N/A'}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Users className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">Gerente: {client.responsibleManager}</span>
+                  <span className="text-sm">Gerente: {client.gestor_id || 'Não definido'}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Handshake className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">Contrato: {client.contractType === 'recurring' ? 'Recorrente' : 
-                                                      client.contractType === 'project' ? 'Por Projeto' : 'Único'}</span>
+                  <span className="text-sm">Contrato: {getContractTypeLabel(client.tipo_contrato || 'recorrente')}</span>
                 </div>
               </div>
             </div>
@@ -479,7 +524,7 @@ const ClientProfile: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="meetings">
-          <MeetingHistorySection 
+          <ClientMeetingsSection 
             clientId={id || ''}
           />
         </TabsContent>
@@ -595,13 +640,6 @@ const ClientProfile: React.FC = () => {
         onOpenChange={setAccessDialogOpen}
         access={selectedAccess}
         onSave={selectedAccess ? handleUpdateAccess : handleAddAccess}
-      />
-
-      <ClientEditDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        client={client}
-        onSave={(data) => updateClient(client.id, data)}
       />
     </div>
   );
