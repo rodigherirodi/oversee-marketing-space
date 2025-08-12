@@ -22,7 +22,7 @@ export interface SupabaseProject {
   materiais: any | null;
   criado_em: string;
   atualizado_em: string;
-  cliente_nome?: string; // Nome do cliente obtido via JOIN
+  cliente_nome?: string;
 }
 
 export interface ProfileOption {
@@ -73,7 +73,6 @@ export const useSupabaseProjects = () => {
 
       if (error) throw error;
       
-      // Transform the data to match our interface
       const transformedData: SupabaseProject[] = (data || []).map(project => ({
         id: project.id,
         titulo: project.titulo,
@@ -136,7 +135,6 @@ export const useSupabaseProjects = () => {
 
   const createProject = async (projectData: Partial<SupabaseProject>): Promise<SupabaseProject | undefined> => {
     try {
-      // Validações
       if (!projectData.titulo) {
         toast({
           title: "Erro",
@@ -209,7 +207,6 @@ export const useSupabaseProjects = () => {
 
       if (error) throw error;
 
-      // Transform the data to match our interface
       const transformedProject: SupabaseProject = {
         id: data.id,
         titulo: data.titulo,
@@ -252,7 +249,6 @@ export const useSupabaseProjects = () => {
 
   const updateProject = async (projectId: string, updates: Partial<SupabaseProject>): Promise<SupabaseProject | undefined> => {
     try {
-      // Validações
       if (updates.progresso !== undefined && (updates.progresso < 0 || updates.progresso > 100)) {
         toast({
           title: "Erro",
@@ -272,10 +268,13 @@ export const useSupabaseProjects = () => {
         return;
       }
 
+      // Remove cliente_nome from updates as it's not a real column
+      const { cliente_nome, ...cleanUpdates } = updates;
+
       const { data, error } = await supabase
         .from('projetos')
         .update({
-          ...updates,
+          ...cleanUpdates,
           atualizado_em: new Date().toISOString()
         })
         .eq('id', projectId)
@@ -304,7 +303,6 @@ export const useSupabaseProjects = () => {
 
       if (error) throw error;
 
-      // Transform the data to match our interface
       const transformedProject: SupabaseProject = {
         id: data.id,
         titulo: data.titulo,
@@ -348,6 +346,34 @@ export const useSupabaseProjects = () => {
     }
   };
 
+  const deleteProject = async (projectId: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('projetos')
+        .delete()
+        .eq('id', projectId);
+
+      if (error) throw error;
+
+      setProjects(prev => prev.filter(project => project.id !== projectId));
+      
+      toast({
+        title: "Sucesso",
+        description: "Projeto excluído com sucesso!",
+      });
+      
+      return true;
+    } catch (err) {
+      console.error('Error deleting project:', err);
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir projeto",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
   const getProjectById = (id: string): SupabaseProject | undefined => {
     return projects.find(project => project.id === id);
   };
@@ -371,6 +397,7 @@ export const useSupabaseProjects = () => {
     refetch: fetchProjects,
     createProject,
     updateProject,
+    deleteProject,
     getProjectById,
     getProjectsByClientId
   };
