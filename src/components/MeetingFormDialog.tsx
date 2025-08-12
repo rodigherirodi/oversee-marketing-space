@@ -1,12 +1,11 @@
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { z } from 'zod';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -18,6 +17,9 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -25,46 +27,36 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
 import { MeetingFormData } from '@/hooks/useSupabaseClientMeetings';
 
-const meetingFormSchema = z.object({
+const meetingSchema = z.object({
   titulo: z.string().min(1, 'Título é obrigatório'),
   data_hora: z.string().min(1, 'Data e hora são obrigatórias'),
   tipo: z.enum(['alinhamento', 'aprovacao', 'planejamento', 'apresentacao', 'outro']).optional(),
   resumo: z.string().optional(),
   duracao: z.number().optional(),
-  link_gravacao: z.string().url('Link deve ser uma URL válida').optional().or(z.literal('')),
+  participantes: z.array(z.string()).optional(),
+  link_gravacao: z.string().optional(),
   observacoes: z.string().optional(),
 });
-
-const meetingTypes = [
-  { value: 'alinhamento', label: 'Alinhamento' },
-  { value: 'aprovacao', label: 'Aprovação' },
-  { value: 'planejamento', label: 'Planejamento' },
-  { value: 'apresentacao', label: 'Apresentação' },
-  { value: 'outro', label: 'Outro' },
-];
 
 interface MeetingFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: MeetingFormData) => void;
-  initialData?: Partial<MeetingFormData>;
+  onSubmit: (data: MeetingFormData) => Promise<void>;
+  initialData?: Partial<MeetingFormData & { data_hora: string; titulo: string; tipo: string; resumo: string; duracao: number; link_gravacao: string; observacoes: string; participantes: string[] }>;
   isEditing?: boolean;
 }
 
-export const MeetingFormDialog: React.FC<MeetingFormDialogProps> = ({
+const MeetingFormDialog: React.FC<MeetingFormDialogProps> = ({
   open,
   onOpenChange,
   onSubmit,
   initialData,
   isEditing = false,
 }) => {
-  const form = useForm<z.infer<typeof meetingFormSchema>>({
-    resolver: zodResolver(meetingFormSchema),
+  const form = useForm<z.infer<typeof meetingSchema>>({
+    resolver: zodResolver(meetingSchema),
     defaultValues: {
       titulo: initialData?.titulo || '',
       data_hora: initialData?.data_hora ? new Date(initialData.data_hora).toISOString().slice(0, 16) : '',
@@ -73,20 +65,23 @@ export const MeetingFormDialog: React.FC<MeetingFormDialogProps> = ({
       duracao: initialData?.duracao || undefined,
       link_gravacao: initialData?.link_gravacao || '',
       observacoes: initialData?.observacoes || '',
+      participantes: initialData?.participantes || [],
     },
   });
 
-  const handleSubmit = (values: z.infer<typeof meetingFormSchema>) => {
-    const formData: MeetingFormData = {
+  const handleSubmit = async (values: z.infer<typeof meetingSchema>) => {
+    const submitData: MeetingFormData = {
       titulo: values.titulo,
       data_hora: values.data_hora,
       tipo: values.tipo,
-      resumo: values.resumo || undefined,
-      duracao: values.duracao || undefined,
-      link_gravacao: values.link_gravacao || undefined,
-      observacoes: values.observacoes || undefined,
+      resumo: values.resumo,
+      duracao: values.duracao,
+      participantes: values.participantes,
+      link_gravacao: values.link_gravacao,
+      observacoes: values.observacoes,
     };
-    onSubmit(formData);
+    
+    await onSubmit(submitData);
     onOpenChange(false);
     form.reset();
   };
@@ -98,9 +93,6 @@ export const MeetingFormDialog: React.FC<MeetingFormDialogProps> = ({
           <DialogTitle>
             {isEditing ? 'Editar Reunião' : 'Nova Reunião'}
           </DialogTitle>
-          <DialogDescription>
-            {isEditing ? 'Edite as informações da reunião' : 'Adicione uma nova reunião ao histórico'}
-          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -112,7 +104,7 @@ export const MeetingFormDialog: React.FC<MeetingFormDialogProps> = ({
                 <FormItem>
                   <FormLabel>Título *</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Título da reunião" />
+                    <Input placeholder="Ex: Reunião de alinhamento" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -127,7 +119,7 @@ export const MeetingFormDialog: React.FC<MeetingFormDialogProps> = ({
                   <FormItem>
                     <FormLabel>Data e Hora *</FormLabel>
                     <FormControl>
-                      <Input {...field} type="datetime-local" />
+                      <Input type="datetime-local" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -147,46 +139,13 @@ export const MeetingFormDialog: React.FC<MeetingFormDialogProps> = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {meetingTypes.map((type) => (
-                          <SelectItem key={type.value} value={type.value}>
-                            {type.label}
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="alinhamento">Alinhamento</SelectItem>
+                        <SelectItem value="aprovacao">Aprovação</SelectItem>
+                        <SelectItem value="planejamento">Planejamento</SelectItem>
+                        <SelectItem value="apresentacao">Apresentação</SelectItem>
+                        <SelectItem value="outro">Outro</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="duracao"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Duração (minutos)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        {...field} 
-                        type="number" 
-                        placeholder="60"
-                        onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="link_gravacao"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Link da Gravação</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="https://..." />
-                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -195,12 +154,49 @@ export const MeetingFormDialog: React.FC<MeetingFormDialogProps> = ({
 
             <FormField
               control={form.control}
+              name="duracao"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Duração (minutos)</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      placeholder="60"
+                      {...field}
+                      onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="resumo"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Resumo</FormLabel>
                   <FormControl>
-                    <Textarea {...field} placeholder="Breve resumo da reunião..." rows={3} />
+                    <Textarea 
+                      placeholder="Resumo dos principais pontos discutidos..."
+                      className="min-h-[100px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="link_gravacao"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Link da Gravação</FormLabel>
+                  <FormControl>
+                    <Input placeholder="https://..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -214,24 +210,29 @@ export const MeetingFormDialog: React.FC<MeetingFormDialogProps> = ({
                 <FormItem>
                   <FormLabel>Observações</FormLabel>
                   <FormControl>
-                    <Textarea {...field} placeholder="Observações adicionais..." rows={3} />
+                    <Textarea 
+                      placeholder="Observações adicionais..."
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <DialogFooter>
+            <div className="flex justify-end gap-2 pt-4">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancelar
               </Button>
               <Button type="submit">
-                {isEditing ? 'Salvar' : 'Adicionar'}
+                {isEditing ? 'Atualizar' : 'Criar'} Reunião
               </Button>
-            </DialogFooter>
+            </div>
           </form>
         </Form>
       </DialogContent>
     </Dialog>
   );
 };
+
+export default MeetingFormDialog;
