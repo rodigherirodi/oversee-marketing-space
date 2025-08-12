@@ -198,6 +198,15 @@ const ClientProfile: React.FC = () => {
     if (!transformedClient) return;
     
     // Transform back to Supabase format
+    const getPorteValue = (size: string): 'micro' | 'pequeno' | 'medio' | 'grande' => {
+      switch (size) {
+        case 'MEI': return 'micro';
+        case 'PME': return 'pequeno';
+        case 'large': return 'grande';
+        default: return 'medio';
+      }
+    };
+
     const supabaseUpdate = {
       nome: updatedClient.name,
       segmento: updatedClient.segment,
@@ -205,9 +214,7 @@ const ClientProfile: React.FC = () => {
       logo_url: updatedClient.logo,
       status: updatedClient.status === 'active' ? 'ativo' :
               updatedClient.status === 'inactive' ? 'inativo' : 'prospect',
-      porte: updatedClient.size === 'MEI' ? 'micro' :
-             updatedClient.size === 'PME' ? 'pequeno' : 
-             updatedClient.size === 'large' ? 'grande' : 'medio',
+      porte: getPorteValue(updatedClient.size),
       endereco: updatedClient.address,
       site: updatedClient.website,
       redes_sociais: updatedClient.socialMedia,
