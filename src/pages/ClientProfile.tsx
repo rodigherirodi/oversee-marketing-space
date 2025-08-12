@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -92,11 +91,18 @@ const ClientProfile: React.FC = () => {
   };
 
   // Create wrapper functions for access dialog handlers
-  const handleAddAccess = async (data: { plataforma?: string; usuario?: string; senha?: string; notas?: string; }) => {
-    await addAccess(data);
+  const handleAddAccess = async (data: { plataforma?: string; usuario?: string; senha?: string; notas?: string; }): Promise<void> => {
+    if (!data.plataforma) return;
+    
+    await addAccess({
+      plataforma: data.plataforma,
+      usuario: data.usuario,
+      senha: data.senha,
+      notas: data.notas,
+    });
   };
 
-  const handleUpdateAccess = async (data: { plataforma?: string; usuario?: string; senha?: string; notas?: string; }) => {
+  const handleUpdateAccess = async (data: { plataforma?: string; usuario?: string; senha?: string; notas?: string; }): Promise<void> => {
     if (selectedAccess) {
       await updateAccess(selectedAccess.id, data);
     }
