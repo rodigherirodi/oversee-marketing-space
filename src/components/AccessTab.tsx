@@ -11,6 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useToast } from '@/hooks/use-toast';
 import { useSupabaseClientAccesses } from '@/hooks/useSupabaseClientAccesses';
 import { useSupabaseClients } from '@/hooks/useSupabaseClients';
+import { supabase } from '@/integrations/supabase/client';
 import AccessDialog from '@/components/AccessDialog';
 
 interface AccessWithClient {
