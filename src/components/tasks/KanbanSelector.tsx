@@ -28,7 +28,7 @@ export const KanbanSelector: React.FC = () => {
     <div className="flex items-center gap-2">
       <span className="text-sm font-medium text-gray-700">Kanban:</span>
       <Select
-        value={currentKanban.id}
+        value={currentKanban.id || undefined}
         onValueChange={(value) => {
           const kanban = kanbanConfigs.find(k => k.id === value);
           if (kanban) setCurrentKanban(kanban);
@@ -46,7 +46,7 @@ export const KanbanSelector: React.FC = () => {
           </SelectValue>
         </SelectTrigger>
         <SelectContent>
-          {kanbanConfigs.map((kanban) => (
+          {kanbanConfigs.filter(kanban => kanban.id && kanban.id.trim() !== '').map((kanban) => (
             <SelectItem key={kanban.id} value={kanban.id}>
               <div className="flex items-center gap-2">
                 <div 
