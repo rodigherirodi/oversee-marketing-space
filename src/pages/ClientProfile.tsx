@@ -1,258 +1,620 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { useClients } from '@/hooks/useClients';
+import { useStakeholders } from '@/hooks/useStakeholders';
+import { usePageLinks } from '@/hooks/usePageLinks';
+import { useSLA } from '@/hooks/useSLA';
+import { useNPSHistory } from '@/hooks/useNPSHistory';
+import { useClientAccesses } from '@/hooks/useClientAccesses';
+import { useImportantDates } from '@/hooks/useImportantDates';
+import { useMeetingHistory } from '@/hooks/useMeetingHistory';
+import { useClientNotes } from '@/hooks/useClientNotes';
+import { useSupabaseProjects } from '@/hooks/useSupabaseProjects';
 import { 
-  Building, 
-  MapPin, 
-  Globe, 
-  Calendar, 
+  Building2, 
   Users, 
+  FolderOpen, 
+  Globe, 
+  Handshake, 
+  TrendingUp, 
+  Key, 
+  Calendar,
+  MessageSquare,
+  FileText,
   Star,
-  Edit,
-  Upload
+  Phone,
+  Mail,
+  MapPin,
+  ExternalLink,
+  Edit
 } from 'lucide-react';
-import { useSupabaseClients, ClientFormData } from '@/hooks/useSupabaseClients';
-import { useClientLogo } from '@/hooks/useClientLogo';
-import { transformSupabaseClientToClient } from '@/utils/clientTransforms';
-import ClientEditDialog from '@/components/ClientEditDialog';
-import { ClientContactsSection } from '@/components/ClientContactsSection';
-import { ClientMeetingsSection } from '@/components/ClientMeetingsSection';
+import StakeholderDialog from '@/components/StakeholderDialog';
+import { PageLinkDialog } from '@/components/PageLinkDialog';
+import { SLASection } from '@/components/SLASection';
+import { NPSHistorySection } from '@/components/NPSHistorySection';
+import { AccessDialog } from '@/components/AccessDialog';
+import { ImportantDatesSection } from '@/components/ImportantDatesSection';
+import { MeetingHistorySection } from '@/components/MeetingHistorySection';
 import { ClientNotesSection } from '@/components/ClientNotesSection';
+import { ClientEditDialog } from '@/components/ClientEditDialog';
 
-const ClientProfile = () => {
+const ClientProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { getClient, updateClient } = useSupabaseClients();
-  const { uploadLogo, isUploading } = useClientLogo();
-  const [client, setClient] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const { clients, updateClient } = useClients();
+  const { stakeholders, addStakeholder, updateStakeholder, deleteStakeholder } = useStakeholders(id || '');
+  const { pageLinks, addPageLink, updatePageLink, deletePageLink } = usePageLinks(id || '');
+  const { slaItems, addSLAItem, updateSLAItem, deleteSLAItem } = useSLA(id || '');
+  const { npsRecords, addNPSRecord, updateNPSRecord, deleteNPSRecord } = useNPSHistory(id || '');
+  const { accesses, addAccess, updateAccess, deleteAccess } = useClientAccesses(id || '');
+  const { importantDates, addImportantDate, updateImportantDate, deleteImportantDate } = useImportantDates(id || '');
+  const { meetings, addMeeting, updateMeeting, deleteMeeting } = useMeetingHistory(id || '');
+  const { notes, addNote, updateNote, deleteNote } = useClientNotes(id || '');
+  const { projects } = useSupabaseProjects();
 
-  const fetchClient = async () => {
-    if (!id) return;
-    
-    setLoading(true);
-    const clientData = await getClient(id);
-    if (clientData) {
-      setClient(clientData);
-    }
-    setLoading(false);
-  };
+  const [stakeholderDialogOpen, setStakeholderDialogOpen] = useState(false);
+  const [selectedStakeholder, setSelectedStakeholder] = useState<any>(null);
+  const [pageLinkDialogOpen, setPageLinkDialogOpen] = useState(false);
+  const [selectedPageLink, setSelectedPageLink] = useState<any>(null);
+  const [accessDialogOpen, setAccessDialogOpen] = useState(false);
+  const [selectedAccess, setSelectedAccess] = useState<any>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
-  useEffect(() => {
-    fetchClient();
-  }, [id]);
-
-  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !client?.id) return;
-
-    const logoUrl = await uploadLogo(file, client.id);
-    if (logoUrl) {
-      await updateClient(client.id, { logo_url: logoUrl });
-      fetchClient();
-    }
-  };
-
-  const handleSaveClient = async (updatedClient: any) => {
-    if (!client?.id) return;
-    
-    // Convert Client interface back to Supabase format with proper typing
-    const supabaseData: Partial<ClientFormData> = {
-      nome: updatedClient.name,
-      segmento: updatedClient.segment,
-      descricao: updatedClient.description,
-      porte: updatedClient.size === 'MEI' ? 'micro' : 
-             updatedClient.size === 'PME' ? 'pequeno' : 
-             updatedClient.size === 'large' ? 'grande' : 'medio',
-      status: updatedClient.status === 'active' ? 'ativo' : 
-              updatedClient.status === 'inactive' ? 'inativo' : 'prospect',
-      temperatura: updatedClient.temperature === 'cold' ? 'frio' : 
-                   updatedClient.temperature === 'warm' ? 'morno' : 'quente',
-      tipo_contrato: updatedClient.contractType === 'recurring' ? 'recorrente' : 
-                     updatedClient.contractType === 'project' ? 'projeto_unico' : 'pontual',
-      gestor_id: updatedClient.responsibleManager,
-      cliente_desde: updatedClient.entryDate,
-      nps_atual: updatedClient.nps,
-      endereco: updatedClient.address,
-      site: updatedClient.website,
-      redes_sociais: updatedClient.socialMedia,
-    };
-
-    await updateClient(client.id, supabaseData);
-    fetchClient();
-  };
-
-  if (loading) {
-    return <div className="p-6">Carregando...</div>;
-  }
+  const client = clients.find(c => c.id === id);
+  const clientProjects = projects.filter(p => p.cliente === client?.name);
 
   if (!client) {
-    return <div className="p-6">Cliente não encontrado</div>;
+    return (
+      <div className="container mx-auto p-6">
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-center text-muted-foreground">Cliente não encontrado.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
-
-  const transformedClient = transformSupabaseClientToClient(client);
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'ativo': return 'bg-green-100 text-green-800';
-      case 'inativo': return 'bg-red-100 text-red-800';
-      case 'prospect': return 'bg-yellow-100 text-yellow-800';
+      case 'active': return 'bg-green-100 text-green-800';
+      case 'inactive': return 'bg-red-100 text-red-800';
+      case 'onboarding': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getTemperatureColor = (temp: string) => {
-    switch (temp) {
-      case 'quente': return 'bg-red-100 text-red-800';
-      case 'morno': return 'bg-yellow-100 text-yellow-800';
-      case 'frio': return 'bg-blue-100 text-blue-800';
+  const getTemperatureColor = (temperature: string) => {
+    switch (temperature) {
+      case 'hot': return 'bg-red-100 text-red-800';
+      case 'warm': return 'bg-orange-100 text-orange-800';
+      case 'cold': return 'bg-blue-100 text-blue-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
+      {/* Header do Cliente */}
       <Card>
-        <CardContent className="p-6">
+        <CardHeader>
           <div className="flex items-start justify-between">
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <Avatar className="w-20 h-20">
-                  <AvatarImage src={client.logo_url} alt={client.nome} />
-                  <AvatarFallback className="text-xl">
-                    {client.nome.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-                <label className="absolute bottom-0 right-0 bg-primary text-primary-foreground rounded-full p-1 cursor-pointer hover:bg-primary/90">
-                  <Upload className="w-3 h-3" />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleLogoUpload}
-                    disabled={isUploading}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-              
-              <div className="space-y-2">
-                <h1 className="text-3xl font-bold">{client.nome}</h1>
-                <div className="flex items-center gap-3">
+            <div className="flex items-center space-x-4">
+              {client.logo ? (
+                <img src={client.logo} alt={client.name} className="w-16 h-16 rounded-lg object-cover" />
+              ) : (
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                  <Building2 className="w-8 h-8 text-white" />
+                </div>
+              )}
+              <div>
+                <CardTitle className="text-2xl">{client.name}</CardTitle>
+                <CardDescription className="mt-1">{client.segment}</CardDescription>
+                <div className="flex items-center space-x-2 mt-2">
                   <Badge className={getStatusColor(client.status)}>
-                    {client.status === 'ativo' ? 'Ativo' : 
-                     client.status === 'inativo' ? 'Inativo' : 'Prospect'}
+                    {client.status === 'active' ? 'Ativo' : 
+                     client.status === 'inactive' ? 'Inativo' : 'Onboarding'}
                   </Badge>
-                  {client.temperatura && (
-                    <Badge className={getTemperatureColor(client.temperatura)}>
-                      {client.temperatura === 'quente' ? 'Quente' : 
-                       client.temperatura === 'morno' ? 'Morno' : 'Frio'}
-                    </Badge>
-                  )}
+                  <Badge className={getTemperatureColor(client.temperature)}>
+                    {client.temperature === 'hot' ? 'Quente' : 
+                     client.temperature === 'warm' ? 'Morno' : 'Frio'}
+                  </Badge>
+                  <Badge variant="outline">{client.size}</Badge>
                 </div>
               </div>
             </div>
-            
-            <Button onClick={() => setIsEditDialogOpen(true)}>
+            <Button onClick={() => setEditDialogOpen(true)} variant="outline" size="sm">
               <Edit className="w-4 h-4 mr-2" />
               Editar
             </Button>
           </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <h4 className="font-semibold text-sm text-muted-foreground">CONTATO PRINCIPAL</h4>
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <Users className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm">{client.primaryContact.name}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Phone className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm">{client.primaryContact.phone}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Mail className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm">{client.primaryContact.email}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <h4 className="font-semibold text-sm text-muted-foreground">INFORMAÇÕES</h4>
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <MapPin className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm">{client.address}</span>
+                </div>
+                {client.website && (
+                  <div className="flex items-center space-x-2">
+                    <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                    <a href={client.website} target="_blank" rel="noopener noreferrer" 
+                       className="text-sm text-blue-600 hover:underline">
+                      Website
+                    </a>
+                  </div>
+                )}
+                <div className="flex items-center space-x-2">
+                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm">Cliente desde {new Date(client.entryDate).toLocaleDateString('pt-BR')}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="font-semibold text-sm text-muted-foreground">MÉTRICAS</h4>
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <Star className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm">NPS: {client.nps || 'N/A'}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Users className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm">Gerente: {client.responsibleManager}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Handshake className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm">Contrato: {client.contractType === 'recurring' ? 'Recorrente' : 
+                                                      client.contractType === 'project' ? 'Por Projeto' : 'Único'}</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Informações Principais */}
-        <div className="lg:col-span-1 space-y-6">
+      {/* Tabs de Conteúdo */}
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-9">
+          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+          <TabsTrigger value="stakeholders">Stakeholders</TabsTrigger>
+          <TabsTrigger value="projects">Projetos</TabsTrigger>
+          <TabsTrigger value="pages">Páginas</TabsTrigger>
+          <TabsTrigger value="sla">SLA</TabsTrigger>
+          <TabsTrigger value="meetings">Reuniões</TabsTrigger>
+          <TabsTrigger value="notes">Anotações</TabsTrigger>
+          <TabsTrigger value="access">Acessos</TabsTrigger>
+          <TabsTrigger value="dates">Datas</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <NPSHistorySection 
+              npsRecords={npsRecords}
+              onAddRecord={addNPSRecord}
+              onUpdateRecord={updateNPSRecord}
+              onDeleteRecord={deleteNPSRecord}
+            />
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <TrendingUp className="w-5 h-5" />
+                  <span>Resumo Rápido</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600">{stakeholders.length}</div>
+                    <div className="text-sm text-muted-foreground">Stakeholders</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">{clientProjects.length}</div>
+                    <div className="text-sm text-muted-foreground">Projetos</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-purple-600">{pageLinks.length}</div>
+                    <div className="text-sm text-muted-foreground">Páginas/Campanhas</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-orange-600">{meetings.length}</div>
+                    <div className="text-sm text-muted-foreground">Reuniões</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="stakeholders">
           <Card>
             <CardHeader>
-              <CardTitle>Informações Principais</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {client.descricao && (
+              <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-2">Sobre o cliente</h4>
-                  <p className="text-sm leading-relaxed">{client.descricao}</p>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Users className="w-5 h-5" />
+                    <span>Stakeholders</span>
+                  </CardTitle>
+                  <CardDescription>Pessoas-chave do cliente</CardDescription>
                 </div>
-              )}
-              
-              <div className="flex items-center gap-2">
-                <Building className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm">{client.segmento || 'Segmento não informado'}</span>
+                <Button onClick={() => {
+                  setSelectedStakeholder(null);
+                  setStakeholderDialogOpen(true);
+                }}>
+                  <Users className="w-4 h-4 mr-2" />
+                  Adicionar Stakeholder
+                </Button>
               </div>
-              
-              {client.endereco && (
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">{client.endereco}</span>
+            </CardHeader>
+            <CardContent>
+              {stakeholders.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>Nenhum stakeholder cadastrado ainda.</p>
                 </div>
-              )}
-              
-              {client.site && (
-                <div className="flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-muted-foreground" />
-                  <a href={client.site} target="_blank" rel="noopener noreferrer" 
-                     className="text-sm text-blue-600 hover:underline">
-                    {client.site}
-                  </a>
-                </div>
-              )}
-              
-              {client.cliente_desde && (
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">
-                    Cliente desde {new Date(client.cliente_desde).toLocaleDateString('pt-BR')}
-                  </span>
-                </div>
-              )}
-              
-              {client.nps_atual && (
-                <div className="flex items-center gap-2">
-                  <Star className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">NPS: {client.nps_atual}</span>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {stakeholders.map((stakeholder) => (
+                    <Card key={stakeholder.id} className="hover:shadow-md transition-shadow">
+                      <CardContent className="pt-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold">{stakeholder.name}</h4>
+                            <Badge variant={stakeholder.importance === 'high' ? 'destructive' : 
+                                          stakeholder.importance === 'medium' ? 'default' : 'secondary'}>
+                              {stakeholder.importance === 'high' ? 'Alta' : 
+                               stakeholder.importance === 'medium' ? 'Média' : 'Baixa'}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">{stakeholder.position}</p>
+                          <p className="text-sm text-muted-foreground">{stakeholder.department}</p>
+                          <div className="space-y-1">
+                            <div className="flex items-center space-x-2">
+                              <Mail className="w-3 h-3 text-muted-foreground" />
+                              <span className="text-xs">{stakeholder.email}</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Phone className="w-3 h-3 text-muted-foreground" />
+                              <span className="text-xs">{stakeholder.phone}</span>
+                            </div>
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full"
+                            onClick={() => {
+                              setSelectedStakeholder(stakeholder);
+                              setStakeholderDialogOpen(true);
+                            }}
+                          >
+                            <Edit className="w-3 h-3 mr-1" />
+                            Editar
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
               )}
             </CardContent>
           </Card>
-        </div>
+        </TabsContent>
 
-        {/* Tabs Content */}
-        <div className="lg:col-span-2">
-          <Tabs defaultValue="contacts" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="contacts">Contatos</TabsTrigger>
-              <TabsTrigger value="meetings">Reuniões</TabsTrigger>
-              <TabsTrigger value="notes">Anotações</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="contacts">
-              <ClientContactsSection clientId={client.id} />
-            </TabsContent>
-            
-            <TabsContent value="meetings">
-              <ClientMeetingsSection clientId={client.id} />
-            </TabsContent>
-            
-            <TabsContent value="notes">
-              <ClientNotesSection clientId={client.id} />
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
+        <TabsContent value="projects">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <FolderOpen className="w-5 h-5" />
+                <span>Projetos do Cliente</span>
+              </CardTitle>
+              <CardDescription>Projetos associados a este cliente</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {clientProjects.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <FolderOpen className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>Nenhum projeto associado a este cliente ainda.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {clientProjects.map((project) => (
+                    <Card key={project.id} className="hover:shadow-md transition-shadow">
+                      <CardContent className="pt-4">
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold">{project.titulo}</h4>
+                            <Badge variant={project.status === 'concluido' ? 'default' : 
+                                          project.status === 'em_andamento' ? 'secondary' : 'outline'}>
+                              {project.status === 'planejamento' ? 'Planejamento' :
+                               project.status === 'em_andamento' ? 'Em Andamento' :
+                               project.status === 'em_revisao' ? 'Em Revisão' :
+                               project.status === 'em_pausa' ? 'Em Pausa' : 'Concluído'}
+                            </Badge>
+                          </div>
+                          {project.data_entrega && (
+                            <div className="flex items-center space-x-2">
+                              <Calendar className="w-4 h-4 text-muted-foreground" />
+                              <span className="text-sm">Entrega: {new Date(project.data_entrega).toLocaleDateString('pt-BR')}</span>
+                            </div>
+                          )}
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-sm">
+                              <span>Progresso</span>
+                              <span>{project.progresso}%</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div 
+                                className="bg-blue-600 h-2 rounded-full transition-all" 
+                                style={{ width: `${project.progresso}%` }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      {/* Edit Dialog */}
+        <TabsContent value="pages">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Globe className="w-5 h-5" />
+                    <span>Páginas e Campanhas</span>
+                  </CardTitle>
+                  <CardDescription>Sites, landing pages e campanhas do cliente</CardDescription>
+                </div>
+                <Button onClick={() => {
+                  setSelectedPageLink(null);
+                  setPageLinkDialogOpen(true);
+                }}>
+                  <Globe className="w-4 h-4 mr-2" />
+                  Adicionar Página
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {pageLinks.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Globe className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>Nenhuma página ou campanha cadastrada ainda.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {pageLinks.map((pageLink) => (
+                    <Card key={pageLink.id} className="hover:shadow-md transition-shadow">
+                      <CardContent className="pt-4">
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold">{pageLink.title}</h4>
+                            <Badge variant={pageLink.status === 'active' ? 'default' : 'secondary'}>
+                              {pageLink.status === 'active' ? 'Ativo' : 'Rascunho'}
+                            </Badge>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex items-center space-x-2">
+                              <Badge variant="outline" className="text-xs">
+                                {pageLink.type === 'website' ? 'Website' :
+                                 pageLink.type === 'campaign' ? 'Campanha' : 'Landing Page'}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground">{pageLink.dateRange}</p>
+                            <div className="flex space-x-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="flex-1"
+                                onClick={() => window.open(pageLink.link, '_blank')}
+                              >
+                                <ExternalLink className="w-3 h-3 mr-1" />
+                                Visitar
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="flex-1"
+                                onClick={() => {
+                                  setSelectedPageLink(pageLink);
+                                  setPageLinkDialogOpen(true);
+                                }}
+                              >
+                                <Edit className="w-3 h-3 mr-1" />
+                                Editar
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="sla">
+          <SLASection 
+            slaItems={slaItems}
+            onAddItem={addSLAItem}
+            onUpdateItem={updateSLAItem}
+            onDeleteItem={deleteSLAItem}
+          />
+        </TabsContent>
+
+        <TabsContent value="meetings">
+          <MeetingHistorySection 
+            clientId={id || ''}
+            meetings={meetings}
+            onAddMeeting={addMeeting}
+            onUpdateMeeting={updateMeeting}
+            onDeleteMeeting={deleteMeeting}
+          />
+        </TabsContent>
+
+        <TabsContent value="notes">
+          <ClientNotesSection 
+            clientId={id || ''}
+            notes={notes}
+            onAddNote={addNote}
+            onUpdateNote={updateNote}
+            onDeleteNote={deleteNote}
+          />
+        </TabsContent>
+
+        <TabsContent value="access">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Key className="w-5 h-5" />
+                    <span>Acessos do Cliente</span>
+                  </CardTitle>
+                  <CardDescription>Credenciais e acessos do cliente</CardDescription>
+                </div>
+                <Button onClick={() => {
+                  setSelectedAccess(null);
+                  setAccessDialogOpen(true);
+                }}>
+                  <Key className="w-4 h-4 mr-2" />
+                  Adicionar Acesso
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {accesses.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Key className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>Nenhum acesso cadastrado ainda.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {accesses.map((access) => (
+                    <Card key={access.id} className="hover:shadow-md transition-shadow">
+                      <CardContent className="pt-4">
+                        <div className="space-y-2">
+                          <h4 className="font-semibold">{access.platform}</h4>
+                          <div className="space-y-1">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-sm font-medium">Usuário:</span>
+                              <span className="text-sm text-muted-foreground">{access.username}</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <span className="text-sm font-medium">Senha:</span>
+                              <span className="text-sm text-muted-foreground">••••••••</span>
+                            </div>
+                            {access.url && (
+                              <div className="flex items-center space-x-2">
+                                <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                                <a href={access.url} target="_blank" rel="noopener noreferrer" 
+                                   className="text-sm text-blue-600 hover:underline">
+                                  Acessar
+                                </a>
+                              </div>
+                            )}
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full"
+                            onClick={() => {
+                              setSelectedAccess(access);
+                              setAccessDialogOpen(true);
+                            }}
+                          >
+                            <Edit className="w-3 h-3 mr-1" />
+                            Editar
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="dates">
+          <ImportantDatesSection 
+            importantDates={importantDates}
+            onAddDate={addImportantDate}
+            onUpdateDate={updateImportantDate}
+            onDeleteDate={deleteImportantDate}
+          />
+        </TabsContent>
+      </Tabs>
+
+      {/* Dialogs */}
+      <StakeholderDialog
+        open={stakeholderDialogOpen}
+        onOpenChange={setStakeholderDialogOpen}
+        stakeholder={selectedStakeholder}
+        clientId={id || ''}
+        onSave={selectedStakeholder ? 
+          (data) => updateStakeholder(selectedStakeholder.id, data) : 
+          addStakeholder
+        }
+      />
+
+      <PageLinkDialog
+        open={pageLinkDialogOpen}
+        onOpenChange={setPageLinkDialogOpen}
+        pageLink={selectedPageLink}
+        onSave={selectedPageLink ? 
+          (data) => updatePageLink(selectedPageLink.id, data) : 
+          addPageLink
+        }
+      />
+
+      <AccessDialog
+        open={accessDialogOpen}
+        onOpenChange={setAccessDialogOpen}
+        access={selectedAccess}
+        clientId={id || ''}
+        onSave={selectedAccess ? 
+          (data) => updateAccess(selectedAccess.id, data) : 
+          addAccess
+        }
+      />
+
       <ClientEditDialog
-        open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-        client={transformedClient}
-        onSave={handleSaveClient}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        client={client}
+        onSave={(data) => updateClient(client.id, data)}
       />
     </div>
   );
