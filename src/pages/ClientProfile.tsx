@@ -10,6 +10,8 @@ import { useStakeholders } from '@/hooks/useStakeholders';
 import { usePageLinks } from '@/hooks/usePageLinks';
 import { useSupabaseClientAccesses } from '@/hooks/useSupabaseClientAccesses';
 import { useSupabaseProjects } from '@/hooks/useSupabaseProjects';
+import { useMeetingHistory } from '@/hooks/useMeetingHistory';
+import { useClientNotes } from '@/hooks/useClientNotes';
 import { 
   Building2, 
   Users, 
@@ -45,6 +47,8 @@ const ClientProfile: React.FC = () => {
   const { pageLinks, addPageLink, updatePageLink, deletePageLink } = usePageLinks(id || '');
   const { accesses, addAccess, updateAccess, deleteAccess } = useSupabaseClientAccesses(id || '');
   const { projects } = useSupabaseProjects();
+  const { getMeetingsByClient, addMeeting, updateMeeting, deleteMeeting } = useMeetingHistory();
+  const { getNotesByClient, addNote } = useClientNotes();
 
   const [stakeholderDialogOpen, setStakeholderDialogOpen] = useState(false);
   const [selectedStakeholder, setSelectedStakeholder] = useState<any>(null);
@@ -84,6 +88,17 @@ const ClientProfile: React.FC = () => {
       case 'warm': return 'bg-orange-100 text-orange-800';
       case 'cold': return 'bg-blue-100 text-blue-800';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // Create wrapper functions for access dialog handlers
+  const handleAddAccess = async (data: { plataforma?: string; usuario?: string; senha?: string; notas?: string; }) => {
+    await addAccess(data);
+  };
+
+  const handleUpdateAccess = async (data: { plataforma?: string; usuario?: string; senha?: string; notas?: string; }) => {
+    if (selectedAccess) {
+      await updateAccess(selectedAccess.id, data);
     }
   };
 
@@ -238,7 +253,6 @@ const ClientProfile: React.FC = () => {
           </div>
         </TabsContent>
 
-        
         <TabsContent value="stakeholders">
           <Card>
             <CardHeader>
@@ -313,7 +327,6 @@ const ClientProfile: React.FC = () => {
           </Card>
         </TabsContent>
 
-        
         <TabsContent value="projects">
           <Card>
             <CardHeader>
@@ -373,7 +386,6 @@ const ClientProfile: React.FC = () => {
           </Card>
         </TabsContent>
 
-        
         <TabsContent value="pages">
           <Card>
             <CardHeader>
@@ -576,10 +588,7 @@ const ClientProfile: React.FC = () => {
         open={accessDialogOpen}
         onOpenChange={setAccessDialogOpen}
         access={selectedAccess}
-        onSave={selectedAccess ? 
-          (data) => updateAccess(selectedAccess.id, data) : 
-          addAccess
-        }
+        onSave={selectedAccess ? handleUpdateAccess : handleAddAccess}
       />
 
       <ClientEditDialog
