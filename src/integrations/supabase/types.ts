@@ -423,6 +423,7 @@ export type Database = {
           atualizado_em: string | null
           briefing: string | null
           cliente: string | null
+          cliente_id: string | null
           criado_em: string | null
           data_entrega: string | null
           data_inicio: string | null
@@ -442,6 +443,7 @@ export type Database = {
           atualizado_em?: string | null
           briefing?: string | null
           cliente?: string | null
+          cliente_id?: string | null
           criado_em?: string | null
           data_entrega?: string | null
           data_inicio?: string | null
@@ -461,6 +463,7 @@ export type Database = {
           atualizado_em?: string | null
           briefing?: string | null
           cliente?: string | null
+          cliente_id?: string | null
           criado_em?: string | null
           data_entrega?: string | null
           data_inicio?: string | null
@@ -476,7 +479,15 @@ export type Database = {
           tags?: string[] | null
           titulo?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "projetos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tarefas: {
         Row: {

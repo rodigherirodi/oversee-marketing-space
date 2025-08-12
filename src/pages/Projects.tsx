@@ -59,7 +59,7 @@ const Projects = () => {
 
   const filteredProjects = projects.filter(project => {
     const matchesSearch = project.titulo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         (project.cliente && project.cliente.toLowerCase().includes(searchQuery.toLowerCase()));
+                         (project.cliente_nome && project.cliente_nome.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
     const matchesPriority = priorityFilter === 'all' || project.prioridade === priorityFilter;
     
@@ -146,7 +146,7 @@ const Projects = () => {
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <CardTitle className="text-lg mb-2">{project.titulo}</CardTitle>
-                  <p className="text-sm text-muted-foreground mb-3">{project.cliente || 'Cliente não informado'}</p>
+                  <p className="text-sm text-muted-foreground mb-3">{project.cliente_nome || 'Cliente não informado'}</p>
                 </div>
               </div>
               

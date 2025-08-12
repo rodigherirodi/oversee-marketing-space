@@ -7,6 +7,7 @@ export interface SupabaseProject {
   id: string;
   titulo: string;
   cliente: string | null;
+  cliente_id: string | null;
   status: 'planejamento' | 'em_andamento' | 'em_revisao' | 'em_pausa' | 'concluido';
   prioridade: 'Alta' | 'Média' | 'Baixa' | null;
   data_inicio: string | null;
@@ -21,6 +22,7 @@ export interface SupabaseProject {
   materiais: any | null;
   criado_em: string;
   atualizado_em: string;
+  cliente_nome?: string; // Nome do cliente obtido via JOIN
 }
 
 export interface ProfileOption {
@@ -28,9 +30,15 @@ export interface ProfileOption {
   name: string;
 }
 
+export interface ClientOption {
+  id: string;
+  nome: string;
+}
+
 export const useSupabaseProjects = () => {
   const [projects, setProjects] = useState<SupabaseProject[]>([]);
   const [profiles, setProfiles] = useState<ProfileOption[]>([]);
+  const [clients, setClients] = useState<ClientOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -40,7 +48,27 @@ export const useSupabaseProjects = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('projetos')
-        .select('id, titulo, cliente, status, prioridade, data_inicio, data_entrega, progresso, equipe, tags, responsavel, briefing, escopo, observacoes, materiais, criado_em, atualizado_em')
+        .select(`
+          id, 
+          titulo, 
+          cliente, 
+          cliente_id,
+          status, 
+          prioridade, 
+          data_inicio, 
+          data_entrega, 
+          progresso, 
+          equipe, 
+          tags, 
+          responsavel, 
+          briefing, 
+          escopo, 
+          observacoes, 
+          materiais, 
+          criado_em, 
+          atualizado_em,
+          clientes(nome)
+        `)
         .order('data_entrega', { ascending: true });
 
       if (error) throw error;
@@ -50,6 +78,7 @@ export const useSupabaseProjects = () => {
         id: project.id,
         titulo: project.titulo,
         cliente: project.cliente,
+        cliente_id: project.cliente_id,
         status: (project.status as SupabaseProject['status']) || 'planejamento',
         prioridade: (project.prioridade as SupabaseProject['prioridade']) || null,
         data_inicio: project.data_inicio,
@@ -63,7 +92,8 @@ export const useSupabaseProjects = () => {
         observacoes: project.observacoes,
         materiais: project.materiais,
         criado_em: project.criado_em,
-        atualizado_em: project.atualizado_em
+        atualizado_em: project.atualizado_em,
+        cliente_nome: project.clientes?.nome || project.cliente
       }));
       
       setProjects(transformedData);
@@ -86,6 +116,21 @@ export const useSupabaseProjects = () => {
       setProfiles(data || []);
     } catch (err) {
       console.error('Error fetching profiles:', err);
+    }
+  };
+
+  const fetchClients = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('clientes')
+        .select('id, nome')
+        .eq('status', 'ativo')
+        .order('nome');
+
+      if (error) throw error;
+      setClients(data || []);
+    } catch (err) {
+      console.error('Error fetching clients:', err);
     }
   };
 
@@ -124,6 +169,7 @@ export const useSupabaseProjects = () => {
         .from('projetos')
         .insert({
           titulo: projectData.titulo,
+          cliente_id: projectData.cliente_id,
           cliente: projectData.cliente,
           status: projectData.status || 'planejamento',
           prioridade: projectData.prioridade,
@@ -138,7 +184,27 @@ export const useSupabaseProjects = () => {
           observacoes: projectData.observacoes,
           materiais: projectData.materiais
         })
-        .select('id, titulo, cliente, status, prioridade, data_inicio, data_entrega, progresso, equipe, tags, responsavel, briefing, escopo, observacoes, materiais, criado_em, atualizado_em')
+        .select(`
+          id, 
+          titulo, 
+          cliente, 
+          cliente_id,
+          status, 
+          prioridade, 
+          data_inicio, 
+          data_entrega, 
+          progresso, 
+          equipe, 
+          tags, 
+          responsavel, 
+          briefing, 
+          escopo, 
+          observacoes, 
+          materiais, 
+          criado_em, 
+          atualizado_em,
+          clientes(nome)
+        `)
         .single();
 
       if (error) throw error;
@@ -148,6 +214,7 @@ export const useSupabaseProjects = () => {
         id: data.id,
         titulo: data.titulo,
         cliente: data.cliente,
+        cliente_id: data.cliente_id,
         status: (data.status as SupabaseProject['status']) || 'planejamento',
         prioridade: (data.prioridade as SupabaseProject['prioridade']) || null,
         data_inicio: data.data_inicio,
@@ -161,7 +228,8 @@ export const useSupabaseProjects = () => {
         observacoes: data.observacoes,
         materiais: data.materiais,
         criado_em: data.criado_em,
-        atualizado_em: data.atualizado_em
+        atualizado_em: data.atualizado_em,
+        cliente_nome: data.clientes?.nome || data.cliente
       };
 
       setProjects(prev => [transformedProject, ...prev]);
@@ -211,7 +279,27 @@ export const useSupabaseProjects = () => {
           atualizado_em: new Date().toISOString()
         })
         .eq('id', projectId)
-        .select('id, titulo, cliente, status, prioridade, data_inicio, data_entrega, progresso, equipe, tags, responsavel, briefing, escopo, observacoes, materiais, criado_em, atualizado_em')
+        .select(`
+          id, 
+          titulo, 
+          cliente, 
+          cliente_id,
+          status, 
+          prioridade, 
+          data_inicio, 
+          data_entrega, 
+          progresso, 
+          equipe, 
+          tags, 
+          responsavel, 
+          briefing, 
+          escopo, 
+          observacoes, 
+          materiais, 
+          criado_em, 
+          atualizado_em,
+          clientes(nome)
+        `)
         .single();
 
       if (error) throw error;
@@ -221,6 +309,7 @@ export const useSupabaseProjects = () => {
         id: data.id,
         titulo: data.titulo,
         cliente: data.cliente,
+        cliente_id: data.cliente_id,
         status: (data.status as SupabaseProject['status']) || 'planejamento',
         prioridade: (data.prioridade as SupabaseProject['prioridade']) || null,
         data_inicio: data.data_inicio,
@@ -234,7 +323,8 @@ export const useSupabaseProjects = () => {
         observacoes: data.observacoes,
         materiais: data.materiais,
         criado_em: data.criado_em,
-        atualizado_em: data.atualizado_em
+        atualizado_em: data.atualizado_em,
+        cliente_nome: data.clientes?.nome || data.cliente
       };
 
       setProjects(prev => prev.map(project => 
@@ -262,19 +352,26 @@ export const useSupabaseProjects = () => {
     return projects.find(project => project.id === id);
   };
 
+  const getProjectsByClientId = (clientId: string): SupabaseProject[] => {
+    return projects.filter(project => project.cliente_id === clientId);
+  };
+
   useEffect(() => {
     fetchProjects();
     fetchProfiles();
+    fetchClients();
   }, []);
 
   return {
     projects,
     profiles,
+    clients,
     loading,
     error,
     refetch: fetchProjects,
     createProject,
     updateProject,
-    getProjectById
+    getProjectById,
+    getProjectsByClientId
   };
 };

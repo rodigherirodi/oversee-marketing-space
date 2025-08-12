@@ -14,7 +14,7 @@ import { useSupabaseProjects, SupabaseProject } from '@/hooks/useSupabaseProject
 const ProjectDetailContent = () => {
   const { id } = useParams();
   const { toast } = useToast();
-  const { getProjectById, updateProject, profiles } = useSupabaseProjects();
+  const { getProjectById, updateProject, profiles, clients } = useSupabaseProjects();
   
   const [isEditing, setIsEditing] = useState(false);
   const [editedProject, setEditedProject] = useState<SupabaseProject | null>(null);
@@ -77,8 +77,12 @@ const ProjectDetailContent = () => {
       return;
     }
 
-    await updateProject(id, editedProject);
-    setIsEditing(false);
+    try {
+      await updateProject(id, editedProject);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error updating project:', error);
+    }
   };
 
   const formatMaterials = (materials: any) => {

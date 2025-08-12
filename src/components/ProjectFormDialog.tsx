@@ -20,11 +20,11 @@ interface ProjectFormDialogProps {
 
 const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { createProject, profiles } = useSupabaseProjects();
+  const { createProject, profiles, clients } = useSupabaseProjects();
 
   const [formData, setFormData] = useState({
     titulo: '',
-    cliente: '',
+    cliente_id: '',
     status: 'planejamento' as 'planejamento' | 'em_andamento' | 'em_revisao' | 'em_pausa' | 'concluido',
     prioridade: 'Média' as 'Alta' | 'Média' | 'Baixa',
     data_inicio: '',
@@ -40,9 +40,13 @@ const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({ children }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Encontrar o nome do cliente selecionado
+    const selectedClient = clients.find(client => client.id === formData.cliente_id);
+    
     const project = await createProject({
       titulo: formData.titulo,
-      cliente: formData.cliente || null,
+      cliente_id: formData.cliente_id || null,
+      cliente: selectedClient?.nome || null,
       status: formData.status,
       prioridade: formData.prioridade,
       data_inicio: formData.data_inicio || null,
@@ -61,7 +65,7 @@ const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({ children }) => {
       setIsOpen(false);
       setFormData({
         titulo: '',
-        cliente: '',
+        cliente_id: '',
         status: 'planejamento',
         prioridade: 'Média',
         data_inicio: '',
@@ -101,11 +105,18 @@ const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({ children }) => {
             
             <div className="space-y-2">
               <Label>Cliente</Label>
-              <Input
-                value={formData.cliente}
-                onChange={(e) => setFormData(prev => ({ ...prev, cliente: e.target.value }))}
-                placeholder="Nome do cliente"
-              />
+              <Select value={formData.cliente_id} onValueChange={(value) => setFormData(prev => ({ ...prev, cliente_id: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o cliente" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clients.map(client => (
+                    <SelectItem key={client.id} value={client.id}>
+                      {client.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
