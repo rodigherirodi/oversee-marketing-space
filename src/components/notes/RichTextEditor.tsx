@@ -80,7 +80,7 @@ export const RichTextEditor = ({
 
   useEffect(() => {
     if (editor && content !== editor.getJSON()) {
-      editor.commands.setContent(content, false);
+      editor.commands.setContent(content);
     }
   }, [content, editor]);
 

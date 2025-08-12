@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -38,7 +37,7 @@ import { ActivityFormData, Lead } from '@/types/crm';
 
 const formSchema = z.object({
   type: z.enum(['call', 'email', 'meeting', 'note', 'task', 'follow_up', 'stage_change'], {
-    required_error: "Selecione o tipo de atividade",
+    errorMap: () => ({ message: "Selecione o tipo de atividade" }),
   }),
   title: z.string().min(3, {
     message: "O título deve ter pelo menos 3 caracteres",
@@ -47,10 +46,10 @@ const formSchema = z.object({
     message: "A descrição deve ter pelo menos 5 caracteres",
   }),
   leadId: z.string({
-    required_error: "Selecione um lead",
+    errorMap: () => ({ message: "Selecione um lead" }),
   }),
   responsiblePerson: z.string({
-    required_error: "Selecione um responsável",
+    errorMap: () => ({ message: "Selecione um responsável" }),
   }),
   dueDate: z.date().optional(),
   completed: z.boolean().default(false),
