@@ -3,8 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Task } from '@/hooks/useTasks';
 import { useTaskTypes } from '@/hooks/useTaskTypes';
 import { useKanbanConfigs } from '@/hooks/useKanbanConfigs';
-import { useClients } from '@/hooks/useClients';
-import { useProjects } from '@/hooks/useProjects';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Dialog,
   DialogContent,
@@ -23,12 +22,24 @@ import { TaskCommentsSection } from './tasks/TaskCommentsSection';
 import { TaskAttachmentsSection } from './tasks/TaskAttachmentsSection';
 import { TagInput } from './tasks/TagInput';
 import { ResponsibleSelector } from './tasks/ResponsibleSelector';
+import { toast } from 'sonner';
 
 interface TaskModalProps {
   editTask?: Task | null;
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (task: Partial<Task>) => void;
+}
+
+interface Client {
+  id: string;
+  nome: string;
+}
+
+interface Project {
+  id: string;
+  nome: string;
+  cliente_id: string;
 }
 
 export const TaskModal: React.FC<TaskModalProps> = ({
@@ -39,11 +50,15 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 }) => {
   const { taskTypes, loading: taskTypesLoading } = useTaskTypes();
   const { kanbanConfigs, currentKanban } = useKanbanConfigs();
-  const { clients } = useClients();
-  const { projects } = useProjects();
   
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [activeTab, setActiveTab] = useState('details');
+  const [clients, setClients] = useState<Client[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
+  const [loadingClients, setLoadingClients] = useState(false);
+  const [loadingProjects, setLoadingProjects] = useState(false);
+  
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -59,56 +74,112 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     watchers: [] as string[]
   });
 
-  const [filteredProjects, setFilteredProjects] = useState(projects);
-
+  // Load clients on component mount
   useEffect(() => {
-    if (editTask) {
-      setFormData({
-        title: editTask.title || '',
-        description: editTask.description || '',
-        priority: editTask.priority || 'medium',
-        assignee_id: editTask.assignee_id || '',
-        due_date: editTask.due_date || '',
-        status: editTask.status || 'todo',
-        type_id: editTask.type_id || '',
-        squad: editTask.squad || 'operacao',
-        client_id: editTask.client_id || '',
-        project_id: editTask.project_id || '',
-        tags: editTask.tags || [],
-        watchers: editTask.watchers?.map(w => w.id) || []
-      });
-    } else {
-      setFormData({
-        title: '',
-        description: '',
-        priority: 'medium',
-        assignee_id: '',
-        due_date: '',
-        status: currentKanban?.stages?.[0]?.id || 'todo',
-        type_id: '',
-        squad: 'operacao',
-        client_id: '',
-        project_id: '',
-        tags: [],
-        watchers: []
-      });
+    const fetchClients = async () => {
+      try {
+        setLoadingClients(true);
+        const { data, error } = await supabase
+          .from('clientes')
+          .select('id, nome')
+          .order('nome');
+
+        if (error) throw error;
+        setClients(data || []);
+      } catch (err) {
+        console.error('Error fetching clients:', err);
+        toast.error('Erro ao carregar clientes');
+      } finally {
+        setLoadingClients(false);
+      }
+    };
+
+    if (isOpen) {
+      fetchClients();
+    }
+  }, [isOpen]);
+
+  // Load projects when client changes
+  useEffect(() => {
+    const fetchProjects = async () => {
+      if (!formData.client_id) {
+        setProjects([]);
+        setFilteredProjects([]);
+        return;
+      }
+
+      try {
+        setLoadingProjects(true);
+        const { data, error } = await supabase
+          .from('projetos')
+          .select('id, titulo as nome, cliente_id')
+          .eq('cliente_id', formData.client_id)
+          .order('titulo');
+
+        if (error) throw error;
+        const projectsData = data || [];
+        setProjects(projectsData);
+        setFilteredProjects(projectsData);
+      } catch (err) {
+        console.error('Error fetching projects:', err);
+        toast.error('Erro ao carregar projetos');
+      } finally {
+        setLoadingProjects(false);
+      }
+    };
+
+    fetchProjects();
+  }, [formData.client_id]);
+
+  // Initialize form data when modal opens or editTask changes
+  useEffect(() => {
+    if (isOpen) {
+      if (editTask) {
+        setFormData({
+          title: editTask.title || '',
+          description: editTask.description || '',
+          priority: editTask.priority || 'medium',
+          assignee_id: String(editTask.assignee_id || ''),
+          due_date: editTask.due_date || '',
+          status: editTask.status || 'todo',
+          type_id: editTask.type_id || '',
+          squad: editTask.squad || 'operacao',
+          client_id: String(editTask.client_id || ''),
+          project_id: String(editTask.project_id || ''),
+          tags: editTask.tags || [],
+          watchers: editTask.watchers?.map(w => w.id) || []
+        });
+      } else {
+        setFormData({
+          title: '',
+          description: '',
+          priority: 'medium',
+          assignee_id: '',
+          due_date: '',
+          status: currentKanban?.stages?.[0]?.id || 'todo',
+          type_id: '',
+          squad: 'operacao',
+          client_id: '',
+          project_id: '',
+          tags: [],
+          watchers: []
+        });
+      }
     }
   }, [editTask, isOpen, currentKanban]);
 
-  // Filter projects based on selected client
+  // Clear project if selected client changes and current project doesn't belong to new client
   useEffect(() => {
-    if (formData.client_id) {
-      const clientProjects = projects.filter(project => project.clientId === formData.client_id);
-      setFilteredProjects(clientProjects);
+    if (formData.client_id && formData.project_id) {
+      const projectBelongsToClient = projects.some(
+        p => p.id === formData.project_id && p.cliente_id === formData.client_id
+      );
       
-      // Clear project selection if current project doesn't belong to selected client
-      if (formData.project_id && !clientProjects.some(p => p.id === formData.project_id)) {
+      if (!projectBelongsToClient) {
         setFormData(prev => ({ ...prev, project_id: '' }));
       }
-    } else {
-      setFilteredProjects(projects);
     }
-  }, [formData.client_id, projects]);
+  }, [formData.client_id, projects, formData.project_id]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,12 +188,12 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       title: formData.title,
       description: formData.description,
       priority: formData.priority,
-      assignee_id: formData.assignee_id,
+      assignee_id: formData.assignee_id || undefined,
       due_date: formData.due_date,
       status: formData.status,
       type_id: formData.type_id,
       squad: formData.squad,
-      client_id: formData.client_id,
+      client_id: formData.client_id || undefined,
       project_id: formData.project_id || undefined,
       tags: formData.tags
     };
@@ -134,6 +205,14 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     setFormData(prev => ({
       ...prev,
       [field]: value
+    }));
+  };
+
+  const handleClientChange = (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      client_id: value,
+      project_id: '' // Clear project when client changes
     }));
   };
 
@@ -179,11 +258,13 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                   />
                 </div>
                 
-                <ResponsibleSelector
-                  value={formData.assignee_id}
-                  onChange={(value) => handleInputChange('assignee_id', value)}
-                  required
-                />
+                <div className="space-y-2">
+                  <Label>Responsável</Label>
+                  <ResponsibleSelector
+                    value={formData.assignee_id}
+                    onChange={(value) => handleInputChange('assignee_id', value)}
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -220,16 +301,18 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                     </SelectTrigger>
                     <SelectContent>
                       {taskTypesLoading ? (
-                        <SelectItem value="" disabled>Carregando...</SelectItem>
+                        <SelectItem value="loading" disabled>Carregando...</SelectItem>
                       ) : (
-                        taskTypes.map(type => (
-                          <SelectItem key={type.id} value={type.id}>
-                            <div className="flex items-center gap-2">
-                              <span>{type.icon}</span>
-                              <span>{type.name}</span>
-                            </div>
-                          </SelectItem>
-                        ))
+                        taskTypes
+                          .filter(type => type.id && String(type.id).trim() !== '')
+                          .map(type => (
+                            <SelectItem key={type.id} value={String(type.id)}>
+                              <div className="flex items-center gap-2">
+                                <span>{type.icon}</span>
+                                <span>{type.name}</span>
+                              </div>
+                            </SelectItem>
+                          ))
                       )}
                     </SelectContent>
                   </Select>
@@ -270,11 +353,14 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                       <SelectValue placeholder="Selecione o status" />
                     </SelectTrigger>
                     <SelectContent>
-                      {currentKanban?.stages?.map(stage => (
-                        <SelectItem key={stage.id} value={stage.id}>
-                          {stage.name}
-                        </SelectItem>
-                      ))}
+                      {currentKanban?.stages
+                        ?.filter(stage => stage.id && String(stage.id).trim() !== '')
+                        ?.map(stage => (
+                          <SelectItem key={stage.id} value={String(stage.id)}>
+                            {stage.name}
+                          </SelectItem>
+                        ))
+                      }
                     </SelectContent>
                   </Select>
                 </div>
@@ -285,17 +371,21 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                   <Label>Cliente</Label>
                   <Select 
                     value={formData.client_id} 
-                    onValueChange={(value) => handleInputChange('client_id', value)}
+                    onValueChange={handleClientChange}
+                    disabled={loadingClients}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecione o cliente" />
+                      <SelectValue placeholder={loadingClients ? "Carregando..." : "Selecione o cliente"} />
                     </SelectTrigger>
                     <SelectContent>
-                      {clients.map(client => (
-                        <SelectItem key={client.id} value={client.id}>
-                          {client.name}
-                        </SelectItem>
-                      ))}
+                      {clients
+                        .filter(client => client.id && String(client.id).trim() !== '')
+                        .map(client => (
+                          <SelectItem key={client.id} value={String(client.id)}>
+                            {client.nome}
+                          </SelectItem>
+                        ))
+                      }
                     </SelectContent>
                   </Select>
                 </div>
@@ -305,19 +395,26 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                   <Select 
                     value={formData.project_id} 
                     onValueChange={(value) => handleInputChange('project_id', value)}
-                    disabled={!formData.client_id}
+                    disabled={!formData.client_id || loadingProjects}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder={
-                        !formData.client_id ? "Selecione um cliente primeiro" : "Selecione o projeto"
+                        !formData.client_id 
+                          ? "Selecione um cliente primeiro" 
+                          : loadingProjects 
+                            ? "Carregando..." 
+                            : "Selecione o projeto"
                       } />
                     </SelectTrigger>
                     <SelectContent>
-                      {filteredProjects.map(project => (
-                        <SelectItem key={project.id} value={project.id}>
-                          {project.name}
-                        </SelectItem>
-                      ))}
+                      {filteredProjects
+                        .filter(project => project.id && String(project.id).trim() !== '')
+                        .map(project => (
+                          <SelectItem key={project.id} value={String(project.id)}>
+                            {project.nome}
+                          </SelectItem>
+                        ))
+                      }
                     </SelectContent>
                   </Select>
                 </div>

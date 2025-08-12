@@ -57,8 +57,10 @@ const Tasks = () => {
   };
 
   const handleDeleteTask = async (taskId: string) => {
-    if (confirm('Tem certeza que deseja excluir esta tarefa?')) {
+    try {
       await deleteTask(taskId);
+    } catch (error) {
+      console.error('Error deleting task:', error);
     }
   };
 
@@ -196,6 +198,7 @@ const Tasks = () => {
             tasks={filteredTasks as any}
             onUpdateTask={handleUpdateTask}
             onEditTask={handleEditTask}
+            onDeleteTask={handleDeleteTask}
             kanbanConfig={currentKanban}
           />
         </TabsContent>
@@ -213,6 +216,7 @@ const Tasks = () => {
           <TaskCalendarView 
             tasks={filteredTasks as any}
             onEditTask={handleEditTask}
+            onDeleteTask={handleDeleteTask}
           />
         </TabsContent>
       </Tabs>

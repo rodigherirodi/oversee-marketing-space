@@ -61,7 +61,7 @@ export const ResponsibleSelector: React.FC<ResponsibleSelectorProps> = ({
         Responsável {required && '*'}
       </Label>
       
-      <Select value={value || undefined} onValueChange={onChange}>
+      <Select value={value || ''} onValueChange={onChange}>
         <SelectTrigger>
           <SelectValue placeholder="Selecione o responsável">
             {selectedMember && (
@@ -86,21 +86,23 @@ export const ResponsibleSelector: React.FC<ResponsibleSelectorProps> = ({
               Nenhum membro encontrado
             </div>
           ) : (
-            teamMembers.map((member) => (
-              <SelectItem key={member.id} value={member.id || `member-${member.email}`}>
-                <div className="flex items-center gap-2">
-                  <Avatar className="w-6 h-6">
-                    <AvatarFallback className="text-xs">
-                      {getInitials(member.name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="font-medium">{member.name}</div>
-                    <div className="text-xs text-gray-500">{member.position || member.email}</div>
+            teamMembers
+              .filter(member => member.id && String(member.id).trim() !== '')
+              .map((member) => (
+                <SelectItem key={member.id} value={String(member.id)}>
+                  <div className="flex items-center gap-2">
+                    <Avatar className="w-6 h-6">
+                      <AvatarFallback className="text-xs">
+                        {getInitials(member.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="font-medium">{member.name}</div>
+                      <div className="text-xs text-gray-500">{member.position || member.email}</div>
+                    </div>
                   </div>
-                </div>
-              </SelectItem>
-            ))
+                </SelectItem>
+              ))
           )}
         </SelectContent>
       </Select>
