@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Plus, Edit, Trash2, ExternalLink, Calendar, Clock, Users } from 'lucide-react';
 import { useSupabaseClientMeetings, MeetingFormData } from '@/hooks/useSupabaseClientMeetings';
-import { MeetingFormDialog } from '@/components/MeetingFormDialog';
+import MeetingFormDialog from '@/components/MeetingFormDialog';
 import { useToast } from '@/hooks/use-toast';
 
 interface MeetingHistorySectionProps {

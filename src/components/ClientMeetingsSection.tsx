@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Plus, Clock, Users, Edit, Trash2, ExternalLink } from 'lucide-react';
 import { useSupabaseClientMeetings, MeetingFormData } from '@/hooks/useSupabaseClientMeetings';
-import { MeetingFormDialog } from '@/components/MeetingFormDialog';
+import MeetingFormDialog from '@/components/MeetingFormDialog';
 import { useToast } from '@/hooks/use-toast';
 
 interface ClientMeetingsSectionProps {
