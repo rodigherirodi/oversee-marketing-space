@@ -61,7 +61,7 @@ export const ResponsibleSelector: React.FC<ResponsibleSelectorProps> = ({
         Responsável {required && '*'}
       </Label>
       
-      <Select value={value} onValueChange={onChange}>
+      <Select value={value || undefined} onValueChange={onChange}>
         <SelectTrigger>
           <SelectValue placeholder="Selecione o responsável">
             {selectedMember && (
@@ -87,7 +87,7 @@ export const ResponsibleSelector: React.FC<ResponsibleSelectorProps> = ({
             </div>
           ) : (
             teamMembers.map((member) => (
-              <SelectItem key={member.id} value={member.id}>
+              <SelectItem key={member.id} value={member.id || `member-${member.email}`}>
                 <div className="flex items-center gap-2">
                   <Avatar className="w-6 h-6">
                     <AvatarFallback className="text-xs">

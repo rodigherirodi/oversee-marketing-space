@@ -93,7 +93,7 @@ export const ContactFormDialog: React.FC<ContactFormDialogProps> = ({
 
           <div>
             <Label htmlFor="tipo">Tipo de Contato</Label>
-            <Select value={tipoValue} onValueChange={(value) => setValue('tipo', value as any)}>
+            <Select value={tipoValue || 'outro'} onValueChange={(value) => setValue('tipo', value as any)}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione o tipo" />
               </SelectTrigger>
