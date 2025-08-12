@@ -17,32 +17,41 @@ export type Database = {
       cliente_acessos: {
         Row: {
           atualizado_em: string | null
+          categoria: string | null
           cliente_id: string
           criado_em: string | null
           id: string
           notas: string | null
           plataforma: string
           senha: string | null
+          status: boolean | null
+          url: string | null
           usuario: string | null
         }
         Insert: {
           atualizado_em?: string | null
+          categoria?: string | null
           cliente_id: string
           criado_em?: string | null
           id?: string
           notas?: string | null
           plataforma: string
           senha?: string | null
+          status?: boolean | null
+          url?: string | null
           usuario?: string | null
         }
         Update: {
           atualizado_em?: string | null
+          categoria?: string | null
           cliente_id?: string
           criado_em?: string | null
           id?: string
           notas?: string | null
           plataforma?: string
           senha?: string | null
+          status?: boolean | null
+          url?: string | null
           usuario?: string | null
         }
         Relationships: [
