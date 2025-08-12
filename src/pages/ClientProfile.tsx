@@ -24,35 +24,14 @@ import { ClientNotesSection } from '@/components/ClientNotesSection';
 import { ClientMeetingsSection } from '@/components/ClientMeetingsSection';
 import { ClientContactsSection } from '@/components/ClientContactsSection';
 import ClientEditDialog from '@/components/ClientEditDialog';
+
 const ClientProfile: React.FC = () => {
-  const {
-    id
-  } = useParams<{
-    id: string;
-  }>();
-  const {
-    clients,
-    getClient,
-    updateClient
-  } = useSupabaseClients();
-  const {
-    pageLinks,
-    addPageLink,
-    updatePageLink,
-    deletePageLink
-  } = usePageLinks(id || '');
-  const {
-    accesses,
-    addAccess,
-    updateAccess,
-    deleteAccess
-  } = useSupabaseClientAccesses(id || '');
-  const {
-    contacts
-  } = useSupabaseClientContacts(id || '');
-  const {
-    projects
-  } = useSupabaseProjects();
+  const { id } = useParams<{ id: string }>();
+  const { clients, getClient, updateClient } = useSupabaseClients();
+  const { pageLinks, addPageLink, updatePageLink, deletePageLink } = usePageLinks(id || '');
+  const { accesses, addAccess, updateAccess, deleteAccess } = useSupabaseClientAccesses(id || '');
+  const { contacts } = useSupabaseClientContacts(id || '');
+  const { getProjectsByClientId } = useSupabaseProjects();
   const {
     getMeetingsByClient,
     addMeeting,
@@ -77,7 +56,7 @@ const ClientProfile: React.FC = () => {
 
   // Encontrar o cliente nos dados do Supabase
   const client = clients.find(c => c.id === id);
-  const clientProjects = projects.filter(p => p.cliente === client?.nome);
+  const clientProjects = getProjectsByClientId(id || '');
 
   // Contato principal (primeiro contato ou dados fictícios se não houver)
   const primaryContact = contacts.find(c => c.is_primary) || contacts[0] || {
@@ -344,7 +323,22 @@ const ClientProfile: React.FC = () => {
             
             <div className="space-y-2">
               <h4 className="font-semibold text-sm text-muted-foreground">INFORMAÇÕES</h4>
-              
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <MapPin className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm">{client.endereco || 'Não informado'}</span>
+                </div>
+                {client.site && <div className="flex items-center space-x-2">
+                    <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                    <a href={client.site} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">
+                      Website
+                    </a>
+                  </div>}
+                <div className="flex items-center space-x-2">
+                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm">Cliente desde {client.cliente_desde ? new Date(client.cliente_desde).toLocaleDateString('pt-BR') : 'Não informado'}</span>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -398,38 +392,53 @@ const ClientProfile: React.FC = () => {
               <CardDescription>Projetos associados a este cliente</CardDescription>
             </CardHeader>
             <CardContent>
-              {clientProjects.length === 0 ? <div className="text-center py-8 text-muted-foreground">
+              {clientProjects.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
                   <FolderOpen className="w-12 h-12 mx-auto mb-4 opacity-50" />
                   <p>Nenhum projeto associado a este cliente ainda.</p>
-                </div> : <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {clientProjects.map(project => <Card key={project.id} className="hover:shadow-md transition-shadow">
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {clientProjects.map(project => (
+                    <Card key={project.id} className="hover:shadow-md transition-shadow">
                       <CardContent className="pt-4">
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
                             <h4 className="font-semibold">{project.titulo}</h4>
-                            <Badge variant={project.status === 'concluido' ? 'default' : project.status === 'em_andamento' ? 'secondary' : 'outline'}>
-                              {project.status === 'planejamento' ? 'Planejamento' : project.status === 'em_andamento' ? 'Em Andamento' : project.status === 'em_revisao' ? 'Em Revisão' : project.status === 'em_pausa' ? 'Em Pausa' : 'Concluído'}
+                            <Badge variant={
+                              project.status === 'concluido' ? 'default' : 
+                              project.status === 'em_andamento' ? 'secondary' : 'outline'
+                            }>
+                              {project.status === 'planejamento' ? 'Planejamento' :
+                               project.status === 'em_andamento' ? 'Em Andamento' :
+                               project.status === 'em_revisao' ? 'Em Revisão' :
+                               project.status === 'em_pausa' ? 'Em Pausa' : 'Concluído'}
                             </Badge>
                           </div>
-                          {project.data_entrega && <div className="flex items-center space-x-2">
+                          {project.data_entrega && (
+                            <div className="flex items-center space-x-2">
                               <Calendar className="w-4 h-4 text-muted-foreground" />
                               <span className="text-sm">Entrega: {new Date(project.data_entrega).toLocaleDateString('pt-BR')}</span>
-                            </div>}
+                            </div>
+                          )}
                           <div className="space-y-1">
                             <div className="flex justify-between text-sm">
                               <span>Progresso</span>
                               <span>{project.progresso}%</span>
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div className="bg-blue-600 h-2 rounded-full transition-all" style={{
-                          width: `${project.progresso}%`
-                        }} />
+                              <div 
+                                className="bg-blue-600 h-2 rounded-full transition-all" 
+                                style={{ width: `${project.progresso}%` }}
+                              />
                             </div>
                           </div>
                         </div>
                       </CardContent>
-                    </Card>)}
-                </div>}
+                    </Card>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
