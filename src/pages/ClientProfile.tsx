@@ -207,13 +207,20 @@ const ClientProfile: React.FC = () => {
       }
     };
 
+    const getStatusValue = (status: string): 'ativo' | 'inativo' | 'prospect' => {
+      switch (status) {
+        case 'active': return 'ativo';
+        case 'inactive': return 'inativo';
+        default: return 'prospect';
+      }
+    };
+
     const supabaseUpdate = {
       nome: updatedClient.name,
       segmento: updatedClient.segment,
       descricao: updatedClient.description,
       logo_url: updatedClient.logo,
-      status: updatedClient.status === 'active' ? 'ativo' :
-              updatedClient.status === 'inactive' ? 'inativo' : 'prospect',
+      status: getStatusValue(updatedClient.status),
       porte: getPorteValue(updatedClient.size),
       endereco: updatedClient.address,
       site: updatedClient.website,
