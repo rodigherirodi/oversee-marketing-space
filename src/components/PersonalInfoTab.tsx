@@ -1,5 +1,5 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import InputMask from 'react-input-mask';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { TeamMember } from '@/types/entities';
@@ -13,6 +13,8 @@ import { useTeamMembers } from '@/hooks/useTeamMembers';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useEmergencyContact } from '@/hooks/useEmergencyContact';
+import { EmergencyContactData } from '@/schemas/emergencyContactSchema';
 
 interface PersonalInfoTabProps {
   member: TeamMember;
@@ -27,17 +29,31 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({ member }) => {
     phone: member.phone || '',
     address: member.address || '',
     birth_date: member.birth_date || '',
-    emergency_contact_name: member.emergency_contact_name || '',
-    emergency_contact_phone: member.emergency_contact_phone || '',
-    emergency_contact_relationship: member.emergency_contact_relationship || '',
     avatar: member.avatar || '',
+  });
+
+  const [emergencyContactData, setEmergencyContactData] = useState<EmergencyContactData>({
+    emergency_contact_name: '',
+    emergency_contact_phone: '',
+    emergency_contact_relationship: '',
   });
 
   const { updateTeamMember } = useTeamMembers();
   const { user, isAdmin } = useAuth();
   const { toast } = useToast();
+  const { fetchEmergencyContact, updateEmergencyContact, isLoading: emergencyLoading } = useEmergencyContact();
 
   const canEdit = isAdmin || user?.id === member.id;
+
+  // Load emergency contact data on component mount
+  useEffect(() => {
+    const loadEmergencyContact = async () => {
+      const data = await fetchEmergencyContact(member.id);
+      setEmergencyContactData(data);
+    };
+
+    loadEmergencyContact();
+  }, [member.id, fetchEmergencyContact]);
 
   const handleSave = async () => {
     try {
@@ -55,12 +71,16 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({ member }) => {
       phone: member.phone || '',
       address: member.address || '',
       birth_date: member.birth_date || '',
-      emergency_contact_name: member.emergency_contact_name || '',
-      emergency_contact_phone: member.emergency_contact_phone || '',
-      emergency_contact_relationship: member.emergency_contact_relationship || '',
       avatar: member.avatar || '',
     });
     setIsEditing(false);
+  };
+
+  const handleEmergencyContactSave = async () => {
+    const result = await updateEmergencyContact(member.id, emergencyContactData);
+    if (result.success) {
+      // Data is already updated in state, UI will reflect immediately
+    }
   };
 
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -303,61 +323,96 @@ const PersonalInfoTab: React.FC<PersonalInfoTabProps> = ({ member }) => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Contato de Emergência</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">Contato de Emergência</CardTitle>
+            {canEdit && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleEmergencyContactSave}
+                disabled={emergencyLoading}
+              >
+                <Save className="w-4 h-4 mr-1" />
+                Salvar Contato
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <Label htmlFor="emergency_name" className="text-sm font-medium">Nome</Label>
-              {isEditing ? (
+              {canEdit ? (
                 <Input
                   id="emergency_name"
-                  value={editData.emergency_contact_name}
-                  onChange={(e) => setEditData(prev => ({ ...prev, emergency_contact_name: e.target.value }))}
+                  value={emergencyContactData.emergency_contact_name}
+                  onChange={(e) => setEmergencyContactData(prev => ({ 
+                    ...prev, 
+                    emergency_contact_name: e.target.value 
+                  }))}
                   placeholder="Nome completo"
                   className="mt-1"
                 />
               ) : (
                 <p className="text-sm text-muted-foreground mt-1">
-                  {member.emergency_contact_name || 'Não informado'}
+                  {emergencyContactData.emergency_contact_name || 'Não informado'}
                 </p>
               )}
             </div>
             
             <div>
               <Label htmlFor="emergency_phone" className="text-sm font-medium">Telefone</Label>
-              {isEditing ? (
-                <Input
-                  id="emergency_phone"
-                  value={editData.emergency_contact_phone}
-                  onChange={(e) => setEditData(prev => ({ ...prev, emergency_contact_phone: e.target.value }))}
-                  placeholder="(11) 99999-9999"
-                  className="mt-1"
-                />
+              {canEdit ? (
+                <InputMask
+                  mask="(99) 99999-9999"
+                  value={emergencyContactData.emergency_contact_phone}
+                  onChange={(e) => setEmergencyContactData(prev => ({ 
+                    ...prev, 
+                    emergency_contact_phone: e.target.value 
+                  }))}
+                >
+                  {(inputProps: any) => (
+                    <Input
+                      {...inputProps}
+                      id="emergency_phone"
+                      placeholder="(11) 99999-9999"
+                      className="mt-1"
+                    />
+                  )}
+                </InputMask>
               ) : (
                 <p className="text-sm text-muted-foreground mt-1">
-                  {member.emergency_contact_phone || 'Não informado'}
+                  {emergencyContactData.emergency_contact_phone || 'Não informado'}
                 </p>
               )}
             </div>
             
             <div>
               <Label htmlFor="emergency_relationship" className="text-sm font-medium">Parentesco</Label>
-              {isEditing ? (
+              {canEdit ? (
                 <Input
                   id="emergency_relationship"
-                  value={editData.emergency_contact_relationship}
-                  onChange={(e) => setEditData(prev => ({ ...prev, emergency_contact_relationship: e.target.value }))}
+                  value={emergencyContactData.emergency_contact_relationship}
+                  onChange={(e) => setEmergencyContactData(prev => ({ 
+                    ...prev, 
+                    emergency_contact_relationship: e.target.value 
+                  }))}
                   placeholder="Ex: Mãe, Esposo(a)"
                   className="mt-1"
                 />
               ) : (
                 <p className="text-sm text-muted-foreground mt-1">
-                  {member.emergency_contact_relationship || 'Não informado'}
+                  {emergencyContactData.emergency_contact_relationship || 'Não informado'}
                 </p>
               )}
             </div>
           </div>
+
+          {canEdit && (
+            <div className="text-xs text-muted-foreground mt-2">
+              * Nome é obrigatório quando telefone ou parentesco são preenchidos
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
