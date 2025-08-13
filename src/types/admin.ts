@@ -3,7 +3,7 @@ export interface AdminUser {
   id: string;
   name: string;
   email: string;
-  department: string;
+  department: 'operacao' | 'academy' | 'cultura' | 'comercial' | 'gestao';
   position?: string;
   status: 'active' | 'inactive';
   role: 'admin' | 'manager' | 'team_lead' | 'user';

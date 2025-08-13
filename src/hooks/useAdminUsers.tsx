@@ -26,10 +26,10 @@ export const useAdminUsers = () => {
         id: profile.id,
         name: profile.name,
         email: profile.email,
-        department: profile.department,
+        department: profile.department as 'operacao' | 'academy' | 'cultura' | 'comercial' | 'gestao',
         position: profile.position,
-        status: profile.status,
-        role: profile.user_roles[0]?.role || 'user',
+        status: profile.status as 'active' | 'inactive',
+        role: profile.user_roles[0]?.role as 'admin' | 'manager' | 'team_lead' | 'user' || 'user',
         avatar: profile.avatar,
         created_at: profile.created_at,
         updated_at: profile.updated_at,
@@ -57,7 +57,7 @@ export const useAdminUsers = () => {
         .from('profiles')
         .update({
           name: userData.name,
-          department: userData.department,
+          department: userData.department as 'operacao' | 'academy' | 'cultura' | 'comercial' | 'gestao',
           position: userData.position,
           status: userData.status
         })
@@ -100,7 +100,7 @@ export const useAdminUsers = () => {
         .from('profiles')
         .update({
           name: userData.name,
-          department: userData.department,
+          department: userData.department as 'operacao' | 'academy' | 'cultura' | 'comercial' | 'gestao',
           position: userData.position,
           status: userData.status
         })

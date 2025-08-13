@@ -19,10 +19,10 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({ user, onSubmit, isLoadi
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
-    department: user?.department || 'operacao',
+    department: user?.department || 'operacao' as const,
     position: user?.position || '',
-    role: user?.role || 'user',
-    status: user?.status || 'active'
+    role: user?.role || 'user' as const,
+    status: user?.status || 'active' as const
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -33,10 +33,10 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({ user, onSubmit, isLoadi
       setFormData({
         name: '',
         email: '',
-        department: 'operacao',
+        department: 'operacao' as const,
         position: '',
-        role: 'user',
-        status: 'active'
+        role: 'user' as const,
+        status: 'active' as const
       });
     }
   };
@@ -78,7 +78,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({ user, onSubmit, isLoadi
           
           <div className="space-y-2">
             <Label htmlFor="department">Departamento</Label>
-            <Select value={formData.department} onValueChange={(value) => setFormData({ ...formData, department: value })}>
+            <Select value={formData.department} onValueChange={(value: 'operacao' | 'academy' | 'cultura' | 'comercial' | 'gestao') => setFormData({ ...formData, department: value })}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -103,7 +103,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({ user, onSubmit, isLoadi
           
           <div className="space-y-2">
             <Label htmlFor="role">Função</Label>
-            <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
+            <Select value={formData.role} onValueChange={(value: 'admin' | 'manager' | 'team_lead' | 'user') => setFormData({ ...formData, role: value })}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -118,7 +118,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({ user, onSubmit, isLoadi
           
           <div className="space-y-2">
             <Label htmlFor="status">Status</Label>
-            <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+            <Select value={formData.status} onValueChange={(value: 'active' | 'inactive') => setFormData({ ...formData, status: value })}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
