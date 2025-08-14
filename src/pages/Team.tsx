@@ -2,12 +2,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Plus, Users, Filter } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import TeamMemberCard from '@/components/TeamMemberCard';
 import TeamMemberForm from '@/components/TeamMemberForm';
+import { AnimatedButton } from '@/components/ui/animated-button';
+import { AnimatedList, AnimatedListItem } from '@/components/ui/animated-list';
 import { useTeamMembers } from '@/hooks/useTeamMembers';
 import { useAuth } from '@/contexts/AuthContext';
 import { transformTeamMemberData } from '@/utils/teamMemberUtils';
@@ -73,10 +74,10 @@ const Team = () => {
           </div>
           
           {isAdmin && (
-            <Button onClick={handleNewMember}>
+            <AnimatedButton onClick={handleNewMember}>
               <Plus className="w-4 h-4 mr-2" />
               Novo Membro
-            </Button>
+            </AnimatedButton>
           )}
         </div>
 
@@ -120,19 +121,20 @@ const Team = () => {
           </div>
         </div>
 
-        {/* Team Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 justify-items-center">
+        {/* Team Grid with Animation */}
+        <AnimatedList className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 justify-items-center">
           {filteredMembers.map((member) => {
             const transformedMember = transformTeamMemberData(member);
             return (
-              <TeamMemberCard
-                key={member.id}
-                member={transformedMember}
-                onClick={() => handleMemberClick(member)}
-              />
+              <AnimatedListItem key={member.id}>
+                <TeamMemberCard
+                  member={transformedMember}
+                  onClick={() => handleMemberClick(member)}
+                />
+              </AnimatedListItem>
             );
           })}
-        </div>
+        </AnimatedList>
 
         {/* Empty State */}
         {filteredMembers.length === 0 && (
@@ -148,10 +150,10 @@ const Team = () => {
               }
             </p>
             {(!searchQuery && departmentFilter === 'all' && statusFilter === 'all' && isAdmin) && (
-              <Button onClick={handleNewMember}>
+              <AnimatedButton onClick={handleNewMember}>
                 <Plus className="w-4 h-4 mr-2" />
                 Adicionar Primeiro Membro
-              </Button>
+              </AnimatedButton>
             )}
           </div>
         )}

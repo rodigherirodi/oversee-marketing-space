@@ -39,6 +39,7 @@ import { WorkspaceProvider } from '@/contexts/WorkspaceContext';
 import AnalyticalDashboard from './pages/AnalyticalDashboard';
 import Productivity from './pages/Productivity';
 import TeamMemberProfile from './pages/TeamMemberProfile';
+import AnimatedLayout from '@/components/AnimatedLayout';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -52,7 +53,9 @@ const ProtectedRoutesWrapper = () => {
           <ChatProvider>
             <ProtectedRoute>
               <AuthenticatedLayout>
-                <Outlet />
+                <AnimatedLayout>
+                  <Outlet />
+                </AnimatedLayout>
               </AuthenticatedLayout>
             </ProtectedRoute>
           </ChatProvider>
