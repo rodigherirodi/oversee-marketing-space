@@ -13,10 +13,9 @@ import { useSupabaseClientContacts } from '@/hooks/useSupabaseClientContacts';
 import { useSupabaseClientMeetings } from '@/hooks/useSupabaseClientMeetings';
 import { useSupabaseClientNotes } from '@/hooks/useSupabaseClientNotes';
 import AccessDialog from '@/components/AccessDialog';
-import ContactFormDialog from '@/components/ContactFormDialog';
+import { ContactFormDialog } from '@/components/ContactFormDialog';
 import MeetingFormDialog from '@/components/MeetingFormDialog';
-import ClientNotesSection from '@/components/ClientNotesSection';
-import { formatPhoneNumber } from '@/utils/phoneUtils';
+import { ClientNotesSection } from '@/components/ClientNotesSection';
 
 const ClientProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -241,7 +240,7 @@ const ClientProfile = () => {
                         {contact.telefone && (
                           <div className="flex items-center gap-1">
                             <Phone className="w-4 h-4" />
-                            {formatPhoneNumber(contact.telefone)}
+                            {contact.telefone}
                           </div>
                         )}
                       </div>
@@ -373,14 +372,14 @@ const ClientProfile = () => {
 
       <ContactFormDialog
         open={contactDialogOpen}
-        onOpenChange={setContactDialogOpen}
-        onSave={handleAddContact}
+        onClose={() => setContactDialogOpen(false)}
+        onSubmit={handleAddContact}
       />
 
       <MeetingFormDialog
         open={meetingDialogOpen}
         onOpenChange={setMeetingDialogOpen}
-        onSave={handleAddMeeting}
+        onSubmit={handleAddMeeting}
       />
     </div>
   );
