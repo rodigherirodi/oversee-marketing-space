@@ -1,20 +1,32 @@
 
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Card } from '@/components/ui/card';
+import { motion, HTMLMotionProps } from 'framer-motion';
 import { cardHover, getMotionProps } from '@/utils/animations';
 import { cn } from '@/lib/utils';
 
+interface AnimatedCardProps extends Omit<HTMLMotionProps<'div'>, 'onDrag' | 'onDragStart' | 'onDragEnd'> {
+  disableAnimation?: boolean;
+  enableHover?: boolean;
+  layoutId?: string;
+}
+
 export const AnimatedCard = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & { 
-    disableAnimation?: boolean;
-    enableHover?: boolean;
-    layoutId?: string;
-  }
+  AnimatedCardProps
 >(({ children, className, disableAnimation = false, enableHover = true, layoutId, ...props }, ref) => {
   if (disableAnimation) {
-    return <Card ref={ref} className={className} {...props}>{children}</Card>;
+    return (
+      <div 
+        ref={ref} 
+        className={cn(
+          "rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden",
+          className
+        )} 
+        {...props}
+      >
+        {children}
+      </div>
+    );
   }
 
   return (

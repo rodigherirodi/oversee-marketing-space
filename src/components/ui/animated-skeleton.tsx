@@ -5,9 +5,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { shimmer, getMotionProps } from '@/utils/animations';
 import { cn } from '@/lib/utils';
 
+interface AnimatedSkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
+  disableAnimation?: boolean;
+}
+
 export const AnimatedSkeleton = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & { disableAnimation?: boolean }
+  AnimatedSkeletonProps
 >(({ className, disableAnimation = false, ...props }, ref) => {
   if (disableAnimation) {
     return <Skeleton ref={ref} className={className} {...props} />;
