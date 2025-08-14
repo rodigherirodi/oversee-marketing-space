@@ -18,18 +18,21 @@ export const AnimatedCard = React.forwardRef<
   }
 
   return (
-    <Card asChild className={cn("overflow-hidden", className)} {...props}>
-      <motion.div
-        ref={ref}
-        layoutId={layoutId}
-        {...getMotionProps(enableHover ? cardHover : {})}
-        initial="initial"
-        whileHover={enableHover ? "hover" : undefined}
-        style={{ willChange: 'transform' }}
-      >
-        {children}
-      </motion.div>
-    </Card>
+    <motion.div
+      ref={ref}
+      layoutId={layoutId}
+      {...getMotionProps(enableHover ? cardHover : {})}
+      initial="initial"
+      whileHover={enableHover ? "hover" : undefined}
+      style={{ willChange: 'transform' }}
+      className={cn(
+        "rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </motion.div>
   );
 });
 
