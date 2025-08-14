@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -15,8 +14,6 @@ export interface Task {
   squad: string;
   client_id: string;
   client: { name: string };
-  clientes?: { nome: string } | null;
-  cliente_id?: string;
   project_id?: string;
   project?: { name: string };
   due_date: string;
@@ -73,25 +70,19 @@ export const useTasks = () => {
       
       const { data, error } = await supabase
         .from('tarefas')
-        .select(`
-          *,
-          clientes:cliente_id(id, nome),
-          profiles:responsavel(id, name, avatar)
-        `)
+        .select('*')
         .order('criado_em', { ascending: false });
 
       if (error) throw error;
 
-      console.log('Raw data from tarefas with joins:', data);
+      console.log('Raw data from tarefas:', data);
 
       const transformedTasks: Task[] = [];
 
       for (const task of data || []) {
-        // Get assignee name from the join or fetch separately if needed
+        // Fetch assignee name separately
         let assigneeName = 'Não atribuído';
-        if (task.profiles?.name) {
-          assigneeName = task.profiles.name;
-        } else if (task.responsavel) {
+        if (task.responsavel) {
           const { data: profileData } = await supabase
             .from('profiles')
             .select('name')
@@ -114,10 +105,8 @@ export const useTasks = () => {
           assignee_id: task.responsavel || '',
           assignee: { name: assigneeName },
           squad: task.squad || 'operacao',
-          client_id: task.cliente_id || '',
-          cliente_id: task.cliente_id || '',
-          client: { name: task.clientes?.nome || 'Cliente não informado' },
-          clientes: task.clientes,
+          client_id: task.cliente || '',
+          client: { name: task.cliente || 'Cliente não informado' },
           project_id: task.projeto,
           project: task.projeto ? { name: task.projeto } : undefined,
           due_date: task.data_entrega || '',
@@ -165,8 +154,7 @@ export const useTasks = () => {
           status: validStatus,
           prioridade: taskData.priority || 'medium',
           responsavel: taskData.assignee_id,
-          cliente_id: taskData.client_id || taskData.cliente_id,
-          cliente: taskData.client?.name,
+          cliente: taskData.client_id || taskData.client?.name,
           projeto: taskData.project_id || taskData.project?.name,
           data_entrega: taskData.due_date || taskData.dueDate,
           squad: taskData.squad || 'operacao',
@@ -176,20 +164,14 @@ export const useTasks = () => {
           campos_customizados: taskData.custom_fields || {},
           criado_por: user.id
         })
-        .select(`
-          *,
-          clientes:cliente_id(id, nome),
-          profiles:responsavel(id, name, avatar)
-        `)
+        .select()
         .single();
 
       if (error) throw error;
 
-      // Get assignee name from the join or fetch separately
+      // Fetch assignee name separately
       let assigneeName = 'Não atribuído';
-      if (data.profiles?.name) {
-        assigneeName = data.profiles.name;
-      } else if (data.responsavel) {
+      if (data.responsavel) {
         const { data: profileData } = await supabase
           .from('profiles')
           .select('name')
@@ -212,10 +194,8 @@ export const useTasks = () => {
         assignee_id: data.responsavel || '',
         assignee: { name: assigneeName },
         squad: data.squad || 'operacao',
-        client_id: data.cliente_id || '',
-        cliente_id: data.cliente_id || '',
-        client: { name: data.clientes?.nome || 'Cliente não informado' },
-        clientes: data.clientes,
+        client_id: data.cliente || '',
+        client: { name: data.cliente || 'Cliente não informado' },
         project_id: data.projeto,
         project: data.projeto ? { name: data.projeto } : undefined,
         due_date: data.data_entrega || '',
@@ -257,11 +237,8 @@ export const useTasks = () => {
       if (updates.assignee_id !== undefined) {
         updateData.responsavel = updates.assignee_id;
       }
-      if (updates.client_id !== undefined || updates.cliente_id !== undefined) {
-        updateData.cliente_id = updates.client_id || updates.cliente_id;
-      }
-      if (updates.client?.name !== undefined) {
-        updateData.cliente = updates.client?.name;
+      if (updates.client_id !== undefined || updates.client?.name !== undefined) {
+        updateData.cliente = updates.client_id || updates.client?.name;
       }
       if (updates.project_id !== undefined || updates.project?.name !== undefined) {
         updateData.projeto = updates.project_id || updates.project?.name;
@@ -281,20 +258,14 @@ export const useTasks = () => {
         .from('tarefas')
         .update(updateData)
         .eq('id', taskId)
-        .select(`
-          *,
-          clientes:cliente_id(id, nome),
-          profiles:responsavel(id, name, avatar)
-        `)
+        .select()
         .single();
 
       if (error) throw error;
 
-      // Get assignee name from the join or fetch separately
+      // Fetch assignee name separately
       let assigneeName = 'Não atribuído';
-      if (data.profiles?.name) {
-        assigneeName = data.profiles.name;
-      } else if (data.responsavel) {
+      if (data.responsavel) {
         const { data: profileData } = await supabase
           .from('profiles')
           .select('name')
@@ -317,10 +288,8 @@ export const useTasks = () => {
         assignee_id: data.responsavel || '',
         assignee: { name: assigneeName },
         squad: data.squad || 'operacao',
-        client_id: data.cliente_id || '',
-        cliente_id: data.cliente_id || '',
-        client: { name: data.clientes?.nome || 'Cliente não informado' },
-        clientes: data.clientes,
+        client_id: data.cliente || '',
+        client: { name: data.cliente || 'Cliente não informado' },
         project_id: data.projeto,
         project: data.projeto ? { name: data.projeto } : undefined,
         due_date: data.data_entrega || '',

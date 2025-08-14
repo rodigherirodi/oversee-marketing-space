@@ -22,7 +22,6 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 
 interface TaskCardProps {
   task: {
@@ -33,8 +32,7 @@ interface TaskCardProps {
     assignee: { name: string } | string;
     due_date?: string;
     tags?: string[];
-    clientes?: { nome: string } | null;
-    cliente_id?: string;
+    client?: { name: string } | string;
   };
   onUpdate: (taskId: string, updates: any) => void;
   onEdit: (task: any) => void;
@@ -84,15 +82,15 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate, onEdit, onDe
     return 'Não atribuído';
   };
 
-  const getClientName = (): string => {
-    if (!task.clientes && !task.cliente_id) return '';
-    if (task.clientes?.nome) return task.clientes.nome;
-    if (!task.clientes && task.cliente_id) return 'Cliente removido';
+  const getClientName = (client: any): string => {
+    if (!client) return '';
+    if (typeof client === 'string') return client;
+    if (typeof client === 'object' && client.name) return client.name;
     return '';
   };
 
   const assigneeName = getAssigneeName(task.assignee);
-  const clientName = getClientName();
+  const clientName = getClientName(task.client);
   const formattedDate = formatDate(task.due_date);
   const isOverdue = task.due_date ? new Date(task.due_date) < new Date() : false;
 
@@ -105,23 +103,14 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate, onEdit, onDe
   };
 
   const handleDelete = async () => {
-    try {
-      const { error } = await supabase
-        .from('tarefas')
-        .delete()
-        .eq('id', task.id);
-
-      if (error) throw error;
-
-      // Call onDelete to update the UI immediately
-      if (onDelete) {
-        onDelete(task.id);
+    if (onDelete) {
+      try {
+        await onDelete(task.id);
+        toast.success('Tarefa excluída com sucesso');
+      } catch (error) {
+        console.error('Error deleting task:', error);
+        toast.error('Erro ao excluir tarefa');
       }
-      
-      toast.success('Tarefa excluída com sucesso');
-    } catch (error) {
-      console.error('Error deleting task:', error);
-      toast.error('Erro ao excluir tarefa');
     }
     setShowDeleteDialog(false);
   };
@@ -164,16 +153,18 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate, onEdit, onDe
                   <Edit className="w-4 h-4 mr-2" />
                   Editar
                 </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowDeleteDialog(true);
-                  }}
-                  className="text-red-600 focus:text-red-600"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Excluir
-                </DropdownMenuItem>
+                {onDelete && (
+                  <DropdownMenuItem 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowDeleteDialog(true);
+                    }}
+                    className="text-red-600 focus:text-red-600"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Excluir
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -209,9 +200,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate, onEdit, onDe
             {clientName && (
               <div className="flex items-center gap-1 text-xs text-gray-600">
                 <span className="font-medium">Cliente:</span>
-                <span className={clientName === 'Cliente removido' ? 'text-red-500' : ''}>
-                  {clientName}
-                </span>
+                <span>{clientName}</span>
               </div>
             )}
             
