@@ -10,6 +10,9 @@ export interface SupabaseClientAccess {
   usuario: string | null;
   senha: string | null;
   notas: string | null;
+  categoria: string | null;
+  status: boolean | null;
+  url: string | null;
   criado_em: string;
   atualizado_em: string;
 }
@@ -19,23 +22,32 @@ export interface ClientAccessFormData {
   usuario?: string;
   senha?: string;
   notas?: string;
+  categoria?: string;
+  url?: string;
+  status?: boolean;
   cliente_id: string;
 }
 
-export const useSupabaseClientAccesses = (clientId: string) => {
+export const useSupabaseClientAccesses = (clientId?: string) => {
   const [accesses, setAccesses] = useState<SupabaseClientAccess[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  // Buscar acessos do cliente
+  // Buscar acessos do cliente ou todos os acessos
   const fetchAccesses = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      let query = supabase
         .from('cliente_acessos')
         .select('*')
-        .eq('cliente_id', clientId)
         .order('criado_em', { ascending: false });
+
+      // Se clientId for fornecido, filtra por cliente específico
+      if (clientId) {
+        query = query.eq('cliente_id', clientId);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Erro ao buscar acessos:', error);
@@ -56,11 +68,11 @@ export const useSupabaseClientAccesses = (clientId: string) => {
   };
 
   // Adicionar novo acesso
-  const addAccess = async (accessData: Omit<ClientAccessFormData, 'cliente_id'>): Promise<SupabaseClientAccess | null> => {
+  const addAccess = async (accessData: Omit<ClientAccessFormData, 'cliente_id'> & { cliente_id: string }): Promise<SupabaseClientAccess | null> => {
     try {
       const { data, error } = await supabase
         .from('cliente_acessos')
-        .insert([{ ...accessData, cliente_id: clientId }])
+        .insert([accessData])
         .select()
         .single();
 
@@ -172,9 +184,7 @@ export const useSupabaseClientAccesses = (clientId: string) => {
   };
 
   useEffect(() => {
-    if (clientId) {
-      fetchAccesses();
-    }
+    fetchAccesses();
   }, [clientId]);
 
   return {

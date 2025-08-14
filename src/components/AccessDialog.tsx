@@ -102,8 +102,12 @@ const AccessDialog: React.FC<AccessDialogProps> = ({
   }, [access, form, open]);
 
   const handleSubmit = async (data: AccessFormData) => {
-    await onSave(data);
-    form.reset();
+    try {
+      await onSave(data);
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Erro ao salvar acesso:', error);
+    }
   };
 
   return (
