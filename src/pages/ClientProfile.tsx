@@ -165,7 +165,7 @@ const ClientProfile = () => {
           <TabsTrigger value="accesses">Acessos</TabsTrigger>
           <TabsTrigger value="meetings">Reuniões</TabsTrigger>
           <TabsTrigger value="notes">Anotações</TabsTrigger>
-        </Tabs>
+        </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
