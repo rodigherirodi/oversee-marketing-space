@@ -1,13 +1,13 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Card, CardProps } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { cardHover, getMotionProps } from '@/utils/animations';
 import { cn } from '@/lib/utils';
 
 export const AnimatedCard = React.forwardRef<
   HTMLDivElement,
-  CardProps & { 
+  React.HTMLAttributes<HTMLDivElement> & { 
     disableAnimation?: boolean;
     enableHover?: boolean;
     layoutId?: string;
