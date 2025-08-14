@@ -14,7 +14,11 @@ export const AnimatedSkeleton = React.forwardRef<
   AnimatedSkeletonProps
 >(({ className, disableAnimation = false, ...props }, ref) => {
   if (disableAnimation) {
-    return <Skeleton ref={ref} className={className} {...props} />;
+    return (
+      <div ref={ref} className={className} {...props}>
+        <Skeleton className="w-full h-full" />
+      </div>
+    );
   }
 
   return (

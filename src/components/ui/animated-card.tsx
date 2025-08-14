@@ -4,7 +4,8 @@ import { motion, HTMLMotionProps } from 'framer-motion';
 import { cardHover, getMotionProps } from '@/utils/animations';
 import { cn } from '@/lib/utils';
 
-interface AnimatedCardProps extends Omit<HTMLMotionProps<'div'>, 'onDrag' | 'onDragStart' | 'onDragEnd'> {
+interface AnimatedCardProps extends Omit<HTMLMotionProps<'div'>, 'onDrag' | 'onDragStart' | 'onDragEnd' | 'children'> {
+  children: React.ReactNode;
   disableAnimation?: boolean;
   enableHover?: boolean;
   layoutId?: string;
