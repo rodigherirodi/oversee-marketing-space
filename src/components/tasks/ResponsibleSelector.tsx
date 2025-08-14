@@ -50,34 +50,39 @@ export const ResponsibleSelector: React.FC<ResponsibleSelectorProps> = ({
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
+  // Filter out team members with invalid IDs
+  const validTeamMembers = teamMembers.filter(member => 
+    member.id && 
+    String(member.id).trim() !== '' && 
+    member.name && 
+    String(member.name).trim() !== ''
+  );
+
   if (loading) {
-    return <SelectItem value="" disabled>Carregando...</SelectItem>;
+    return <SelectItem value="loading" disabled>Carregando...</SelectItem>;
   }
 
-  if (teamMembers.length === 0) {
-    return <SelectItem value="" disabled>Nenhum membro encontrado</SelectItem>;
+  if (validTeamMembers.length === 0) {
+    return <SelectItem value="no-members" disabled>Nenhum membro encontrado</SelectItem>;
   }
 
   return (
     <>
-      {teamMembers
-        .filter(member => member.id && String(member.id).trim() !== '')
-        .map(member => (
-          <SelectItem key={member.id} value={String(member.id)}>
-            <div className="flex items-center gap-2">
-              <Avatar className="w-6 h-6">
-                <AvatarFallback className="text-xs">
-                  {getInitials(member.name)}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <div className="font-medium">{member.name}</div>
-                <div className="text-xs text-gray-500">{member.position || member.email}</div>
-              </div>
+      {validTeamMembers.map(member => (
+        <SelectItem key={member.id} value={String(member.id)}>
+          <div className="flex items-center gap-2">
+            <Avatar className="w-6 h-6">
+              <AvatarFallback className="text-xs">
+                {getInitials(member.name)}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <div className="font-medium">{member.name}</div>
+              <div className="text-xs text-gray-500">{member.position || member.email}</div>
             </div>
-          </SelectItem>
-        ))
-      }
+          </div>
+        </SelectItem>
+      ))}
     </>
   );
 };
