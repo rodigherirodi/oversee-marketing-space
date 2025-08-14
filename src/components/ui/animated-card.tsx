@@ -16,14 +16,32 @@ export const AnimatedCard = React.forwardRef<
   AnimatedCardProps
 >(({ children, className, disableAnimation = false, enableHover = true, layoutId, ...props }, ref) => {
   if (disableAnimation) {
+    // Filter out motion-specific props for regular div
+    const {
+      initial,
+      animate,
+      exit,
+      variants,
+      transition,
+      whileHover,
+      whileTap,
+      whileFocus,
+      whileDrag,
+      whileInView,
+      viewport,
+      style,
+      ...divProps
+    } = props;
+
     return (
       <div 
         ref={ref} 
         className={cn(
           "rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden",
           className
-        )} 
-        {...props}
+        )}
+        style={style as React.CSSProperties}
+        {...divProps}
       >
         {children}
       </div>
