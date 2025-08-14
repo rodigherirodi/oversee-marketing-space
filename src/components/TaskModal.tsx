@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Task } from '@/hooks/useTasks';
 import { useTaskTypes } from '@/hooks/useTaskTypes';
@@ -58,12 +57,12 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [loadingClients, setLoadingClients] = useState(false);
   const [loadingProjects, setLoadingProjects] = useState(false);
+  const [assigneeId, setAssigneeId] = useState<string>('');
   
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     priority: 'medium' as Task['priority'],
-    assignee_id: '',
     due_date: '',
     status: 'todo',
     type_id: '',
@@ -73,6 +72,38 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     tags: [] as string[],
     watchers: [] as string[]
   });
+
+  // Load task assignee when modal opens with editTask
+  useEffect(() => {
+    const loadTaskAssignee = async () => {
+      if (editTask?.id) {
+        try {
+          const { data, error } = await supabase
+            .from('tarefas')
+            .select('responsavel')
+            .eq('id', editTask.id)
+            .single();
+
+          if (error) throw error;
+          
+          if (data?.responsavel) {
+            setAssigneeId(String(data.responsavel));
+          } else {
+            setAssigneeId('');
+          }
+        } catch (err) {
+          console.error('Error loading task assignee:', err);
+          setAssigneeId('');
+        }
+      } else {
+        setAssigneeId('');
+      }
+    };
+
+    if (isOpen) {
+      loadTaskAssignee();
+    }
+  }, [editTask?.id, isOpen]);
 
   // Load clients on component mount
   useEffect(() => {
@@ -143,12 +174,11 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           title: editTask.title || '',
           description: editTask.description || '',
           priority: editTask.priority || 'medium',
-          assignee_id: String(editTask.assignee_id || ''),
           due_date: editTask.due_date || '',
           status: editTask.status || 'todo',
           type_id: editTask.type_id || '',
           squad: editTask.squad || 'operacao',
-          client_id: String(editTask.client_id || ''),
+          client_id: String(editTask.cliente_id || editTask.client_id || ''),
           project_id: String(editTask.project_id || ''),
           tags: editTask.tags || [],
           watchers: editTask.watchers?.map(w => w.id) || []
@@ -158,7 +188,6 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           title: '',
           description: '',
           priority: 'medium',
-          assignee_id: '',
           due_date: '',
           status: currentKanban?.stages?.[0]?.id || 'todo',
           type_id: '',
@@ -185,22 +214,41 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     }
   }, [formData.client_id, projects, formData.project_id]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const taskData: Partial<Task> = {
       title: formData.title,
       description: formData.description,
       priority: formData.priority,
-      assignee_id: formData.assignee_id || undefined,
+      assignee_id: assigneeId || undefined,
       due_date: formData.due_date,
       status: formData.status,
       type_id: formData.type_id,
       squad: formData.squad,
       client_id: formData.client_id || undefined,
+      cliente_id: formData.client_id || undefined,
       project_id: formData.project_id || undefined,
       tags: formData.tags
     };
+
+    // Auto-save assignee if editing task
+    if (editTask?.id && assigneeId !== editTask.assignee_id) {
+      try {
+        const { error } = await supabase
+          .from('tarefas')
+          .update({
+            responsavel: assigneeId || null,
+            atualizado_em: new Date().toISOString()
+          })
+          .eq('id', editTask.id);
+
+        if (error) throw error;
+      } catch (err) {
+        console.error('Error updating assignee:', err);
+        toast.error('Erro ao atualizar responsável');
+      }
+    }
     
     onSubmit(taskData);
   };
@@ -264,10 +312,17 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 
                 <div className="space-y-2">
                   <Label>Responsável</Label>
-                  <ResponsibleSelector
-                    value={formData.assignee_id}
-                    onChange={(value) => handleInputChange('assignee_id', value)}
-                  />
+                  <Select value={String(assigneeId || '')} onValueChange={(v) => setAssigneeId(v)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o responsável" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <ResponsibleSelector
+                        value={assigneeId}
+                        onChange={setAssigneeId}
+                      />
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
