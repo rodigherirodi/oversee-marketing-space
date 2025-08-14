@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Search, Shield, Key, Eye, EyeOff, ExternalLink, Copy, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useToast } from '@/hooks/use-toast';
 import { useSupabaseClientAccesses } from '@/hooks/useSupabaseClientAccesses';
 import { useSupabaseClients } from '@/hooks/useSupabaseClients';
+import { supabase } from '@/integrations/supabase/client';
 import AccessDialog from '@/components/AccessDialog';
 
 interface AccessWithClient {
@@ -25,7 +26,10 @@ interface AccessWithClient {
   url: string | null;
   criado_em: string;
   atualizado_em: string;
-  cliente_nome?: string;
+  clientes: {
+    id: string;
+    nome: string;
+  } | null;
 }
 
 const AccessTab = () => {
@@ -33,24 +37,68 @@ const AccessTab = () => {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [clientFilter, setClientFilter] = useState('all');
   const [visiblePasswords, setVisiblePasswords] = useState<Set<string>>(new Set());
+  const [accesses, setAccesses] = useState<AccessWithClient[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAccess, setEditingAccess] = useState<AccessWithClient | null>(null);
   
   const { toast } = useToast();
   const { clients } = useSupabaseClients();
-  const { accesses, loading, addAccess, updateAccess, deleteAccess, fetchAccesses } = useSupabaseClientAccesses();
 
-  // Criar dados com nome do cliente
-  const accessesWithClientName: AccessWithClient[] = accesses.map(access => ({
-    ...access,
-    cliente_nome: clients.find(client => client.id === access.cliente_id)?.nome || 'Cliente não encontrado'
-  }));
+  // Buscar acessos com dados do cliente
+  const fetchAccesses = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('cliente_acessos')
+        .select(`
+          id,
+          cliente_id,
+          plataforma,
+          usuario,
+          senha,
+          notas,
+          categoria,
+          status,
+          url,
+          criado_em,
+          atualizado_em,
+          clientes:cliente_id(id, nome)
+        `)
+        .order('criado_em', { ascending: false });
+
+      if (error) {
+        console.error('Erro ao buscar acessos:', error);
+        toast({
+          title: "Erro",
+          description: "Falha ao carregar acessos.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setAccesses(data || []);
+    } catch (error) {
+      console.error('Erro ao buscar acessos:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao carregar acessos.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAccesses();
+  }, []);
 
   // Filtrar acessos
-  const filteredAccesses = accessesWithClientName.filter(access => {
+  const filteredAccesses = accesses.filter(access => {
     const matchesSearch = 
       access.plataforma.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      access.cliente_nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      access.clientes?.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
       access.usuario?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesCategory = categoryFilter === 'all' || access.categoria === categoryFilter;
@@ -98,20 +146,79 @@ const AccessTab = () => {
     if (!confirm('Tem certeza que deseja excluir este acesso?')) {
       return;
     }
-    await deleteAccess(id);
+
+    try {
+      const { error } = await supabase
+        .from('cliente_acessos')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Erro ao excluir acesso:', error);
+        toast({
+          title: "Erro",
+          description: "Falha ao excluir acesso.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Otimistic UI update
+      setAccesses(prev => prev.filter(access => access.id !== id));
+      
+      toast({
+        title: "Sucesso",
+        description: "Acesso excluído com sucesso!",
+      });
+    } catch (error) {
+      console.error('Erro ao excluir acesso:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao excluir acesso.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSave = async (data: any) => {
     try {
       if (editingAccess) {
-        await updateAccess(editingAccess.id, data);
+        // Update
+        const { error } = await supabase
+          .from('cliente_acessos')
+          .update(data)
+          .eq('id', editingAccess.id);
+
+        if (error) throw error;
+
+        toast({
+          title: "Sucesso",
+          description: "Acesso atualizado com sucesso!",
+        });
       } else {
-        await addAccess(data);
+        // Insert
+        const { error } = await supabase
+          .from('cliente_acessos')
+          .insert([data]);
+
+        if (error) throw error;
+
+        toast({
+          title: "Sucesso",
+          description: "Acesso criado com sucesso!",
+        });
       }
+
+      fetchAccesses(); // Refresh data
       setIsDialogOpen(false);
       setEditingAccess(null);
     } catch (error) {
       console.error('Erro ao salvar acesso:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao salvar acesso.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -308,7 +415,7 @@ const AccessTab = () => {
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline">
-                      {access.cliente_nome}
+                      {access.clientes?.nome || 'Cliente não encontrado'}
                     </Badge>
                   </TableCell>
                   <TableCell>
