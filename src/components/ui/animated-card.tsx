@@ -43,12 +43,9 @@ export const AnimatedCard = React.forwardRef<
       onPanStart,
       onPanEnd,
       onDirectionLock,
-      onDragStart,
-      onDragEnd,
       onDragTransitionEnd,
       onViewportEnter,
       onViewportLeave,
-      onAnimationDefinition,
       onBeforeLayoutMeasure,
       onLayoutMeasure,
       ...divProps
