@@ -4,7 +4,7 @@ import { motion, HTMLMotionProps } from 'framer-motion';
 import { cardHover, getMotionProps } from '@/utils/animations';
 import { cn } from '@/lib/utils';
 
-interface AnimatedCardProps extends Omit<HTMLMotionProps<'div'>, 'onDrag' | 'onDragStart' | 'onDragEnd' | 'children'> {
+interface AnimatedCardProps extends Omit<HTMLMotionProps<'div'>, 'onDrag' | 'onDragStart' | 'onDragEnd'> {
   children: React.ReactNode;
   disableAnimation?: boolean;
   enableHover?: boolean;
@@ -16,7 +16,7 @@ export const AnimatedCard = React.forwardRef<
   AnimatedCardProps
 >(({ children, className, disableAnimation = false, enableHover = true, layoutId, ...props }, ref) => {
   if (disableAnimation) {
-    // Filter out motion-specific props for regular div
+    // Filter out all motion-specific props for regular div
     const {
       initial,
       animate,
@@ -30,6 +30,27 @@ export const AnimatedCard = React.forwardRef<
       whileInView,
       viewport,
       style,
+      // Motion-specific callbacks
+      onUpdate,
+      onAnimationStart,
+      onAnimationComplete,
+      onHoverStart,
+      onHoverEnd,
+      onTapStart,
+      onTap,
+      onTapCancel,
+      onPan,
+      onPanStart,
+      onPanEnd,
+      onDirectionLock,
+      onDragStart,
+      onDragEnd,
+      onDragTransitionEnd,
+      onViewportEnter,
+      onViewportLeave,
+      onAnimationDefinition,
+      onBeforeLayoutMeasure,
+      onLayoutMeasure,
       ...divProps
     } = props;
 
