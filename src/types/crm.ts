@@ -50,7 +50,7 @@ export interface RelatedContact {
 
 export interface LeadActivity {
   id: string;
-  type: 'call' | 'email' | 'meeting' | 'note' | 'task' | 'follow_up';
+  type: 'call' | 'email' | 'meeting' | 'note' | 'task' | 'follow_up' | 'stage_change';
   title: string;
   description: string;
   createdAt: Date;
@@ -148,7 +148,7 @@ export interface ActivityFormData {
   leadId: string;
   responsiblePerson: string;
   dueDate?: Date;
-  completed: boolean;
+  completed?: boolean;
   outcome?: 'positive' | 'negative' | 'neutral';
 }
 

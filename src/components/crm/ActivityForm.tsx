@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -52,9 +53,11 @@ const formSchema = z.object({
     message: "Selecione um responsável",
   }),
   dueDate: z.date().optional(),
-  completed: z.boolean().default(false),
+  completed: z.boolean().optional().default(false),
   outcome: z.enum(['positive', 'negative', 'neutral']).optional(),
 });
+
+type FormData = z.infer<typeof formSchema>;
 
 interface ActivityFormProps {
   open: boolean;
@@ -73,7 +76,7 @@ export const ActivityForm: React.FC<ActivityFormProps> = ({
   leads,
   teamMembers,
 }) => {
-  const form = useForm<ActivityFormData>({
+  const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: activity || {
       type: 'call',
@@ -85,8 +88,12 @@ export const ActivityForm: React.FC<ActivityFormProps> = ({
     },
   });
 
-  const handleSubmit = (data: ActivityFormData) => {
-    onSubmit(data);
+  const handleSubmit = (data: FormData) => {
+    const activityData: ActivityFormData = {
+      ...data,
+      completed: data.completed || false,
+    };
+    onSubmit(activityData);
     form.reset();
     onClose();
   };

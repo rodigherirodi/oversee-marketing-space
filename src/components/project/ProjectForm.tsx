@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -91,7 +90,8 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
       const transformedProject: SupabaseProject = {
         ...updatedData,
         cliente_nome: updatedData.clientes?.nome || updatedData.cliente,
-        status: updatedData.status as 'planejamento' | 'em_andamento' | 'em_revisao' | 'em_pausa' | 'concluido'
+        status: updatedData.status as 'planejamento' | 'em_andamento' | 'em_revisao' | 'em_pausa' | 'concluido',
+        prioridade: updatedData.prioridade as 'Alta' | 'Média' | 'Baixa' | null
       };
 
       // Update with real data from server
