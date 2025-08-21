@@ -142,7 +142,7 @@ export interface LeadFormData {
 }
 
 export interface ActivityFormData {
-  type: 'call' | 'email' | 'meeting' | 'note' | 'task' | 'follow_up';
+  type: 'call' | 'email' | 'meeting' | 'note' | 'task' | 'follow_up' | 'stage_change';
   title: string;
   description: string;
   leadId: string;

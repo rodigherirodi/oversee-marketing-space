@@ -90,7 +90,8 @@ const ProjectForm: React.FC<ProjectFormProps> = ({
 
       const transformedProject: SupabaseProject = {
         ...updatedData,
-        cliente_nome: updatedData.clientes?.nome || updatedData.cliente
+        cliente_nome: updatedData.clientes?.nome || updatedData.cliente,
+        status: updatedData.status as 'planejamento' | 'em_andamento' | 'em_revisao' | 'em_pausa' | 'concluido'
       };
 
       // Update with real data from server
