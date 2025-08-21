@@ -53,7 +53,7 @@ const formSchema = z.object({
     message: "Selecione um responsável",
   }),
   dueDate: z.date().optional(),
-  completed: z.boolean().optional().default(false),
+  completed: z.boolean().optional(),
   outcome: z.enum(['positive', 'negative', 'neutral']).optional(),
 });
 
