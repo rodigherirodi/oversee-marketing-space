@@ -53,7 +53,9 @@ const ProjectDetailContent = () => {
 
   const handleProjectUpdate = (updates: Partial<SupabaseProject>) => {
     console.log('Updating project locally:', updates);
-    setEditedProject(prev => prev ? { ...prev, ...updates } : null);
+    if (editedProject) {
+      setEditedProject(prev => ({ ...prev!, ...updates }));
+    }
   };
 
   const handleToggleEdit = () => {
@@ -80,14 +82,24 @@ const ProjectDetailContent = () => {
 
     setIsSaving(true);
     try {
+      console.log('Saving project with data:', editedProject);
       const updatedProject = await updateProject(id, editedProject);
       if (updatedProject) {
         setOriginalProject(updatedProject);
         setEditedProject(updatedProject);
         setIsEditing(false);
+        toast({
+          title: "Sucesso",
+          description: "Projeto atualizado com sucesso!",
+        });
       }
     } catch (error) {
       console.error('Error updating project:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar projeto",
+        variant: "destructive",
+      });
       // Reset to original project on error
       if (originalProject) {
         setEditedProject(originalProject);

@@ -272,12 +272,17 @@ export const useSupabaseProjects = () => {
       // Remove cliente_nome from updates as it's not a real column
       const { cliente_nome, ...cleanUpdates } = updates;
 
+      // Prepare the update data with proper field mapping
+      const updateData = {
+        ...cleanUpdates,
+        // Ensure atualizado_em is updated automatically by trigger
+      };
+
+      console.log('Sending update data to Supabase:', updateData);
+
       const { data, error } = await supabase
         .from('projetos')
-        .update({
-          ...cleanUpdates,
-          atualizado_em: new Date().toISOString()
-        })
+        .update(updateData)
         .eq('id', projectId)
         .select(`
           id, 
@@ -307,6 +312,8 @@ export const useSupabaseProjects = () => {
         throw error;
       }
 
+      console.log('Update successful, received data:', data);
+
       const transformedProject: SupabaseProject = {
         id: data.id,
         titulo: data.titulo,
@@ -332,11 +339,6 @@ export const useSupabaseProjects = () => {
       setProjects(prev => prev.map(project => 
         project.id === projectId ? transformedProject : project
       ));
-      
-      toast({
-        title: "Sucesso",
-        description: "Projeto atualizado com sucesso!",
-      });
       
       return transformedProject;
     } catch (err) {
