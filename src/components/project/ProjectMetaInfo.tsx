@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Calendar, User, Users, Tag, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -37,34 +37,46 @@ const ProjectMetaInfo = ({ project, isEditing, onUpdate, profiles }: ProjectMeta
   };
 
   const handleStatusChange = (status: 'planejamento' | 'em_andamento' | 'em_revisao' | 'concluido' | 'em_pausa') => {
+    console.log('Status changed to:', status);
     onUpdate({ status });
   };
 
   const handleTeamChange = (teamString: string) => {
+    console.log('Team changed to:', teamString);
     onUpdate({ equipe: teamString });
   };
 
   const handleTagsChange = (tagsString: string) => {
     const tags = tagsString.split(',').map(tag => tag.trim()).filter(Boolean);
+    console.log('Tags changed to:', tags);
     onUpdate({ tags });
   };
 
   const handleDateChange = (field: 'data_inicio' | 'data_entrega', value: string) => {
+    console.log('Date changed:', field, value);
     onUpdate({ [field]: value });
   };
 
   const handleResponsibleChange = (responsibleName: string) => {
+    console.log('Responsible changed to:', responsibleName);
     onUpdate({ responsavel: responsibleName });
   };
 
   const handleProgressChange = (progress: number) => {
     if (progress >= 0 && progress <= 100) {
+      console.log('Progress changed to:', progress);
       onUpdate({ progresso: progress });
     }
   };
 
   const handlePriorityChange = (priority: 'Alta' | 'Média' | 'Baixa') => {
+    console.log('Priority changed to:', priority);
     onUpdate({ prioridade: priority });
+  };
+
+  const handleClientChange = (clientName: string) => {
+    console.log('Client changed to:', clientName);
+    onUpdate({ cliente: clientName });
   };
 
   // Validação de datas
@@ -102,7 +114,7 @@ const ProjectMetaInfo = ({ project, isEditing, onUpdate, profiles }: ProjectMeta
           {isEditing ? (
             <Input
               value={project.cliente || ''}
-              onChange={(e) => onUpdate({ cliente: e.target.value })}
+              onChange={(e) => handleClientChange(e.target.value)}
               className="w-48 h-8 text-sm"
               placeholder="Nome do cliente"
             />

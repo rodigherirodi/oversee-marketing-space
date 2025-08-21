@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { Check, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -30,15 +30,29 @@ const ProjectDetailContent = () => {
     { id: 7, task: "Lançamento da campanha", completed: false, date: "01/11/2024", isLinked: false }
   ]);
 
+  // Carrega o projeto apenas uma vez ou quando o ID muda
   useEffect(() => {
     if (id) {
+      console.log('Loading project with ID:', id);
       const project = getProjectById(id);
       if (project) {
+        console.log('Project found:', project);
         setEditedProject(project);
         setOriginalProject(project);
+      } else {
+        console.log('Project not found for ID:', id);
       }
     }
   }, [id, getProjectById]);
+
+  // Debounce para evitar atualizações muito frequentes
+  const debounce = useCallback((func: Function, delay: number) => {
+    let timeoutId: NodeJS.Timeout;
+    return (...args: any[]) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => func(...args), delay);
+    };
+  }, []);
 
   if (!editedProject) {
     return (
@@ -51,23 +65,37 @@ const ProjectDetailContent = () => {
     );
   }
 
-  const handleProjectUpdate = (updates: Partial<SupabaseProject>) => {
-    console.log('Updating project locally:', updates);
-    if (editedProject) {
-      setEditedProject(prev => ({ ...prev!, ...updates }));
-    }
-  };
+  const handleProjectUpdate = useCallback((updates: Partial<SupabaseProject>) => {
+    console.log('Updating project locally with:', updates);
+    
+    setEditedProject(prev => {
+      if (!prev) return null;
+      const updated = { ...prev, ...updates };
+      console.log('Local project updated to:', updated);
+      return updated;
+    });
+  }, []);
+
+  const debouncedUpdate = useCallback(
+    debounce(handleProjectUpdate, 300),
+    [handleProjectUpdate, debounce]
+  );
 
   const handleToggleEdit = () => {
     if (isEditing && originalProject) {
+      console.log('Canceling edit, resetting to original project');
       // Reset to original state when canceling
       setEditedProject(originalProject);
     }
+    console.log('Toggling edit mode from', isEditing, 'to', !isEditing);
     setIsEditing(!isEditing);
   };
 
   const handleSave = async () => {
-    if (!id || !editedProject || isSaving) return;
+    if (!id || !editedProject || isSaving) {
+      console.log('Cannot save: missing id, project, or already saving');
+      return;
+    }
 
     // Validação de datas
     if (editedProject.data_inicio && editedProject.data_entrega && 
@@ -85,6 +113,7 @@ const ProjectDetailContent = () => {
       console.log('Saving project with data:', editedProject);
       const updatedProject = await updateProject(id, editedProject);
       if (updatedProject) {
+        console.log('Project saved successfully:', updatedProject);
         setOriginalProject(updatedProject);
         setEditedProject(updatedProject);
         setIsEditing(false);
@@ -102,6 +131,7 @@ const ProjectDetailContent = () => {
       });
       // Reset to original project on error
       if (originalProject) {
+        console.log('Resetting to original project due to error');
         setEditedProject(originalProject);
       }
     } finally {
