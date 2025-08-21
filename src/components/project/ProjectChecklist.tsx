@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Link, ExternalLink, Unlink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -29,18 +30,23 @@ interface ProjectChecklistProps {
 
 const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: ProjectChecklistProps) => {
   const { tasks, addTask: createTask, updateTask, getTasksByKanban } = useTaskContext();
-  const [editedChecklist, setEditedChecklist] = useState(checklist);
+  const [localChecklist, setLocalChecklist] = useState(checklist);
   const [newTask, setNewTask] = useState('');
   const [newDate, setNewDate] = useState('');
   const [showTaskForm, setShowTaskForm] = useState<number | null>(null);
   const [showTaskSelector, setShowTaskSelector] = useState<number | null>(null);
+
+  // Update local checklist when props change
+  useEffect(() => {
+    setLocalChecklist(checklist);
+  }, [checklist]);
 
   // Get project tasks - cast to DatabaseTask[] for internal use
   const projectTasks = (tasks as DatabaseTask[]).filter(task => task.project_id === projectId);
 
   // Sync checklist with task statuses
   useEffect(() => {
-    const syncedChecklist = editedChecklist.map(item => {
+    const syncedChecklist = localChecklist.map(item => {
       if (item.isLinked && item.taskId) {
         const linkedTask = tasks.find(task => task.id === item.taskId);
         if (linkedTask) {
@@ -55,14 +61,19 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
       return item;
     });
     
-    if (JSON.stringify(syncedChecklist) !== JSON.stringify(editedChecklist)) {
-      setEditedChecklist(syncedChecklist);
+    if (JSON.stringify(syncedChecklist) !== JSON.stringify(localChecklist)) {
+      setLocalChecklist(syncedChecklist);
       onUpdate(syncedChecklist);
     }
-  }, [tasks, editedChecklist, onUpdate]);
+  }, [tasks, localChecklist, onUpdate]);
+
+  const updateLocalChecklistAndNotify = (updatedChecklist: ChecklistItem[]) => {
+    setLocalChecklist(updatedChecklist);
+    onUpdate(updatedChecklist);
+  };
 
   const toggleChecklistItem = (id: number) => {
-    const item = editedChecklist.find(item => item.id === id);
+    const item = localChecklist.find(item => item.id === id);
     if (!item) return;
 
     if (item.isLinked && item.taskId) {
@@ -74,43 +85,39 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
       }
     } else {
       // Update standalone checklist item
-      const updated = editedChecklist.map(item => 
+      const updated = localChecklist.map(item => 
         item.id === id ? { ...item, completed: !item.completed } : item
       );
-      setEditedChecklist(updated);
-      onUpdate(updated);
+      updateLocalChecklistAndNotify(updated);
     }
   };
 
   const updateChecklistTask = (id: number, field: 'task' | 'date', value: string) => {
-    const updated = editedChecklist.map(item => 
+    const updated = localChecklist.map(item => 
       item.id === id ? { ...item, [field]: value } : item
     );
-    setEditedChecklist(updated);
-    onUpdate(updated);
+    updateLocalChecklistAndNotify(updated);
   };
 
   const addChecklistTask = () => {
     if (newTask.trim() && newDate) {
       const newItem: ChecklistItem = {
-        id: Math.max(...editedChecklist.map(item => item.id), 0) + 1,
+        id: Math.max(...localChecklist.map(item => item.id), 0) + 1,
         task: newTask.trim(),
         completed: false,
         date: newDate,
         isLinked: false
       };
-      const updated = [...editedChecklist, newItem];
-      setEditedChecklist(updated);
-      onUpdate(updated);
+      const updated = [...localChecklist, newItem];
+      updateLocalChecklistAndNotify(updated);
       setNewTask('');
       setNewDate('');
     }
   };
 
   const removeChecklistTask = (id: number) => {
-    const updated = editedChecklist.filter(item => item.id !== id);
-    setEditedChecklist(updated);
-    onUpdate(updated);
+    const updated = localChecklist.filter(item => item.id !== id);
+    updateLocalChecklistAndNotify(updated);
   };
 
   const handleCreateTask = (itemId: number, taskData: any) => {
@@ -134,9 +141,6 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
     // Create the task
     createTask(dbTaskData);
 
-    // Generate a temporary ID that will match the one created by addTask
-    const tempTaskId = `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
     // Update checklist item to link with new task
     // We'll use a setTimeout to allow the task to be created first
     setTimeout(() => {
@@ -147,7 +151,7 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
       )[0];
 
       if (newestTask) {
-        const updated = editedChecklist.map(item => 
+        const updated = localChecklist.map(item => 
           item.id === itemId ? {
             ...item,
             taskId: newestTask.id,
@@ -157,8 +161,7 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
           } : item
         );
         
-        setEditedChecklist(updated);
-        onUpdate(updated);
+        updateLocalChecklistAndNotify(updated);
       }
     }, 100);
     
@@ -169,7 +172,7 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
     const linkedTask = (tasks as DatabaseTask[]).find(task => task.id === taskId);
     if (!linkedTask) return;
 
-    const updated = editedChecklist.map(item => 
+    const updated = localChecklist.map(item => 
       item.id === itemId ? {
         ...item,
         taskId: taskId,
@@ -180,13 +183,12 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
       } : item
     );
     
-    setEditedChecklist(updated);
-    onUpdate(updated);
+    updateLocalChecklistAndNotify(updated);
     setShowTaskSelector(null);
   };
 
   const handleUnlinkTask = (itemId: number) => {
-    const updated = editedChecklist.map(item => 
+    const updated = localChecklist.map(item => 
       item.id === itemId ? {
         ...item,
         taskId: undefined,
@@ -196,11 +198,10 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
       } : item
     );
     
-    setEditedChecklist(updated);
-    onUpdate(updated);
+    updateLocalChecklistAndNotify(updated);
   };
 
-  const linkedCount = editedChecklist.filter(item => item.isLinked).length;
+  const linkedCount = localChecklist.filter(item => item.isLinked).length;
 
   return (
     <section className="mb-12">
@@ -208,13 +209,13 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
         <h2 className="text-2xl font-semibold text-gray-900">Cronograma / Etapas</h2>
         {linkedCount > 0 && (
           <div className="text-sm text-gray-600">
-            {linkedCount} de {editedChecklist.length} etapas vinculadas
+            {linkedCount} de {localChecklist.length} etapas vinculadas
           </div>
         )}
       </div>
       
       <div className="space-y-3">
-        {editedChecklist.map((item) => (
+        {localChecklist.map((item) => (
           <div key={item.id} className="py-2">
             {item.isLinked ? (
               <ChecklistTaskCard
@@ -311,7 +312,7 @@ const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: Project
               <div className="mt-3 ml-9">
                 <TaskLinkSelector
                   availableTasks={projectTasks.filter(task => 
-                    !editedChecklist.some(checkItem => checkItem.taskId === task.id)
+                    !localChecklist.some(checkItem => checkItem.taskId === task.id)
                   )}
                   onSelect={(taskId) => handleLinkTask(item.id, taskId)}
                   onCancel={() => setShowTaskSelector(null)}

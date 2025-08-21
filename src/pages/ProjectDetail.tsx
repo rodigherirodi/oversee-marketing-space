@@ -18,6 +18,8 @@ const ProjectDetailContent = () => {
   
   const [isEditing, setIsEditing] = useState(false);
   const [editedProject, setEditedProject] = useState<SupabaseProject | null>(null);
+  const [originalProject, setOriginalProject] = useState<SupabaseProject | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [checklist, setChecklist] = useState([
     { id: 1, task: "Criação de wireframe da landing page", completed: true, date: "05/10/2024", isLinked: false },
     { id: 2, task: "Aprovação do layout pelo cliente", completed: true, date: "08/10/2024", isLinked: false },
@@ -33,6 +35,7 @@ const ProjectDetailContent = () => {
       const project = getProjectById(id);
       if (project) {
         setEditedProject(project);
+        setOriginalProject(project);
       }
     }
   }, [id, getProjectById]);
@@ -49,22 +52,20 @@ const ProjectDetailContent = () => {
   }
 
   const handleProjectUpdate = (updates: Partial<SupabaseProject>) => {
+    console.log('Updating project locally:', updates);
     setEditedProject(prev => prev ? { ...prev, ...updates } : null);
   };
 
   const handleToggleEdit = () => {
-    if (isEditing && id) {
+    if (isEditing && originalProject) {
       // Reset to original state when canceling
-      const originalProject = getProjectById(id);
-      if (originalProject) {
-        setEditedProject(originalProject);
-      }
+      setEditedProject(originalProject);
     }
     setIsEditing(!isEditing);
   };
 
   const handleSave = async () => {
-    if (!id || !editedProject) return;
+    if (!id || !editedProject || isSaving) return;
 
     // Validação de datas
     if (editedProject.data_inicio && editedProject.data_entrega && 
@@ -77,11 +78,22 @@ const ProjectDetailContent = () => {
       return;
     }
 
+    setIsSaving(true);
     try {
-      await updateProject(id, editedProject);
-      setIsEditing(false);
+      const updatedProject = await updateProject(id, editedProject);
+      if (updatedProject) {
+        setOriginalProject(updatedProject);
+        setEditedProject(updatedProject);
+        setIsEditing(false);
+      }
     } catch (error) {
       console.error('Error updating project:', error);
+      // Reset to original project on error
+      if (originalProject) {
+        setEditedProject(originalProject);
+      }
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -120,7 +132,8 @@ const ProjectDetailContent = () => {
         <ProjectHeader 
           project={editedProject} 
           isEditing={isEditing} 
-          onToggleEdit={handleToggleEdit} 
+          onToggleEdit={handleToggleEdit}
+          onUpdate={handleProjectUpdate}
         />
 
         <ProjectMetaInfo 
@@ -181,9 +194,13 @@ const ProjectDetailContent = () => {
         {/* Save button when editing */}
         {isEditing && (
           <div className="fixed bottom-6 right-6">
-            <Button onClick={handleSave} className="shadow-lg" disabled={isDateInvalid}>
+            <Button 
+              onClick={handleSave} 
+              className="shadow-lg" 
+              disabled={isDateInvalid || isSaving}
+            >
               <Check className="w-4 h-4 mr-2" />
-              Salvar alterações
+              {isSaving ? 'Salvando...' : 'Salvar alterações'}
             </Button>
           </div>
         )}

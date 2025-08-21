@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -249,6 +248,8 @@ export const useSupabaseProjects = () => {
 
   const updateProject = async (projectId: string, updates: Partial<SupabaseProject>): Promise<SupabaseProject | undefined> => {
     try {
+      console.log('Updating project:', projectId, updates);
+
       if (updates.progresso !== undefined && (updates.progresso < 0 || updates.progresso > 100)) {
         toast({
           title: "Erro",
@@ -301,7 +302,10 @@ export const useSupabaseProjects = () => {
         `)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase update error:', error);
+        throw error;
+      }
 
       const transformedProject: SupabaseProject = {
         id: data.id,
@@ -339,7 +343,7 @@ export const useSupabaseProjects = () => {
       console.error('Error updating project:', err);
       toast({
         title: "Erro",
-        description: "Erro ao atualizar projeto",
+        description: "Erro ao atualizar projeto: " + (err instanceof Error ? err.message : 'Erro desconhecido'),
         variant: "destructive",
       });
       throw err;

@@ -6,7 +6,7 @@ interface EditableSectionProps {
   title: string;
   content: string;
   isEditing: boolean;
-  onUpdate: (content: string) => void;
+  onUpdate: (value: string) => void;
   placeholder?: string;
   minHeight?: string;
 }
@@ -16,23 +16,31 @@ const EditableSection = ({
   content, 
   isEditing, 
   onUpdate, 
-  placeholder,
-  minHeight = "120px"
+  placeholder = "Digite aqui...",
+  minHeight = "120px" 
 }: EditableSectionProps) => {
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    onUpdate(e.target.value);
+  };
+
   return (
-    <section className="mb-12">
+    <section className="mb-8">
       <h2 className="text-2xl font-semibold text-gray-900 mb-4">{title}</h2>
       {isEditing ? (
         <Textarea
-          value={content}
-          onChange={(e) => onUpdate(e.target.value)}
-          className={`text-gray-700 leading-relaxed border-0 shadow-none focus:ring-0 p-0 resize-none`}
-          style={{ minHeight }}
+          value={content || ''}
+          onChange={handleChange}
           placeholder={placeholder}
+          className="w-full text-base resize-none"
+          style={{ minHeight }}
+          rows={Math.max(3, Math.ceil((content || '').length / 80))}
         />
       ) : (
-        <div className="text-gray-700 leading-relaxed text-base whitespace-pre-line">
-          {content}
+        <div 
+          className="text-gray-700 whitespace-pre-wrap bg-gray-50 p-4 rounded-lg border"
+          style={{ minHeight: content ? 'auto' : minHeight }}
+        >
+          {content || <span className="text-gray-500 italic">{placeholder}</span>}
         </div>
       )}
     </section>
