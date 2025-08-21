@@ -1,27 +1,16 @@
-
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Check, AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { TaskProvider } from '@/contexts/TaskContext';
-import ProjectHeader from '@/components/project/ProjectHeader';
-import ProjectMetaInfo from '@/components/project/ProjectMetaInfo';
+import ProjectForm from '@/components/project/ProjectForm';
 import ProjectChecklist from '@/components/project/ProjectChecklist';
-import EditableSection from '@/components/project/EditableSection';
 import { useSupabaseProjects, SupabaseProject } from '@/hooks/useSupabaseProjects';
 
 const ProjectDetailContent = () => {
   const { id } = useParams();
-  const { toast } = useToast();
-  const { getProjectById, updateProject, profiles, clients } = useSupabaseProjects();
+  const { profiles, clients } = useSupabaseProjects();
   
-  // All hooks must be called unconditionally at the top
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedProject, setEditedProject] = useState<SupabaseProject | null>(null);
-  const [originalProject, setOriginalProject] = useState<SupabaseProject | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const [projectNotFound, setProjectNotFound] = useState(false);
   const [checklist, setChecklist] = useState([
     { id: 1, task: "Criação de wireframe da landing page", completed: true, date: "05/10/2024", isLinked: false },
     { id: 2, task: "Aprovação do layout pelo cliente", completed: true, date: "08/10/2024", isLinked: false },
@@ -32,126 +21,85 @@ const ProjectDetailContent = () => {
     { id: 7, task: "Lançamento da campanha", completed: false, date: "01/11/2024", isLinked: false }
   ]);
 
-  // Load project effect - always called
-  useEffect(() => {
-    console.log('Loading project effect triggered, ID:', id);
-    if (!id) {
-      console.log('No ID provided');
-      setProjectNotFound(true);
-      return;
-    }
+  // React Query for fetching project data with proper caching
+  const {
+    data: project,
+    isLoading,
+    isError,
+    refetch
+  } = useQuery({
+    queryKey: ['project', id],
+    queryFn: async (): Promise<SupabaseProject> => {
+      if (!id) throw new Error('Project ID is required');
+      
+      const { data, error } = await supabase
+        .from('projetos')
+        .select(`
+          id, 
+          titulo, 
+          cliente, 
+          cliente_id,
+          status, 
+          prioridade, 
+          data_inicio, 
+          data_entrega, 
+          progresso, 
+          equipe, 
+          tags, 
+          responsavel, 
+          briefing, 
+          escopo, 
+          observacoes, 
+          materiais, 
+          criado_em, 
+          atualizado_em,
+          clientes(nome)
+        `)
+        .eq('id', id)
+        .single();
 
-    const project = getProjectById(id);
-    if (project) {
-      console.log('Project found:', project);
-      setEditedProject(project);
-      setOriginalProject(project);
-      setProjectNotFound(false);
-    } else {
-      console.log('Project not found for ID:', id);
-      setProjectNotFound(true);
-    }
-  }, [id, getProjectById]);
+      if (error) throw error;
+      if (!data) throw new Error('Project not found');
 
-  // Project update handler
-  const handleProjectUpdate = useCallback((updates: Partial<SupabaseProject>) => {
-    console.log('Updating project locally with:', updates);
-    
-    setEditedProject(prev => {
-      if (!prev) return null;
-      const updated = { ...prev, ...updates };
-      console.log('Local project updated to:', updated);
-      return updated;
-    });
-  }, []);
+      return {
+        ...data,
+        cliente_nome: data.clientes?.nome || data.cliente
+      } as SupabaseProject;
+    },
+    enabled: !!id,
+    refetchOnWindowFocus: false,
+    staleTime: 10000,
+    retry: 1
+  });
 
-  // Toggle edit handler
-  const handleToggleEdit = useCallback(() => {
-    if (isEditing && originalProject) {
-      console.log('Canceling edit, resetting to original project');
-      setEditedProject(originalProject);
-    }
-    console.log('Toggling edit mode from', isEditing, 'to', !isEditing);
-    setIsEditing(!isEditing);
-  }, [isEditing, originalProject]);
+  const handleUpdateSuccess = (updatedProject: SupabaseProject) => {
+    // Invalidate and refetch the query to keep data in sync
+    refetch();
+  };
 
-  // Save handler
-  const handleSave = useCallback(async () => {
-    if (!id || !editedProject || isSaving) {
-      console.log('Cannot save: missing id, project, or already saving');
-      return;
-    }
+  if (!id) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h1 className="text-2xl font-semibold text-gray-900 mb-2">ID do projeto não encontrado</h1>
+          <p className="text-gray-600">URL inválida ou projeto não especificado.</p>
+        </div>
+      </div>
+    );
+  }
 
-    // Validation
-    if (editedProject.data_inicio && editedProject.data_entrega && 
-        new Date(editedProject.data_inicio) > new Date(editedProject.data_entrega)) {
-      toast({
-        title: "Erro de validação",
-        description: "A data de início não pode ser posterior à data de entrega",
-        variant: "destructive",
-      });
-      return;
-    }
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando projeto...</p>
+        </div>
+      </div>
+    );
+  }
 
-    setIsSaving(true);
-    try {
-      console.log('Saving project with data:', editedProject);
-      const updatedProject = await updateProject(id, editedProject);
-      if (updatedProject) {
-        console.log('Project saved successfully:', updatedProject);
-        setOriginalProject(updatedProject);
-        setEditedProject(updatedProject);
-        setIsEditing(false);
-        toast({
-          title: "Sucesso",
-          description: "Projeto atualizado com sucesso!",
-        });
-      }
-    } catch (error) {
-      console.error('Error updating project:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao atualizar projeto",
-        variant: "destructive",
-      });
-      if (originalProject) {
-        console.log('Resetting to original project due to error');
-        setEditedProject(originalProject);
-      }
-    } finally {
-      setIsSaving(false);
-    }
-  }, [id, editedProject, isSaving, updateProject, toast, originalProject]);
-
-  // Material handlers
-  const formatMaterials = useCallback((materials: any) => {
-    if (!materials || !Array.isArray(materials)) return '';
-    return materials.map((item: any) => `• ${item.nome}: ${item.url}`).join('\n');
-  }, []);
-
-  const parseMaterials = useCallback((materialsText: string) => {
-    if (!materialsText.trim()) return null;
-    try {
-      const lines = materialsText.split('\n').filter(line => line.trim());
-      return lines.map(line => {
-        const match = line.match(/^•?\s*([^:]+):\s*(.+)$/);
-        if (match) {
-          return { nome: match[1].trim(), url: match[2].trim() };
-        }
-        return { nome: line.trim(), url: '' };
-      });
-    } catch {
-      return null;
-    }
-  }, []);
-
-  const handleMaterialsUpdate = useCallback((materialsText: string) => {
-    const parsedMaterials = parseMaterials(materialsText);
-    handleProjectUpdate({ materiais: parsedMaterials });
-  }, [parseMaterials, handleProjectUpdate]);
-
-  // Early returns only after all hooks
-  if (projectNotFound || !editedProject) {
+  if (isError || !project) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -162,86 +110,29 @@ const ProjectDetailContent = () => {
     );
   }
 
-  const isDateInvalid = editedProject.data_inicio && editedProject.data_entrega && 
-    new Date(editedProject.data_inicio) > new Date(editedProject.data_entrega);
-
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-4xl mx-auto px-6 py-8">
-        <ProjectHeader 
-          project={editedProject} 
-          isEditing={isEditing} 
-          onToggleEdit={handleToggleEdit}
-          onUpdate={handleProjectUpdate}
-        />
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{project.titulo}</h1>
+          <p className="text-gray-600">Detalhes e configurações do projeto</p>
+        </div>
 
-        <ProjectMetaInfo 
-          project={editedProject} 
-          isEditing={isEditing} 
-          onUpdate={handleProjectUpdate}
+        <ProjectForm 
+          project={project}
           profiles={profiles}
+          clients={clients}
+          onUpdateSuccess={handleUpdateSuccess}
         />
 
-        <EditableSection
-          title="Briefing"
-          content={editedProject.briefing || ''}
-          isEditing={isEditing}
-          onUpdate={(value) => handleProjectUpdate({ briefing: value })}
-          placeholder="Descreva aqui os objetivos do projeto, entregas esperadas, público-alvo e demais expectativas..."
-        />
-
-        <EditableSection
-          title="Escopo / Serviços Contratados"
-          content={editedProject.escopo || ''}
-          isEditing={isEditing}
-          onUpdate={(value) => handleProjectUpdate({ escopo: value })}
-          placeholder="Liste aqui todos os serviços e entregas incluídos no projeto..."
-        />
-
-        <ProjectChecklist
-          checklist={checklist}
-          isEditing={isEditing}
-          onUpdate={setChecklist}
-          projectId={editedProject.id}
-        />
-
-        <EditableSection
-          title="Observações Adicionais"
-          content={editedProject.observacoes || ''}
-          isEditing={isEditing}
-          onUpdate={(value) => handleProjectUpdate({ observacoes: value })}
-          placeholder="Adicione observações, comentários da equipe ou notas importantes..."
-          minHeight="100px"
-        />
-
-        <EditableSection
-          title="Materiais e Referências"
-          content={formatMaterials(editedProject.materiais)}
-          isEditing={isEditing}
-          onUpdate={handleMaterialsUpdate}
-          placeholder="Links, documentos, referências e materiais de apoio...&#10;• Manual da marca: https://drive.google.com/...&#10;• Figma com layouts: https://figma.com/..."
-          minHeight="100px"
-        />
-
-        {isDateInvalid && (
-          <div className="mb-6 flex items-center gap-2 text-red-600 text-sm">
-            <AlertCircle className="w-4 h-4" />
-            <span>A data de início não pode ser posterior à data de entrega</span>
-          </div>
-        )}
-
-        {isEditing && (
-          <div className="fixed bottom-6 right-6">
-            <Button 
-              onClick={handleSave} 
-              className="shadow-lg" 
-              disabled={isDateInvalid || isSaving}
-            >
-              <Check className="w-4 h-4 mr-2" />
-              {isSaving ? 'Salvando...' : 'Salvar alterações'}
-            </Button>
-          </div>
-        )}
+        <div className="mt-12">
+          <ProjectChecklist
+            checklist={checklist}
+            isEditing={false}
+            onUpdate={setChecklist}
+            projectId={project.id}
+          />
+        </div>
       </div>
     </div>
   );

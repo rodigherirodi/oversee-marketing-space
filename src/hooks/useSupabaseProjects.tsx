@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -380,9 +380,9 @@ export const useSupabaseProjects = () => {
     }
   };
 
-  const getProjectById = (id: string): SupabaseProject | undefined => {
+  const getProjectById = useCallback((id: string): SupabaseProject | undefined => {
     return projects.find(project => project.id === id);
-  };
+  }, [projects]);
 
   const getProjectsByClientId = (clientId: string): SupabaseProject[] => {
     return projects.filter(project => project.cliente_id === clientId);
