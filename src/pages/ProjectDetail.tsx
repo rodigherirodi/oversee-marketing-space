@@ -16,10 +16,12 @@ const ProjectDetailContent = () => {
   const { toast } = useToast();
   const { getProjectById, updateProject, profiles, clients } = useSupabaseProjects();
   
+  // All hooks must be called unconditionally at the top
   const [isEditing, setIsEditing] = useState(false);
   const [editedProject, setEditedProject] = useState<SupabaseProject | null>(null);
   const [originalProject, setOriginalProject] = useState<SupabaseProject | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [projectNotFound, setProjectNotFound] = useState(false);
   const [checklist, setChecklist] = useState([
     { id: 1, task: "Criação de wireframe da landing page", completed: true, date: "05/10/2024", isLinked: false },
     { id: 2, task: "Aprovação do layout pelo cliente", completed: true, date: "08/10/2024", isLinked: false },
@@ -30,41 +32,28 @@ const ProjectDetailContent = () => {
     { id: 7, task: "Lançamento da campanha", completed: false, date: "01/11/2024", isLinked: false }
   ]);
 
-  // Carrega o projeto apenas uma vez ou quando o ID muda
+  // Load project effect - always called
   useEffect(() => {
-    if (id) {
-      console.log('Loading project with ID:', id);
-      const project = getProjectById(id);
-      if (project) {
-        console.log('Project found:', project);
-        setEditedProject(project);
-        setOriginalProject(project);
-      } else {
-        console.log('Project not found for ID:', id);
-      }
+    console.log('Loading project effect triggered, ID:', id);
+    if (!id) {
+      console.log('No ID provided');
+      setProjectNotFound(true);
+      return;
+    }
+
+    const project = getProjectById(id);
+    if (project) {
+      console.log('Project found:', project);
+      setEditedProject(project);
+      setOriginalProject(project);
+      setProjectNotFound(false);
+    } else {
+      console.log('Project not found for ID:', id);
+      setProjectNotFound(true);
     }
   }, [id, getProjectById]);
 
-  // Debounce para evitar atualizações muito frequentes
-  const debounce = useCallback((func: Function, delay: number) => {
-    let timeoutId: NodeJS.Timeout;
-    return (...args: any[]) => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => func(...args), delay);
-    };
-  }, []);
-
-  if (!editedProject) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h1 className="text-2xl font-semibold text-gray-900 mb-2">Projeto não encontrado</h1>
-          <p className="text-gray-600">O projeto solicitado não existe ou foi removido.</p>
-        </div>
-      </div>
-    );
-  }
-
+  // Project update handler
   const handleProjectUpdate = useCallback((updates: Partial<SupabaseProject>) => {
     console.log('Updating project locally with:', updates);
     
@@ -76,28 +65,24 @@ const ProjectDetailContent = () => {
     });
   }, []);
 
-  const debouncedUpdate = useCallback(
-    debounce(handleProjectUpdate, 300),
-    [handleProjectUpdate, debounce]
-  );
-
-  const handleToggleEdit = () => {
+  // Toggle edit handler
+  const handleToggleEdit = useCallback(() => {
     if (isEditing && originalProject) {
       console.log('Canceling edit, resetting to original project');
-      // Reset to original state when canceling
       setEditedProject(originalProject);
     }
     console.log('Toggling edit mode from', isEditing, 'to', !isEditing);
     setIsEditing(!isEditing);
-  };
+  }, [isEditing, originalProject]);
 
-  const handleSave = async () => {
+  // Save handler
+  const handleSave = useCallback(async () => {
     if (!id || !editedProject || isSaving) {
       console.log('Cannot save: missing id, project, or already saving');
       return;
     }
 
-    // Validação de datas
+    // Validation
     if (editedProject.data_inicio && editedProject.data_entrega && 
         new Date(editedProject.data_inicio) > new Date(editedProject.data_entrega)) {
       toast({
@@ -129,7 +114,6 @@ const ProjectDetailContent = () => {
         description: "Erro ao atualizar projeto",
         variant: "destructive",
       });
-      // Reset to original project on error
       if (originalProject) {
         console.log('Resetting to original project due to error');
         setEditedProject(originalProject);
@@ -137,14 +121,15 @@ const ProjectDetailContent = () => {
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [id, editedProject, isSaving, updateProject, toast, originalProject]);
 
-  const formatMaterials = (materials: any) => {
+  // Material handlers
+  const formatMaterials = useCallback((materials: any) => {
     if (!materials || !Array.isArray(materials)) return '';
     return materials.map((item: any) => `• ${item.nome}: ${item.url}`).join('\n');
-  };
+  }, []);
 
-  const parseMaterials = (materialsText: string) => {
+  const parseMaterials = useCallback((materialsText: string) => {
     if (!materialsText.trim()) return null;
     try {
       const lines = materialsText.split('\n').filter(line => line.trim());
@@ -158,12 +143,24 @@ const ProjectDetailContent = () => {
     } catch {
       return null;
     }
-  };
+  }, []);
 
-  const handleMaterialsUpdate = (materialsText: string) => {
+  const handleMaterialsUpdate = useCallback((materialsText: string) => {
     const parsedMaterials = parseMaterials(materialsText);
     handleProjectUpdate({ materiais: parsedMaterials });
-  };
+  }, [parseMaterials, handleProjectUpdate]);
+
+  // Early returns only after all hooks
+  if (projectNotFound || !editedProject) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h1 className="text-2xl font-semibold text-gray-900 mb-2">Projeto não encontrado</h1>
+          <p className="text-gray-600">O projeto solicitado não existe ou foi removido.</p>
+        </div>
+      </div>
+    );
+  }
 
   const isDateInvalid = editedProject.data_inicio && editedProject.data_entrega && 
     new Date(editedProject.data_inicio) > new Date(editedProject.data_entrega);
@@ -233,7 +230,6 @@ const ProjectDetailContent = () => {
           </div>
         )}
 
-        {/* Save button when editing */}
         {isEditing && (
           <div className="fixed bottom-6 right-6">
             <Button 
