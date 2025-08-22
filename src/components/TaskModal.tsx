@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -31,7 +32,7 @@ const taskSchema = z.object({
   responsavel: z.string().min(1, 'Responsável é obrigatório'),
   squad: z.string().min(1, 'Squad é obrigatório'),
   tipo: z.string().min(1, 'Tipo é obrigatório'),
-  tags: z.array(z.string()).optional().default([]),
+  tags: z.array(z.string()).default([]),
 });
 
 type TaskSchemaType = z.infer<typeof taskSchema>;
