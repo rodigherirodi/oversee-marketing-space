@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -43,11 +44,26 @@ const Projects = () => {
     },
   });
 
-  const { mutate: createProject, isLoading: isCreating } = useMutation({
+  const createProjectMutation = useMutation({
     mutationFn: async (newProject: ProjectFormData) => {
+      const insertData = {
+        titulo: newProject.titulo,
+        cliente_id: newProject.cliente_id,
+        status: newProject.status,
+        prioridade: newProject.prioridade,
+        data_inicio: newProject.data_inicio?.toISOString().split('T')[0],
+        data_entrega: newProject.data_entrega?.toISOString().split('T')[0],
+        progresso: newProject.progresso,
+        equipe: newProject.equipe,
+        responsavel: newProject.responsavel,
+        briefing: newProject.briefing,
+        escopo: newProject.escopo,
+        observacoes: newProject.observacoes,
+      };
+
       const { data, error } = await supabase
         .from('projetos')
-        .insert([newProject])
+        .insert([insertData])
         .select()
         .single();
 
@@ -67,11 +83,30 @@ const Projects = () => {
     },
   });
 
-  const { mutate: updateProject, isLoading: isUpdating } = useMutation({
+  const updateProjectMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: ProjectFormData }) => {
+      const updateData: any = {};
+      
+      if (updates.titulo !== undefined) updateData.titulo = updates.titulo;
+      if (updates.cliente_id !== undefined) updateData.cliente_id = updates.cliente_id;
+      if (updates.status !== undefined) updateData.status = updates.status;
+      if (updates.prioridade !== undefined) updateData.prioridade = updates.prioridade;
+      if (updates.data_inicio !== undefined) {
+        updateData.data_inicio = updates.data_inicio?.toISOString().split('T')[0];
+      }
+      if (updates.data_entrega !== undefined) {
+        updateData.data_entrega = updates.data_entrega?.toISOString().split('T')[0];
+      }
+      if (updates.progresso !== undefined) updateData.progresso = updates.progresso;
+      if (updates.equipe !== undefined) updateData.equipe = updates.equipe;
+      if (updates.responsavel !== undefined) updateData.responsavel = updates.responsavel;
+      if (updates.briefing !== undefined) updateData.briefing = updates.briefing;
+      if (updates.escopo !== undefined) updateData.escopo = updates.escopo;
+      if (updates.observacoes !== undefined) updateData.observacoes = updates.observacoes;
+
       const { data, error } = await supabase
         .from('projetos')
-        .update(updates)
+        .update(updateData)
         .eq('id', id)
         .select()
         .single();
@@ -92,7 +127,7 @@ const Projects = () => {
     },
   });
 
-  const { mutate: deleteProject, isLoading: isDeleting } = useMutation({
+  const deleteProjectMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('projetos')
@@ -115,15 +150,15 @@ const Projects = () => {
   });
 
   const handleCreate = async (data: ProjectFormData) => {
-    createProject(data);
+    createProjectMutation.mutate(data);
   };
 
   const handleUpdate = async (id: string, data: ProjectFormData) => {
-    updateProject({ id, updates: data });
+    updateProjectMutation.mutate({ id, updates: data });
   };
 
   const handleDelete = async (id: string) => {
-    deleteProject(id);
+    deleteProjectMutation.mutate(id);
   };
 
   const openDeleteDialog = (id: string) => {
@@ -225,8 +260,9 @@ const Projects = () => {
             handleDelete(projectIdToDelete);
           }
         }}
-        itemName="projeto"
-        isDeleting={isDeleting}
+        title="Excluir projeto"
+        description="Tem certeza que deseja excluir este projeto? Esta ação não pode ser desfeita."
+        isDeleting={deleteProjectMutation.isPending}
       />
     </div>
   );

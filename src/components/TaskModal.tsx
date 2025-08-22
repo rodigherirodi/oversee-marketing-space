@@ -19,6 +19,7 @@ import { toast } from 'sonner';
 import { TaskDTO, TaskFormData } from '@/types/database';
 import { ClientSelector } from '@/components/shared/ClientSelector';
 import { ProjectSelector } from '@/components/shared/ProjectSelector';
+import SimpleTeamMemberSelector from '@/components/SimpleTeamMemberSelector';
 
 const taskSchema = z.object({
   titulo: z.string().min(1, 'Título é obrigatório'),
@@ -31,7 +32,7 @@ const taskSchema = z.object({
   responsavel: z.string().min(1, 'Responsável é obrigatório'),
   squad: z.string().min(1, 'Squad é obrigatório'),
   tipo: z.string().min(1, 'Tipo é obrigatório'),
-  tags: z.array(z.string()).optional().default([]),
+  tags: z.array(z.string()).default([]),
 });
 
 type TaskSchemaType = z.infer<typeof taskSchema>;
@@ -239,9 +240,9 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
           <div className="space-y-2">
             <Label>Responsável *</Label>
-            <Input
-              {...register('responsavel')}
-              placeholder="Digite o ID do responsável"
+            <SimpleTeamMemberSelector
+              selectedMember={watch('responsavel')}
+              onSelectMember={(memberId) => setValue('responsavel', memberId)}
             />
             {errors.responsavel && (
               <p className="text-sm text-red-500">{errors.responsavel.message}</p>
