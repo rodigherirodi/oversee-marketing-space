@@ -26,24 +26,19 @@ export const useTasksOptimized = (
       .select(`
         id, titulo, descricao, status, prioridade, data_entrega,
         criado_em, atualizado_em, concluido_em, tags, squad, tipo,
-        campos_customizados, projeto_id, cliente_id, responsavel,
-        projetos:projeto_id(titulo, status),
-        clientes:cliente_id(nome, status),
-        profiles:responsavel(name, avatar_url, department)
+        campos_customizados, cliente_id, responsavel,
+        criado_por
       `, { count: 'exact' });
 
-    // Apply filters
+    // Apply filters with proper type casting
     if (filters.status) {
-      query = query.eq('status', filters.status);
+      query = query.eq('status', filters.status as TaskDTO['status']);
     }
     if (filters.prioridade) {
-      query = query.eq('prioridade', filters.prioridade);
+      query = query.eq('prioridade', filters.prioridade as TaskDTO['prioridade']);
     }
     if (filters.cliente_id) {
       query = query.eq('cliente_id', filters.cliente_id);
-    }
-    if (filters.projeto_id) {
-      query = query.eq('projeto_id', filters.projeto_id);
     }
     if (filters.responsavel) {
       query = query.eq('responsavel', filters.responsavel);
@@ -67,13 +62,7 @@ export const useTasksOptimized = (
     // Transform data to match TaskDTO interface
     const transformedData: TaskDTO[] = (data || []).map(task => ({
       ...task,
-      projeto_nome: task.projetos?.titulo,
-      projeto_status: task.projetos?.status,
-      cliente_nome: task.clientes?.nome,
-      cliente_status: task.clientes?.status,
-      responsavel_nome: task.profiles?.name,
-      responsavel_avatar: task.profiles?.avatar_url,
-      responsavel_department: task.profiles?.department,
+      tags: task.tags || [],
     }));
 
     return { data: transformedData, count: count || 0 };
@@ -93,10 +82,8 @@ export const useTaskDetail = (id: string) => {
       .select(`
         id, titulo, descricao, status, prioridade, data_entrega,
         criado_em, atualizado_em, concluido_em, tags, squad, tipo,
-        campos_customizados, projeto_id, cliente_id, responsavel,
-        projetos:projeto_id(titulo, status),
-        clientes:cliente_id(nome, status),
-        profiles:responsavel(name, avatar_url, department)
+        campos_customizados, cliente_id, responsavel,
+        criado_por
       `)
       .eq('id', id)
       .single();
@@ -105,13 +92,7 @@ export const useTaskDetail = (id: string) => {
     
     return {
       ...data,
-      projeto_nome: data.projetos?.titulo,
-      projeto_status: data.projetos?.status,
-      cliente_nome: data.clientes?.nome,
-      cliente_status: data.clientes?.status,
-      responsavel_nome: data.profiles?.name,
-      responsavel_avatar: data.profiles?.avatar_url,
-      responsavel_department: data.profiles?.department,
+      tags: data.tags || [],
     };
   };
 
@@ -137,12 +118,11 @@ export const useCreateTask = () => {
         status: data.status,
         prioridade: data.prioridade,
         data_entrega: data.data_entrega?.toISOString().split('T')[0],
-        projeto_id: data.projeto_id,
         cliente_id: data.cliente_id,
         responsavel: data.responsavel,
         squad: data.squad,
         tipo: data.tipo,
-        tags: data.tags,
+        tags: data.tags || [],
         criado_por: user.id,
       };
 
@@ -152,7 +132,7 @@ export const useCreateTask = () => {
         .select(`
           id, titulo, descricao, status, prioridade, data_entrega,
           criado_em, atualizado_em, concluido_em, tags, squad, tipo,
-          campos_customizados, projeto_id, cliente_id, responsavel
+          campos_customizados, cliente_id, responsavel, criado_por
         `)
         .single();
 
@@ -196,7 +176,6 @@ export const useUpdateTask = () => {
       if (data.data_entrega !== undefined) {
         updateData.data_entrega = data.data_entrega?.toISOString().split('T')[0];
       }
-      if (data.projeto_id !== undefined) updateData.projeto_id = data.projeto_id;
       if (data.cliente_id !== undefined) updateData.cliente_id = data.cliente_id;
       if (data.responsavel !== undefined) updateData.responsavel = data.responsavel;
       if (data.squad !== undefined) updateData.squad = data.squad;
@@ -210,7 +189,7 @@ export const useUpdateTask = () => {
         .select(`
           id, titulo, descricao, status, prioridade, data_entrega,
           criado_em, atualizado_em, concluido_em, tags, squad, tipo,
-          campos_customizados, projeto_id, cliente_id, responsavel
+          campos_customizados, cliente_id, responsavel, criado_por
         `)
         .single();
 

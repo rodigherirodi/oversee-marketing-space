@@ -32,7 +32,7 @@ const taskSchema = z.object({
   responsavel: z.string().min(1, 'Responsável é obrigatório'),
   squad: z.string().min(1, 'Squad é obrigatório'),
   tipo: z.string().min(1, 'Tipo é obrigatório'),
-  tags: z.array(z.string()).default([]),
+  tags: z.array(z.string()).optional().default([]),
 });
 
 type TaskSchemaType = z.infer<typeof taskSchema>;

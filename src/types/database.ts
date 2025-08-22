@@ -1,3 +1,4 @@
+
 // DTOs tipados para o fluxo integrado
 export interface TaskDTO {
   id: string;
@@ -91,7 +92,7 @@ export interface TaskFormData {
   responsavel: string;
   squad: string;
   tipo: string;
-  tags: string[]; // Required, not optional
+  tags?: string[]; // Make optional to match schema
 }
 
 export interface ProjectFormData {

@@ -7,11 +7,11 @@ import {
   useDeleteTask,
   taskKeys 
 } from './useTasksOptimized';
-import { TaskDTO, TaskFormData } from '@/types/database';
+import type { TaskDTO, TaskFormData } from '@/types/database';
 
 // Export TaskDTO type for compatibility
 export type Task = TaskDTO;
-export { TaskDTO };
+export type { TaskDTO };
 
 // Adapter para manter a interface existente
 export const useTasks = () => {
