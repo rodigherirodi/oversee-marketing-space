@@ -262,7 +262,7 @@ const Projects = () => {
         }}
         title="Excluir projeto"
         description="Tem certeza que deseja excluir este projeto? Esta ação não pode ser desfeita."
-        isDeleting={deleteProjectMutation.isPending}
+        isLoading={deleteProjectMutation.isPending}
       />
     </div>
   );

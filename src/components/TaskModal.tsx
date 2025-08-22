@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -154,6 +153,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         </DialogHeader>
 
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+          
           <div className="space-y-2">
             <Label htmlFor="titulo">Título *</Label>
             <Input
