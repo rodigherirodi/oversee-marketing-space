@@ -22,7 +22,7 @@ import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { ClientSelector } from '@/components/shared/ClientSelector';
 import { ProjectSelector } from '@/components/shared/ProjectSelector';
-import { TeamMemberSelector } from '@/components/TeamMemberSelector';
+import TeamMemberSelector from '@/components/TeamMemberSelector';
 import { TaskFormData } from '@/types/database';
 
 const taskSchema = z.object({
@@ -38,6 +38,8 @@ const taskSchema = z.object({
   tipo: z.string().min(1, 'Tipo é obrigatório'),
   tags: z.array(z.string()).default([]),
 });
+
+type TaskSchemaType = z.infer<typeof taskSchema>;
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -93,7 +95,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     reset,
     setValue,
     watch,
-  } = useForm<TaskFormData>({
+  } = useForm<TaskSchemaType>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
       status: 'todo',
@@ -145,10 +147,10 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     }
   }, [watchedClientId, selectedClientId, setValue, editTask]);
 
-  const onFormSubmit = async (data: TaskFormData) => {
+  const onFormSubmit = async (data: TaskSchemaType) => {
     try {
       setIsSubmitting(true);
-      await onSubmit(data);
+      await onSubmit(data as TaskFormData);
       onClose();
     } catch (error) {
       console.error('Error submitting task:', error);

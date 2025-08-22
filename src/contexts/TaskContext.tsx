@@ -48,7 +48,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     createTask, 
     updateTask, 
     deleteTask, 
-    refetch: refetchTasks 
+    refetch 
   } = useTasks();
   
   const { taskTypes, addTaskType } = useTaskTypes();
@@ -74,10 +74,24 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return tasks.filter(task => task.squad === kanban.department);
   };
 
-  // Wrapper functions to match expected return types
+  // Wrapper functions to match expected return types with proper type conversion
   const addTask = async (task: Partial<Task>): Promise<Task | undefined> => {
     try {
-      return await createTask(task);
+      // Convert Task to TaskFormData
+      const taskFormData = {
+        titulo: task.title || '',
+        descricao: task.description,
+        status: task.status || 'todo',
+        prioridade: task.priority || 'medium',
+        data_entrega: task.dueDate ? new Date(task.dueDate) : undefined,
+        projeto_id: task.projectId,
+        cliente_id: task.clientId,
+        responsavel: task.assignee || '',
+        squad: task.squad || 'operacao',
+        tipo: task.type || 'task',
+        tags: task.tags || [],
+      };
+      return await createTask(taskFormData);
     } catch (error) {
       return undefined;
     }
@@ -85,10 +99,29 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const updateTaskWrapper = async (id: string, updates: Partial<Task>): Promise<Task | undefined> => {
     try {
-      return await updateTask(id, updates);
+      // Convert Task updates to TaskFormData
+      const taskFormData: Partial<TaskFormData> = {};
+      if (updates.title !== undefined) taskFormData.titulo = updates.title;
+      if (updates.description !== undefined) taskFormData.descricao = updates.description;
+      if (updates.status !== undefined) taskFormData.status = updates.status as any;
+      if (updates.priority !== undefined) taskFormData.prioridade = updates.priority as any;
+      if (updates.dueDate !== undefined) taskFormData.data_entrega = new Date(updates.dueDate);
+      if (updates.projectId !== undefined) taskFormData.projeto_id = updates.projectId;
+      if (updates.clientId !== undefined) taskFormData.cliente_id = updates.clientId;
+      if (updates.assignee !== undefined) taskFormData.responsavel = updates.assignee;
+      if (updates.squad !== undefined) taskFormData.squad = updates.squad;
+      if (updates.type !== undefined) taskFormData.tipo = updates.type;
+      if (updates.tags !== undefined) taskFormData.tags = updates.tags;
+      
+      return await updateTask(id, taskFormData);
     } catch (error) {
       return undefined;
     }
+  };
+
+  // Fix refetchTasks to return void
+  const refetchTasks = async (): Promise<void> => {
+    await refetch();
   };
 
   // Combined loading state

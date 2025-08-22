@@ -26,15 +26,15 @@ export const useClientsOptimized = (
       .from('clientes')
       .select('*', { count: 'exact' });
 
-    // Apply filters
+    // Apply filters with proper type casting
     if (filters.status) {
-      query = query.eq('status', filters.status);
+      query = query.eq('status', filters.status as any);
     }
     if (filters.porte) {
-      query = query.eq('porte', filters.porte);
+      query = query.eq('porte', filters.porte as any);
     }
     if (filters.temperatura) {
-      query = query.eq('temperatura', filters.temperatura);
+      query = query.eq('temperatura', filters.temperatura as any);
     }
     if (filters.search) {
       query = query.or(`nome.ilike.%${filters.search}%,segmento.ilike.%${filters.search}%`);
@@ -177,20 +177,26 @@ export const useDeleteClient = () => {
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      // Check dependencies first
-      const { data: deps } = await supabase.rpc('check_client_dependencies', {
-        client_uuid: id
-      });
+      // Check dependencies first using proper RPC call
+      const { data: deps, error: depsError } = await supabase
+        .rpc('check_client_dependencies', {
+          client_uuid: id
+        });
 
-      if (deps && (deps.has_projects || deps.has_tasks)) {
-        const messages = [];
-        if (deps.has_projects) {
-          messages.push(`${deps.project_count} projeto(s)`);
+      if (depsError) throw depsError;
+
+      if (deps && deps.length > 0) {
+        const dependency = deps[0];
+        if (dependency.has_projects || dependency.has_tasks) {
+          const messages = [];
+          if (dependency.has_projects) {
+            messages.push(`${dependency.project_count} projeto(s)`);
+          }
+          if (dependency.has_tasks) {
+            messages.push(`${dependency.task_count} tarefa(s)`);
+          }
+          throw new Error(`Não é possível excluir o cliente. Existem ${messages.join(' e ')} vinculadas a ele.`);
         }
-        if (deps.has_tasks) {
-          messages.push(`${deps.task_count} tarefa(s)`);
-        }
-        throw new Error(`Não é possível excluir o cliente. Existem ${messages.join(' e ')} vinculadas a ele.`);
       }
 
       const { error } = await supabase

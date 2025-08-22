@@ -1,188 +1,131 @@
-
-import React from 'react';
-import { Task as DatabaseTask } from '@/hooks/useTasks';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import React, { useState } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ExternalLink, Unlink, Trash2 } from 'lucide-react';
-
-interface ChecklistItem {
-  id: number;
-  task: string;
-  completed: boolean;
-  date: string;
-  taskId?: string;
-  taskStatus?: string;
-  isLinked: boolean;
-  lastSync?: string;
-}
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Edit2, Trash2, ChevronDown, ChevronUp, Tag } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { TaskDTO } from '@/types/database';
 
 interface ChecklistTaskCardProps {
-  item: ChecklistItem;
-  task?: DatabaseTask;
-  isEditing: boolean;
-  onToggle: () => void;
-  onUnlink: () => void;
-  onUpdateTask: (id: number, field: 'task' | 'date', value: string) => void;
-  onRemove: () => void;
+  task: TaskDTO;
+  onToggleStatus: (taskId: string, completed: boolean) => void;
+  onEdit: (task: TaskDTO) => void;
+  onDelete: (taskId: string) => void;
 }
 
-const ChecklistTaskCard = ({ 
-  item, 
-  task, 
-  isEditing, 
-  onToggle, 
-  onUnlink, 
-  onUpdateTask, 
-  onRemove 
-}: ChecklistTaskCardProps) => {
-  const getStatusColor = (status?: string) => {
-    switch (status) {
-      case 'todo': return 'bg-gray-100 text-gray-700';
-      case 'in-progress': return 'bg-blue-100 text-blue-700';
-      case 'review': return 'bg-yellow-100 text-yellow-700';
-      case 'done':
-      case 'completed': return 'bg-green-100 text-green-700';
-      default: return 'bg-gray-100 text-gray-700';
-    }
-  };
+const ChecklistTaskCard = ({ task, onToggleStatus, onEdit, onDelete }: ChecklistTaskCardProps) => {
+  const [showDetails, setShowDetails] = useState(false);
+  const isCompleted = task.status === 'completed';
 
-  const getStatusLabel = (status?: string) => {
-    switch (status) {
-      case 'todo': return 'A fazer';
-      case 'in-progress': return 'Em andamento';
-      case 'review': return 'Em revisão';
-      case 'done': return 'Concluído';
-      case 'completed': return 'Concluído';
-      default: return status || 'Indefinido';
-    }
-  };
-
-  const getPriorityColor = (priority?: string) => {
+  const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'bg-red-100 text-red-700';
-      case 'medium': return 'bg-yellow-100 text-yellow-700';
-      case 'low': return 'bg-green-100 text-green-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case 'high': return 'bg-red-100 text-red-700 border-red-200';
+      case 'medium': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+      case 'low': return 'bg-green-100 text-green-700 border-green-200';
+      default: return 'bg-gray-100 text-gray-700 border-gray-200';
     }
   };
 
-  const getPriorityLabel = (priority?: string) => {
+  const getPriorityLabel = (priority: string) => {
     switch (priority) {
       case 'high': return 'Alta';
       case 'medium': return 'Média';
       case 'low': return 'Baixa';
-      default: return priority || 'N/A';
+      default: return priority;
     }
   };
 
-  const handleOpenTask = () => {
-    if (task) {
-      // Open task in new tab - you can modify this to navigate within the app
-      window.open(`/tasks?task=${task.id}`, '_blank');
-    }
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR');
+  };
+
+  const handleToggle = () => {
+    onToggleStatus(task.id, !isCompleted);
   };
 
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+    <div className={cn(
+      "bg-white border rounded-lg p-4 transition-all duration-200",
+      isCompleted ? "opacity-75 bg-gray-50" : "hover:shadow-md"
+    )}>
       <div className="flex items-start gap-3">
         <Checkbox
-          checked={item.completed}
-          onCheckedChange={onToggle}
-          disabled={!isEditing}
+          checked={isCompleted}
+          onCheckedChange={handleToggle}
           className="mt-1"
         />
         
-        <div className="flex-1 space-y-2">
-          {/* Task Title and Date */}
-          <div className="flex items-center gap-2">
-            {isEditing ? (
-              <>
-                <Input
-                  value={item.task}
-                  onChange={(e) => onUpdateTask(item.id, 'task', e.target.value)}
-                  className="flex-1 h-8 text-sm"
-                />
-                <Input
-                  type="date"
-                  value={item.date.split('/').reverse().join('-')}
-                  onChange={(e) => {
-                    const formattedDate = new Date(e.target.value).toLocaleDateString('pt-BR');
-                    onUpdateTask(item.id, 'date', formattedDate);
-                  }}
-                  className="w-32 h-8 text-xs"
-                />
-              </>
-            ) : (
-              <div className="flex-1">
-                <div className="font-medium text-gray-900">{item.task}</div>
-                <div className="text-xs text-gray-500">até {item.date}</div>
-              </div>
-            )}
-          </div>
-
-          {/* Task Info */}
-          {task && (
-            <div className="flex items-center gap-2 flex-wrap">
-              <Badge className={getStatusColor(item.taskStatus)}>
-                {getStatusLabel(item.taskStatus)}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between mb-2">
+            <h4 className={cn(
+              "font-medium text-gray-900 truncate",
+              isCompleted && "line-through text-gray-500"
+            )}>
+              {task.titulo}
+            </h4>
+            
+            <div className="flex items-center gap-2 ml-2">
+              <Badge className={getPriorityColor(task.prioridade)}>
+                {getPriorityLabel(task.prioridade)}
               </Badge>
-              <Badge className={getPriorityColor(task.priority)}>
-                {getPriorityLabel(task.priority)}
-              </Badge>
-              <span className="text-xs text-gray-600">{task.assignee?.name}</span>
-              {item.lastSync && (
-                <span className="text-xs text-gray-400">
-                  Sync: {new Date(item.lastSync).toLocaleTimeString('pt-BR', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                  })}
+              
+              {task.responsavel_nome && (
+                <span className="text-xs text-gray-500 truncate max-w-20">
+                  {task.responsavel_nome}
                 </span>
               )}
             </div>
-          )}
-
-          {/* Task Description */}
-          {task?.description && (
-            <p className="text-xs text-gray-600 line-clamp-2">
-              {task.description}
+          </div>
+          
+          {task.descricao && showDetails && (
+            <p className="text-sm text-gray-600 mb-2">
+              {task.descricao}
             </p>
           )}
-        </div>
-
-        {/* Action Buttons */}
-        {isEditing && (
-          <div className="flex gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleOpenTask}
-              className="text-blue-600 hover:text-blue-700 p-1"
-              title="Abrir tarefa"
-            >
-              <ExternalLink className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onUnlink}
-              className="text-orange-600 hover:text-orange-700 p-1"
-              title="Desvincular tarefa"
-            >
-              <Unlink className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onRemove}
-              className="text-red-500 hover:text-red-700 p-1"
-              title="Remover etapa"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
+          
+          <div className="flex items-center justify-between text-xs text-gray-500">
+            <div className="flex items-center gap-4">
+              {task.data_entrega && (
+                <span>Entrega: {formatDate(task.data_entrega)}</span>
+              )}
+              {task.tags && task.tags.length > 0 && (
+                <div className="flex items-center gap-1">
+                  <Tag className="w-3 h-3" />
+                  <span>{task.tags.join(', ')}</span>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowDetails(!showDetails)}
+                className="h-6 px-2 text-xs"
+              >
+                {showDetails ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onEdit(task)}
+                className="h-6 px-2 text-xs"
+              >
+                <Edit2 className="w-3 h-3" />
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onDelete(task.id)}
+                className="h-6 px-2 text-xs text-red-600 hover:text-red-700"
+              >
+                <Trash2 className="w-3 h-3" />
+              </Button>
+            </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

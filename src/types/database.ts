@@ -93,7 +93,7 @@ export interface TaskFormData {
   responsavel: string;
   squad: string;
   tipo: string;
-  tags: string[];
+  tags: string[]; // Required but can be empty array
 }
 
 export interface ProjectFormData {

@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Search, X } from 'lucide-react';
 
 interface TaskLinkSelectorProps {
-  availableTasks: DatabaseTask[];
+  availableTasks: TaskDTO[];
   onSelect: (taskId: string) => void;
   onCancel: () => void;
 }
@@ -16,8 +16,8 @@ const TaskLinkSelector = ({ availableTasks, onSelect, onCancel }: TaskLinkSelect
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredTasks = availableTasks.filter(task =>
-    task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (task.description && task.description.toLowerCase().includes(searchTerm.toLowerCase()))
+    task.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (task.descricao && task.descricao.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const getPriorityColor = (priority: string) => {
@@ -77,22 +77,24 @@ const TaskLinkSelector = ({ availableTasks, onSelect, onCancel }: TaskLinkSelect
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h5 className="font-medium text-gray-900 mb-1">{task.title}</h5>
-                  {task.description && (
+                  <h5 className="font-medium text-gray-900 mb-1">{task.titulo}</h5>
+                  {task.descricao && (
                     <p className="text-sm text-gray-600 mb-2 line-clamp-2">
-                      {task.description}
+                      {task.descricao}
                     </p>
                   )}
                   <div className="flex items-center gap-2 text-xs">
-                    <Badge className={getPriorityColor(task.priority)}>
-                      {getPriorityLabel(task.priority)}
+                    <Badge className={getPriorityColor(task.prioridade)}>
+                      {getPriorityLabel(task.prioridade)}
                     </Badge>
                     <span className="text-gray-500">
-                      {task.assignee?.name || 'Não atribuído'}
+                      {task.responsavel_nome || 'Não atribuído'}
                     </span>
-                    <span className="text-gray-500">
-                      {new Date(task.due_date).toLocaleDateString('pt-BR')}
-                    </span>
+                    {task.data_entrega && (
+                      <span className="text-gray-500">
+                        {new Date(task.data_entrega).toLocaleDateString('pt-BR')}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>

@@ -1,355 +1,184 @@
-
-import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Link, ExternalLink, Unlink } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
+import React, { useState } from 'react';
 import { useTaskContext } from '@/contexts/TaskContext';
-import { Task as DatabaseTask } from '@/hooks/useTasks';
-import TaskLinkSelector from './TaskLinkSelector';
-import TaskQuickForm from './TaskQuickForm';
-import ChecklistTaskCard from './ChecklistTaskCard';
-
-interface ChecklistItem {
-  id: number;
-  task: string;
-  completed: boolean;
-  date: string;
-  taskId?: string;
-  taskStatus?: string;
-  isLinked: boolean;
-  lastSync?: string;
-}
+import { TaskDTO } from '@/types/database';
+import { Button } from '@/components/ui/button';
+import { Plus, CheckCircle, Clock, CheckSquare } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import TaskQuickForm from '@/components/project/TaskQuickForm';
+import ChecklistTaskCard from '@/components/project/ChecklistTaskCard';
+import { TaskModal } from '@/components/TaskModal';
 
 interface ProjectChecklistProps {
-  checklist: ChecklistItem[];
-  isEditing: boolean;
-  onUpdate: (checklist: ChecklistItem[]) => void;
   projectId: string;
 }
 
-const ProjectChecklist = ({ checklist, isEditing, onUpdate, projectId }: ProjectChecklistProps) => {
-  const { tasks, addTask: createTask, updateTask, getTasksByKanban } = useTaskContext();
-  const [localChecklist, setLocalChecklist] = useState(checklist);
-  const [newTask, setNewTask] = useState('');
-  const [newDate, setNewDate] = useState('');
-  const [showTaskForm, setShowTaskForm] = useState<number | null>(null);
-  const [showTaskSelector, setShowTaskSelector] = useState<number | null>(null);
+const ProjectChecklist = ({ projectId }: ProjectChecklistProps) => {
+  const { tasks, updateTask, deleteTask } = useTaskContext();
+  const [showCompleted, setShowCompleted] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
+  const [editingTask, setEditingTask] = useState<TaskDTO | null>(null);
 
-  // Update local checklist when props change
-  useEffect(() => {
-    setLocalChecklist(checklist);
-  }, [checklist]);
+  // Filter tasks for this project
+  const projectTasks = tasks.filter(task => task.projeto_id === projectId);
+  
+  // Separate completed and pending tasks
+  const pendingTasks = projectTasks.filter(task => task.status !== 'completed');
+  const completedTasks = projectTasks.filter(task => task.status === 'completed');
 
-  // Get project tasks - cast to DatabaseTask[] for internal use
-  const projectTasks = (tasks as DatabaseTask[]).filter(task => task.project_id === projectId);
+  const completionRate = projectTasks.length > 0 
+    ? Math.round((completedTasks.length / projectTasks.length) * 100) 
+    : 0;
 
-  // Sync checklist with task statuses
-  useEffect(() => {
-    const syncedChecklist = localChecklist.map(item => {
-      if (item.isLinked && item.taskId) {
-        const linkedTask = tasks.find(task => task.id === item.taskId);
-        if (linkedTask) {
-          return {
-            ...item,
-            taskStatus: linkedTask.status,
-            completed: linkedTask.status === 'done' || linkedTask.status === 'completed',
-            lastSync: new Date().toISOString()
-          };
-        }
-      }
-      return item;
-    });
-    
-    if (JSON.stringify(syncedChecklist) !== JSON.stringify(localChecklist)) {
-      setLocalChecklist(syncedChecklist);
-      onUpdate(syncedChecklist);
-    }
-  }, [tasks, localChecklist, onUpdate]);
-
-  const updateLocalChecklistAndNotify = (updatedChecklist: ChecklistItem[]) => {
-    setLocalChecklist(updatedChecklist);
-    onUpdate(updatedChecklist);
+  const handleToggleStatus = async (taskId: string, completed: boolean) => {
+    const newStatus = completed ? 'completed' : 'todo';
+    await updateTask(taskId, { status: newStatus } as any);
   };
 
-  const toggleChecklistItem = (id: number) => {
-    const item = localChecklist.find(item => item.id === id);
-    if (!item) return;
-
-    if (item.isLinked && item.taskId) {
-      // Update the linked task status
-      const linkedTask = tasks.find(task => task.id === item.taskId);
-      if (linkedTask) {
-        const newStatus = item.completed ? 'todo' : 'done';
-        updateTask(item.taskId, { status: newStatus });
-      }
-    } else {
-      // Update standalone checklist item
-      const updated = localChecklist.map(item => 
-        item.id === id ? { ...item, completed: !item.completed } : item
-      );
-      updateLocalChecklistAndNotify(updated);
+  const handleDeleteTask = async (taskId: string) => {
+    if (confirm('Tem certeza que deseja excluir esta tarefa?')) {
+      await deleteTask(taskId);
     }
   };
 
-  const updateChecklistTask = (id: number, field: 'task' | 'date', value: string) => {
-    const updated = localChecklist.map(item => 
-      item.id === id ? { ...item, [field]: value } : item
-    );
-    updateLocalChecklistAndNotify(updated);
-  };
-
-  const addChecklistTask = () => {
-    if (newTask.trim() && newDate) {
-      const newItem: ChecklistItem = {
-        id: Math.max(...localChecklist.map(item => item.id), 0) + 1,
-        task: newTask.trim(),
-        completed: false,
-        date: newDate,
-        isLinked: false
-      };
-      const updated = [...localChecklist, newItem];
-      updateLocalChecklistAndNotify(updated);
-      setNewTask('');
-      setNewDate('');
-    }
-  };
-
-  const removeChecklistTask = (id: number) => {
-    const updated = localChecklist.filter(item => item.id !== id);
-    updateLocalChecklistAndNotify(updated);
-  };
-
-  const handleCreateTask = (itemId: number, taskData: any) => {
-    // Transform the frontend task data to database format
-    const dbTaskData: Partial<DatabaseTask> = {
-      title: taskData.title || '',
-      description: taskData.description || '',
-      status: taskData.status || 'todo',
-      priority: taskData.priority || 'medium',
-      type_id: taskData.type_id || '',
-      assignee_id: taskData.assignee_id || '',
-      squad: taskData.squad || '',
-      client_id: taskData.client_id || '',
-      project_id: projectId,
-      due_date: taskData.due_date || new Date().toISOString(),
-      tags: taskData.tags || [],
-      custom_fields: taskData.custom_fields || {},
-      created_by: taskData.created_by || ''
+  const handleCreateTask = (data: any) => {
+    // The data comes from TaskQuickForm, convert it properly
+    const taskData = {
+      titulo: data.title,
+      descricao: data.description,
+      status: data.status,
+      prioridade: data.priority,
+      data_entrega: data.dueDate ? new Date(data.dueDate) : undefined,
+      projeto_id: projectId,
+      responsavel: data.assignee,
+      squad: data.squad,
+      tipo: data.type,
+      tags: data.tags || [],
     };
 
-    // Create the task
-    createTask(dbTaskData);
-
-    // Update checklist item to link with new task
-    // We'll use a setTimeout to allow the task to be created first
-    setTimeout(() => {
-      // Find the most recently created task for this project
-      const projectTasksAfterCreation = (tasks as DatabaseTask[]).filter(task => task.project_id === projectId);
-      const newestTask = projectTasksAfterCreation.sort((a, b) => 
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      )[0];
-
-      if (newestTask) {
-        const updated = localChecklist.map(item => 
-          item.id === itemId ? {
-            ...item,
-            taskId: newestTask.id,
-            taskStatus: newestTask.status,
-            isLinked: true,
-            lastSync: new Date().toISOString()
-          } : item
-        );
-        
-        updateLocalChecklistAndNotify(updated);
-      }
-    }, 100);
-    
-    setShowTaskForm(null);
+    // Create the task (this will be handled by the form)
+    setIsCreating(false);
   };
-
-  const handleLinkTask = (itemId: number, taskId: string) => {
-    const linkedTask = (tasks as DatabaseTask[]).find(task => task.id === taskId);
-    if (!linkedTask) return;
-
-    const updated = localChecklist.map(item => 
-      item.id === itemId ? {
-        ...item,
-        taskId: taskId,
-        taskStatus: linkedTask.status,
-        isLinked: true,
-        completed: linkedTask.status === 'done' || linkedTask.status === 'completed',
-        lastSync: new Date().toISOString()
-      } : item
-    );
-    
-    updateLocalChecklistAndNotify(updated);
-    setShowTaskSelector(null);
-  };
-
-  const handleUnlinkTask = (itemId: number) => {
-    const updated = localChecklist.map(item => 
-      item.id === itemId ? {
-        ...item,
-        taskId: undefined,
-        taskStatus: undefined,
-        isLinked: false,
-        lastSync: undefined
-      } : item
-    );
-    
-    updateLocalChecklistAndNotify(updated);
-  };
-
-  const linkedCount = localChecklist.filter(item => item.isLinked).length;
 
   return (
-    <section className="mb-12">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-semibold text-gray-900">Cronograma / Etapas</h2>
-        {linkedCount > 0 && (
-          <div className="text-sm text-gray-600">
-            {linkedCount} de {localChecklist.length} etapas vinculadas
-          </div>
-        )}
-      </div>
-      
-      <div className="space-y-3">
-        {localChecklist.map((item) => (
-          <div key={item.id} className="py-2">
-            {item.isLinked ? (
-              <ChecklistTaskCard
-                item={item}
-                task={(tasks as DatabaseTask[]).find(task => task.id === item.taskId)}
-                isEditing={isEditing}
-                onToggle={() => toggleChecklistItem(item.id)}
-                onUnlink={() => handleUnlinkTask(item.id)}
-                onUpdateTask={updateChecklistTask}
-                onRemove={() => removeChecklistTask(item.id)}
-              />
-            ) : (
-              <div className="flex items-center gap-3">
-                <Checkbox
-                  checked={item.completed}
-                  onCheckedChange={() => toggleChecklistItem(item.id)}
-                  disabled={!isEditing}
-                />
-                {isEditing ? (
-                  <>
-                    <Input
-                      value={item.task}
-                      onChange={(e) => updateChecklistTask(item.id, 'task', e.target.value)}
-                      className={`flex-1 text-base h-8 ${item.completed ? 'line-through text-gray-500' : 'text-gray-700'}`}
-                    />
-                    <Input
-                      type="date"
-                      value={item.date.split('/').reverse().join('-')}
-                      onChange={(e) => {
-                        const formattedDate = new Date(e.target.value).toLocaleDateString('pt-BR');
-                        updateChecklistTask(item.id, 'date', formattedDate);
-                      }}
-                      className="w-40 h-8 text-sm"
-                    />
-                    
-                    {/* Action buttons for standalone items */}
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setShowTaskForm(item.id)}
-                        className="text-blue-600 hover:text-blue-700 p-1"
-                        title="Converter em tarefa"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setShowTaskSelector(item.id)}
-                        className="text-green-600 hover:text-green-700 p-1"
-                        title="Vincular tarefa existente"
-                      >
-                        <Link className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeChecklistTask(item.id)}
-                        className="text-red-500 hover:text-red-700 p-1"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <span className={`flex-1 text-base ${item.completed ? 'line-through text-gray-500' : 'text-gray-700'}`}>
-                      {item.task}
-                    </span>
-                    <span className="text-sm text-gray-500">até {item.date}</span>
-                  </>
-                )}
-              </div>
-            )}
-
-            {/* Task Quick Form */}
-            {showTaskForm === item.id && (
-              <div className="mt-3 ml-9">
-                <TaskQuickForm
-                  itemData={{
-                    title: item.task,
-                    dueDate: item.date.split('/').reverse().join('-'),
-                  }}
-                  projectId={projectId}
-                  onSubmit={(taskData) => handleCreateTask(item.id, taskData)}
-                  onCancel={() => setShowTaskForm(null)}
-                />
-              </div>
-            )}
-
-            {/* Task Selector */}
-            {showTaskSelector === item.id && (
-              <div className="mt-3 ml-9">
-                <TaskLinkSelector
-                  availableTasks={projectTasks.filter(task => 
-                    !localChecklist.some(checkItem => checkItem.taskId === task.id)
-                  )}
-                  onSelect={(taskId) => handleLinkTask(item.id, taskId)}
-                  onCancel={() => setShowTaskSelector(null)}
-                />
-              </div>
-            )}
-          </div>
-        ))}
+    <div className="space-y-6">
+      {/* Progress Header */}
+      <div className="bg-white border rounded-lg p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-medium text-gray-900">
+            Checklist do Projeto
+          </h3>
+          <Button 
+            onClick={() => setIsCreating(true)}
+            className="flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Nova Tarefa
+          </Button>
+        </div>
         
-        {isEditing && (
-          <div className="flex items-center gap-3 py-2 border-t pt-4">
-            <div className="w-6" />
-            <Input
-              value={newTask}
-              onChange={(e) => setNewTask(e.target.value)}
-              placeholder="Nova tarefa..."
-              className="flex-1 text-base h-8"
-            />
-            <Input
-              type="date"
-              value={newDate}
-              onChange={(e) => setNewDate(e.target.value)}
-              className="w-40 h-8 text-sm"
-            />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={addChecklistTask}
-              disabled={!newTask.trim() || !newDate}
-              className="text-green-600 hover:text-green-700 p-1"
-            >
-              <Plus className="w-4 h-4" />
-            </Button>
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm text-gray-600">
+            <span>Progresso: {completedTasks.length} de {projectTasks.length} tarefas</span>
+            <span>{completionRate}%</span>
           </div>
-        )}
+          <Progress value={completionRate} className="h-2" />
+        </div>
+        
+        <div className="flex items-center gap-4 mt-4">
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={showCompleted}
+              onCheckedChange={setShowCompleted}
+              id="show-completed"
+            />
+            <Label htmlFor="show-completed" className="text-sm">
+              Mostrar concluídas ({completedTasks.length})
+            </Label>
+          </div>
+        </div>
       </div>
-    </section>
+
+      {/* Task Creation Form */}
+      {isCreating && (
+        <TaskQuickForm
+          itemData={{ title: '', dueDate: '' }}
+          projectId={projectId}
+          onSubmit={handleCreateTask}
+          onCancel={() => setIsCreating(false)}
+        />
+      )}
+
+      {/* Pending Tasks */}
+      {pendingTasks.length > 0 && (
+        <div className="space-y-3">
+          <h4 className="text-sm font-medium text-gray-700 flex items-center gap-2">
+            <Clock className="w-4 h-4" />
+            Pendentes ({pendingTasks.length})
+          </h4>
+          {pendingTasks
+            .sort((a, b) => new Date(a.criado_em).getTime() - new Date(b.criado_em).getTime())
+            .map((task) => (
+              <ChecklistTaskCard
+                key={task.id}
+                task={task}
+                onToggleStatus={handleToggleStatus}
+                onEdit={setEditingTask}
+                onDelete={handleDeleteTask}
+              />
+          ))}
+        </div>
+      )}
+
+      {/* Completed Tasks */}
+      {showCompleted && completedTasks.length > 0 && (
+        <div className="space-y-3">
+          <h4 className="text-sm font-medium text-gray-700 flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 text-green-600" />
+            Concluídas ({completedTasks.length})
+          </h4>
+          {completedTasks.map((task) => (
+            <ChecklistTaskCard
+              key={task.id}
+              task={task}
+              onToggleStatus={handleToggleStatus}
+              onEdit={setEditingTask}
+              onDelete={handleDeleteTask}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Empty State */}
+      {projectTasks.length === 0 && (
+        <div className="text-center py-8">
+          <CheckSquare className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Nenhuma tarefa criada
+          </h3>
+          <p className="text-gray-500 mb-4">
+            Comece criando a primeira tarefa do projeto.
+          </p>
+          <Button onClick={() => setIsCreating(true)}>
+            Criar primeira tarefa
+          </Button>
+        </div>
+      )}
+
+      {/* Task Edit Modal */}
+      {editingTask && (
+        <TaskModal
+          isOpen={!!editingTask}
+          onClose={() => setEditingTask(null)}
+          onSubmit={async (data) => {
+            await updateTask(editingTask.id, data as any);
+            setEditingTask(null);
+          }}
+          editTask={editingTask}
+        />
+      )}
+    </div>
   );
 };
 
