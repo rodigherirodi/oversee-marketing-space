@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -117,7 +116,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         responsavel: data.responsavel,
         squad: data.squad,
         tipo: data.tipo,
-        tags: data.tags || [],
+        tags: data.tags,
         descricao: data.descricao,
         data_entrega: data.data_entrega,
         projeto_id: data.projeto_id,
