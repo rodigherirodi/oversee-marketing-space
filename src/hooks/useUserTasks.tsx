@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { TaskDTO } from '@/types/database';
 
 interface TaskFilters {
-  status?: string;
+  status?: TaskDTO['status'];
   assignedToMe?: boolean;
   overdue?: boolean;
 }
@@ -48,7 +48,10 @@ export const useUserTasks = (filters: TaskFilters = {}) => {
       
       if (error) throw error;
       
-      return data as TaskDTO[];
+      return (data || []).map((task): TaskDTO => ({
+        ...task,
+        tags: task.tags || []
+      }));
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
@@ -79,13 +82,16 @@ export const useOverdueTasks = () => {
       
       if (error) throw error;
       
-      return data as TaskDTO[];
+      return (data || []).map((task): TaskDTO => ({
+        ...task,
+        tags: task.tags || []
+      }));
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };
 
-export const useTasksByStatus = (status: string) => {
+export const useTasksByStatus = (status: TaskDTO['status']) => {
   return useQuery({
     queryKey: ['tasks-by-status', status],
     queryFn: async () => {
@@ -107,10 +113,10 @@ export const useTasksByStatus = (status: string) => {
       
       if (error) throw error;
       
-      return data?.map((task): TaskDTO => ({
+      return (data || []).map((task): TaskDTO => ({
         ...task,
         tags: task.tags || []
-      })) || [];
+      }));
     },
     enabled: !!status,
     staleTime: 1000 * 60 * 5, // 5 minutes

@@ -32,7 +32,7 @@ const taskSchema = z.object({
   responsavel: z.string().min(1, 'Responsável é obrigatório'),
   squad: z.string().min(1, 'Squad é obrigatório'),
   tipo: z.string().min(1, 'Tipo é obrigatório'),
-  tags: z.array(z.string()).optional().default([]),
+  tags: z.array(z.string()).default([]),
 });
 
 type TaskSchemaType = z.infer<typeof taskSchema>;
@@ -248,8 +248,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           <div className="space-y-2">
             <Label>Responsável *</Label>
             <TeamMemberSelector
-              value={watch('responsavel')}
-              onValueChange={(memberId) => setValue('responsavel', memberId)}
+              selectedMember={watch('responsavel')}
+              onSelectMember={(memberId) => setValue('responsavel', memberId)}
               disabled={false}
             />
             {errors.responsavel && (

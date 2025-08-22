@@ -1,258 +1,277 @@
 
-import React, { useState } from 'react';
-import { useSupabaseProjects } from '@/hooks/useSupabaseProjects';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import React, { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { CalendarIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import { ProjectDTO, ProjectFormData } from '@/types/database';
+import { ClientSelector } from '@/components/shared/ClientSelector';
+
+const projectSchema = z.object({
+  titulo: z.string().min(1, 'Título é obrigatório'),
+  cliente_id: z.string().optional(),
+  status: z.enum(['planejamento', 'em_andamento', 'em_revisao', 'em_pausa', 'concluido']),
+  prioridade: z.enum(['Alta', 'Média', 'Baixa']).optional(),
+  data_inicio: z.date().optional(),
+  data_entrega: z.date().optional(),
+  progresso: z.number().min(0).max(100),
+  equipe: z.string().optional(),
+  responsavel: z.string().optional(),
+  briefing: z.string().optional(),
+  escopo: z.string().optional(),
+  observacoes: z.string().optional(),
+});
+
+type ProjectSchemaType = z.infer<typeof projectSchema>;
 
 interface ProjectFormDialogProps {
-  children: React.ReactNode;
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (data: ProjectFormData) => Promise<void>;
+  editProject?: ProjectDTO | null;
 }
 
-const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({ children }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const { createProject, profiles, clients } = useSupabaseProjects();
-
-  const [formData, setFormData] = useState({
-    titulo: '',
-    cliente_id: '',
-    status: 'planejamento' as 'planejamento' | 'em_andamento' | 'em_revisao' | 'em_pausa' | 'concluido',
-    prioridade: 'Média' as 'Alta' | 'Média' | 'Baixa',
-    data_inicio: '',
-    data_entrega: '',
-    progresso: 0,
-    equipe: '',
-    responsavel: '',
-    briefing: '',
-    escopo: '',
-    observacoes: ''
+export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  editProject
+}) => {
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    reset,
+    formState: { errors, isSubmitting }
+  } = useForm<ProjectSchemaType>({
+    resolver: zodResolver(projectSchema),
+    defaultValues: {
+      titulo: '',
+      status: 'planejamento',
+      prioridade: 'Média',
+      progresso: 0,
+    }
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Encontrar o nome do cliente selecionado
-    const selectedClient = clients.find(client => client.id === formData.cliente_id);
-    
-    const project = await createProject({
-      titulo: formData.titulo,
-      cliente_id: formData.cliente_id || null,
-      cliente: selectedClient?.nome || null,
-      status: formData.status,
-      prioridade: formData.prioridade,
-      data_inicio: formData.data_inicio || null,
-      data_entrega: formData.data_entrega || null,
-      progresso: formData.progresso,
-      equipe: formData.equipe || null,
-      responsavel: formData.responsavel || null,
-      briefing: formData.briefing || null,
-      escopo: formData.escopo || null,
-      observacoes: formData.observacoes || null,
-      tags: [],
-      materiais: null
-    });
+  const watchedStartDate = watch('data_inicio');
+  const watchedEndDate = watch('data_entrega');
 
-    if (project) {
-      setIsOpen(false);
-      setFormData({
+  useEffect(() => {
+    if (editProject) {
+      reset({
+        titulo: editProject.titulo || '',
+        cliente_id: editProject.cliente_id || '',
+        status: editProject.status || 'planejamento',
+        prioridade: editProject.prioridade || 'Média',
+        data_inicio: editProject.data_inicio ? new Date(editProject.data_inicio) : undefined,
+        data_entrega: editProject.data_entrega ? new Date(editProject.data_entrega) : undefined,
+        progresso: editProject.progresso || 0,
+        equipe: editProject.equipe || '',
+        responsavel: editProject.responsavel || '',
+        briefing: editProject.briefing || '',
+        escopo: editProject.escopo || '',
+        observacoes: editProject.observacoes || '',
+      });
+    } else {
+      reset({
         titulo: '',
-        cliente_id: '',
         status: 'planejamento',
         prioridade: 'Média',
-        data_inicio: '',
-        data_entrega: '',
         progresso: 0,
-        equipe: '',
-        responsavel: '',
-        briefing: '',
-        escopo: '',
-        observacoes: ''
       });
+    }
+  }, [editProject, reset]);
+
+  const handleFormSubmit = async (data: ProjectSchemaType) => {
+    try {
+      const formData: ProjectFormData = {
+        titulo: data.titulo,
+        cliente_id: data.cliente_id,
+        status: data.status,
+        prioridade: data.prioridade,
+        data_inicio: data.data_inicio,
+        data_entrega: data.data_entrega,
+        progresso: data.progresso,
+        equipe: data.equipe,
+        responsavel: data.responsavel,
+        briefing: data.briefing,
+        escopo: data.escopo,
+        observacoes: data.observacoes,
+      };
+      
+      await onSubmit(formData);
+      toast.success(editProject ? 'Projeto atualizado com sucesso!' : 'Projeto criado com sucesso!');
+      onClose();
+    } catch (error) {
+      toast.error('Erro ao salvar projeto');
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Novo Projeto</DialogTitle>
+          <DialogTitle>
+            {editProject ? 'Editar Projeto' : 'Novo Projeto'}
+          </DialogTitle>
         </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="titulo">Título do Projeto *</Label>
-              <Input
-                id="titulo"
-                value={formData.titulo}
-                onChange={(e) => setFormData(prev => ({ ...prev, titulo: e.target.value }))}
-                placeholder="Digite o título do projeto"
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Cliente</Label>
-              <Select value={formData.cliente_id} onValueChange={(value) => setFormData(prev => ({ ...prev, cliente_id: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o cliente" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clients.map(client => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="titulo">Título *</Label>
+            <Input
+              id="titulo"
+              {...register('titulo')}
+              placeholder="Digite o título do projeto"
+            />
+            {errors.titulo && (
+              <p className="text-sm text-red-500">{errors.titulo.message}</p>
+            )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="briefing">Briefing</Label>
-            <Textarea
-              id="briefing"
-              value={formData.briefing}
-              onChange={(e) => setFormData(prev => ({ ...prev, briefing: e.target.value }))}
-              placeholder="Descreva os objetivos do projeto..."
-              rows={3}
+            <Label>Cliente</Label>
+            <ClientSelector
+              value={watch('cliente_id') || ''}
+              onValueChange={(clientId) => setValue('cliente_id', clientId)}
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="escopo">Escopo / Serviços Contratados</Label>
-            <Textarea
-              id="escopo"
-              value={formData.escopo}
-              onChange={(e) => setFormData(prev => ({ ...prev, escopo: e.target.value }))}
-              placeholder="Liste todos os serviços e entregas..."
-              rows={3}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Status</Label>
-              <Select value={formData.status} onValueChange={(value: any) => setFormData(prev => ({ ...prev, status: value }))}>
+              <Select
+                value={watch('status')}
+                onValueChange={(value) => setValue('status', value as any)}
+              >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Selecione o status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="planejamento">Planejamento</SelectItem>
-                  <SelectItem value="em_andamento">Em andamento</SelectItem>
-                  <SelectItem value="em_revisao">Em revisão</SelectItem>
+                  <SelectItem value="em_andamento">Em Andamento</SelectItem>
+                  <SelectItem value="em_revisao">Em Revisão</SelectItem>
+                  <SelectItem value="em_pausa">Em Pausa</SelectItem>
                   <SelectItem value="concluido">Concluído</SelectItem>
-                  <SelectItem value="em_pausa">Em pausa</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
               <Label>Prioridade</Label>
-              <Select value={formData.prioridade} onValueChange={(value: any) => setFormData(prev => ({ ...prev, prioridade: value }))}>
+              <Select
+                value={watch('prioridade')}
+                onValueChange={(value) => setValue('prioridade', value as any)}
+              >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Selecione a prioridade" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Baixa">Baixa</SelectItem>
-                  <SelectItem value="Média">Média</SelectItem>
                   <SelectItem value="Alta">Alta</SelectItem>
+                  <SelectItem value="Média">Média</SelectItem>
+                  <SelectItem value="Baixa">Baixa</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="progresso">Progresso (%)</Label>
-              <Input
-                id="progresso"
-                type="number"
-                min="0"
-                max="100"
-                value={formData.progresso}
-                onChange={(e) => setFormData(prev => ({ ...prev, progresso: parseInt(e.target.value) || 0 }))}
-              />
-            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="data_inicio">Data de Início</Label>
-              <Input
-                id="data_inicio"
-                type="date"
-                value={formData.data_inicio}
-                onChange={(e) => setFormData(prev => ({ ...prev, data_inicio: e.target.value }))}
-              />
+              <Label>Data de Início</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      'w-full justify-start text-left font-normal',
+                      !watchedStartDate && 'text-muted-foreground'
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {watchedStartDate ? (
+                      format(watchedStartDate, 'dd/MM/yyyy', { locale: ptBR })
+                    ) : (
+                      <span>Selecione uma data</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={watchedStartDate}
+                    onSelect={(date) => setValue('data_inicio', date)}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="data_entrega">Data de Entrega</Label>
-              <Input
-                id="data_entrega"
-                type="date"
-                value={formData.data_entrega}
-                onChange={(e) => setFormData(prev => ({ ...prev, data_entrega: e.target.value }))}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Responsável</Label>
-              <Select value={formData.responsavel} onValueChange={(value) => setFormData(prev => ({ ...prev, responsavel: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o responsável" />
-                </SelectTrigger>
-                <SelectContent>
-                  {profiles.map(profile => (
-                    <SelectItem key={profile.id} value={profile.name}>
-                      {profile.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="equipe">Equipe</Label>
-              <Input
-                id="equipe"
-                value={formData.equipe}
-                onChange={(e) => setFormData(prev => ({ ...prev, equipe: e.target.value }))}
-                placeholder="Nome1, Nome2, Nome3"
-              />
+              <Label>Data de Entrega</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      'w-full justify-start text-left font-normal',
+                      !watchedEndDate && 'text-muted-foreground'
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {watchedEndDate ? (
+                      format(watchedEndDate, 'dd/MM/yyyy', { locale: ptBR })
+                    ) : (
+                      <span>Selecione uma data</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={watchedEndDate}
+                    onSelect={(date) => setValue('data_entrega', date)}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="observacoes">Observações Adicionais</Label>
-            <Textarea
-              id="observacoes"
-              value={formData.observacoes}
-              onChange={(e) => setFormData(prev => ({ ...prev, observacoes: e.target.value }))}
-              placeholder="Adicione observações importantes..."
-              rows={2}
+            <Label htmlFor="progresso">Progresso (%)</Label>
+            <Input
+              id="progresso"
+              type="number"
+              min="0"
+              max="100"
+              {...register('progresso', { valueAsNumber: true })}
+              placeholder="0"
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+          <div className="flex justify-end gap-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={isSubmitting}
+            >
               Cancelar
             </Button>
-            <Button type="submit">
-              Criar Projeto
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Salvando...' : editProject ? 'Atualizar' : 'Criar'}
             </Button>
           </div>
         </form>
@@ -260,5 +279,3 @@ const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({ children }) => {
     </Dialog>
   );
 };
-
-export default ProjectFormDialog;
