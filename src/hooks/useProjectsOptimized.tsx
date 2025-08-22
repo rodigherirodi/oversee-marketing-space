@@ -1,219 +1,220 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { ProjectDTO, ProjectFormData, ProjectFilters, PaginationOptions } from '@/types/database';
+import { ProjectDTO, Database } from '@/types/database';
+import { toast } from 'sonner';
 
-// Query keys factory
-export const projectKeys = {
-  all: ['projects'] as const,
-  lists: () => [...projectKeys.all, 'list'] as const,
-  list: (filters: ProjectFilters, pagination: PaginationOptions) => 
-    [...projectKeys.lists(), filters, pagination] as const,
-  details: () => [...projectKeys.all, 'detail'] as const,
-  detail: (id: string) => [...projectKeys.details(), id] as const,
+interface ProjectsQueryOptions {
+  clientId?: string;
+  status?: ProjectDTO['status'][];
+  search?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  page?: number;
+  limit?: number;
+}
+
+const buildProjectsQueryKey = (options: ProjectsQueryOptions) => {
+  const { clientId, status, search, sortBy, sortOrder, page, limit } = options;
+  return ['projects', { clientId, status, search, sortBy, sortOrder, page, limit }];
 };
 
-export const useProjectsOptimized = (
-  filters: ProjectFilters = {}, 
-  pagination: PaginationOptions = { page: 1, limit: 50 }
-) => {
-  const { toast } = useToast();
-
-  const fetchProjects = async (): Promise<{ data: ProjectDTO[], count: number }> => {
-    // Use the base table instead of the view for now
-    let query = supabase
-      .from('projetos')
-      .select(`
-        id, titulo, cliente, cliente_id, status, prioridade, 
-        data_inicio, data_entrega, progresso, equipe, tags, 
-        responsavel, briefing, escopo, observacoes, materiais,
-        criado_em, atualizado_em,
-        clientes:cliente_id(id, nome, status, segmento)
-      `, { count: 'exact' });
-
-    // Apply filters
-    if (filters.status) {
-      query = query.eq('status', filters.status);
-    }
-    if (filters.prioridade) {
-      query = query.eq('prioridade', filters.prioridade);
-    }
-    if (filters.cliente_id) {
-      query = query.eq('cliente_id', filters.cliente_id);
-    }
-    if (filters.search) {
-      query = query.or(`titulo.ilike.%${filters.search}%,briefing.ilike.%${filters.search}%`);
-    }
-
-    // Apply pagination
-    const from = (pagination.page - 1) * pagination.limit;
-    const to = from + pagination.limit - 1;
-    query = query.range(from, to);
-
-    // Order by updated_at desc
-    query = query.order('atualizado_em', { ascending: false });
-
-    const { data, error, count } = await query;
-
-    if (error) throw error;
-
-    // Transform data to match ProjectDTO interface
-    const transformedData = data?.map(project => ({
-      ...project,
-      cliente_nome: project.clientes?.nome,
-      cliente_status: project.clientes?.status,
-      cliente_segmento: project.clientes?.segmento,
-      total_tarefas: 0, // Will be calculated separately if needed
-      tarefas_concluidas: 0,
-      tarefas_em_andamento: 0,
-    })) || [];
-
-    return { data: transformedData, count: count || 0 };
-  };
-
+export const useProjectsOptimized = (options: ProjectsQueryOptions = {}) => {
+  const queryKey = buildProjectsQueryKey(options);
+  
   return useQuery({
-    queryKey: projectKeys.list(filters, pagination),
-    queryFn: fetchProjects,
-    staleTime: 30000, // 30 seconds
+    queryKey,
+    queryFn: async () => {
+      console.log('Fetching projects with options:', options);
+      
+      let query = supabase
+        .from('projetos')
+        .select(`
+          *,
+          clientes:cliente_id (
+            id,
+            nome,
+            status,
+            segmento
+          )
+        `);
+
+      // Apply filters
+      if (options.clientId) {
+        query = query.eq('cliente_id', options.clientId);
+      }
+
+      if (options.status && options.status.length > 0) {
+        query = query.in('status', options.status);
+      }
+
+      if (options.search) {
+        query = query.or(`titulo.ilike.%${options.search}%,cliente.ilike.%${options.search}%`);
+      }
+
+      // Apply sorting
+      if (options.sortBy) {
+        const ascending = options.sortOrder === 'asc';
+        query = query.order(options.sortBy, { ascending });
+      } else {
+        query = query.order('criado_em', { ascending: false });
+      }
+
+      // Apply pagination
+      if (options.page !== undefined && options.limit !== undefined) {
+        const from = options.page * options.limit;
+        const to = from + options.limit - 1;
+        query = query.range(from, to);
+      }
+
+      const { data, error, count } = await query;
+
+      if (error) {
+        console.error('Error fetching projects:', error);
+        throw error;
+      }
+
+      // Transform the data to ensure proper typing
+      const projects: ProjectDTO[] = (data || []).map(project => ({
+        ...project,
+        status: project.status as ProjectDTO['status']
+      }));
+
+      console.log('Projects fetched:', projects);
+
+      return {
+        data: projects,
+        count: count || 0,
+      };
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: 3,
   });
 };
 
-export const useProjectDetail = (id: string) => {
-  const fetchProject = async (): Promise<ProjectDTO> => {
-    const { data, error } = await supabase
-      .from('projetos')
-      .select(`
-        id, titulo, cliente, cliente_id, status, prioridade, 
-        data_inicio, data_entrega, progresso, equipe, tags, 
-        responsavel, briefing, escopo, observacoes, materiais,
-        criado_em, atualizado_em,
-        clientes:cliente_id(id, nome, status, segmento)
-      `)
-      .eq('id', id)
-      .single();
-
-    if (error) throw error;
-
-    const transformedData: ProjectDTO = {
-      ...data,
-      cliente_nome: data.clientes?.nome,
-      cliente_status: data.clientes?.status,
-      cliente_segmento: data.clientes?.segmento,
-      total_tarefas: 0, // Will be calculated separately if needed
-      tarefas_concluidas: 0,
-      tarefas_em_andamento: 0,
-    };
-
-    return transformedData;
-  };
-
+export const useProjectOptimized = (id: string | undefined) => {
   return useQuery({
-    queryKey: projectKeys.detail(id),
-    queryFn: fetchProject,
+    queryKey: ['projects', id],
+    queryFn: async () => {
+      if (!id) return null;
+
+      const { data, error } = await supabase
+        .from('projetos')
+        .select(`
+          *,
+          clientes:cliente_id (
+            id,
+            nome,
+            status,
+            segmento
+          )
+        `)
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching project:', error);
+        throw error;
+      }
+
+      return {
+        ...data,
+        status: data.status as ProjectDTO['status']
+      } as ProjectDTO;
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: 3,
     enabled: !!id,
   });
 };
 
 export const useCreateProject = () => {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (data: ProjectFormData): Promise<ProjectDTO> => {
-      const { data: result, error } = await supabase
+    mutationFn: async (projectData: Omit<ProjectDTO, 'id' | 'criado_em' | 'atualizado_em'>) => {
+      const { data, error } = await supabase
         .from('projetos')
-        .insert(data)
-        .select(`
-          id, titulo, cliente, cliente_id, status, prioridade, 
-          data_inicio, data_entrega, progresso, equipe, tags, 
-          responsavel, briefing, escopo, observacoes, materiais,
-          criado_em, atualizado_em
-        `)
+        .insert({
+          ...projectData,
+          status: projectData.status as Database['public']['Tables']['projetos']['Insert']['status']
+        })
+        .select()
         .single();
 
       if (error) throw error;
-      return result;
+      return data as ProjectDTO;
     },
     onSuccess: (newProject) => {
-      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
-      queryClient.setQueryData(projectKeys.detail(newProject.id), newProject);
+      // Invalidate all project queries
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      
+      // Optimistically update queries
+      queryClient.setQueriesData(
+        { queryKey: ['projects'] },
+        (old: any) => {
+          if (!old?.data) return old;
+          return {
+            ...old,
+            data: [newProject, ...old.data],
+            count: (old.count || 0) + 1,
+          };
+        }
+      );
 
-      toast({
-        title: "Sucesso",
-        description: "Projeto criado com sucesso!",
-      });
+      toast.success('Projeto criado com sucesso!');
     },
     onError: (error) => {
-      toast({
-        title: "Erro",
-        description: "Erro ao criar projeto: " + error.message,
-        variant: "destructive",
-      });
+      console.error('Error creating project:', error);
+      toast.error('Erro ao criar projeto');
     },
   });
 };
 
 export const useUpdateProject = () => {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<ProjectFormData> }): Promise<ProjectDTO> => {
-      const { data: result, error } = await supabase
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<ProjectDTO> }) => {
+      const { data, error } = await supabase
         .from('projetos')
-        .update(data)
+        .update({
+          ...updates,
+          status: updates.status as Database['public']['Tables']['projetos']['Update']['status']
+        })
         .eq('id', id)
-        .select(`
-          id, titulo, cliente, cliente_id, status, prioridade, 
-          data_inicio, data_entrega, progresso, equipe, tags, 
-          responsavel, briefing, escopo, observacoes, materiais,
-          criado_em, atualizado_em
-        `)
+        .select()
         .single();
 
       if (error) throw error;
-      return result;
+      return data as ProjectDTO;
     },
     onSuccess: (updatedProject) => {
-      queryClient.setQueryData(projectKeys.detail(updatedProject.id), updatedProject);
-      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+      // Invalidate all project queries
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
 
-      toast({
-        title: "Sucesso",
-        description: "Projeto atualizado com sucesso!",
-      });
+      // Optimistically update queries
+      queryClient.setQueriesData(
+        { queryKey: ['projects', updatedProject.id] },
+        (old: any) => {
+          if (!old) return old;
+          return updatedProject;
+        }
+      );
+
+      toast.success('Projeto atualizado com sucesso!');
     },
     onError: (error) => {
-      toast({
-        title: "Erro",
-        description: "Erro ao atualizar projeto: " + error.message,
-        variant: "destructive",
-      });
+      console.error('Error updating project:', error);
+      toast.error('Erro ao atualizar projeto');
     },
   });
 };
 
 export const useDeleteProject = () => {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (id: string): Promise<void> => {
-      // Check dependencies first
-      const { data: deps, error: depsError } = await supabase
-        .rpc('check_project_dependencies', {
-          project_uuid: id
-        });
-
-      if (depsError) throw depsError;
-
-      if (deps && deps.length > 0) {
-        const dependency = deps[0];
-        if (dependency.has_tasks) {
-          throw new Error(`Não é possível excluir o projeto. Existem ${dependency.task_count} tarefa(s) vinculadas a ele.`);
-        }
-      }
-
+    mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('projetos')
         .delete()
@@ -221,21 +222,28 @@ export const useDeleteProject = () => {
 
       if (error) throw error;
     },
-    onSuccess: (_, deletedId) => {
-      queryClient.removeQueries({ queryKey: projectKeys.detail(deletedId) });
-      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+    onSuccess: (_, projectId) => {
+      // Invalidate all project queries
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
 
-      toast({
-        title: "Sucesso",
-        description: "Projeto excluído com sucesso!",
-      });
+      // Optimistically update queries
+      queryClient.setQueriesData(
+        { queryKey: ['projects'] },
+        (old: any) => {
+          if (!old?.data) return old;
+          return {
+            ...old,
+            data: old.data.filter((project: ProjectDTO) => project.id !== projectId),
+            count: (old.count || 0) - 1,
+          };
+        }
+      );
+
+      toast.success('Projeto excluído com sucesso!');
     },
     onError: (error) => {
-      toast({
-        title: "Erro",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error('Error deleting project:', error);
+      toast.error('Erro ao excluir projeto');
     },
   });
 };

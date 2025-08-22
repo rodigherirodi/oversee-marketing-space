@@ -1,4 +1,3 @@
-
 // DTOs tipados para o fluxo integrado
 export interface TaskDTO {
   id: string;
@@ -84,16 +83,16 @@ export interface ClientDTO {
 // Form data types
 export interface TaskFormData {
   titulo: string;
-  descricao?: string;
   status: 'todo' | 'in_progress' | 'review' | 'completed' | 'cancelled';
   prioridade: 'low' | 'medium' | 'high';
-  data_entrega?: Date;
-  projeto_id?: string;
-  cliente_id?: string;
   responsavel: string;
   squad: string;
   tipo: string;
-  tags: string[]; // Required but can be empty array
+  tags?: string[]; // Make optional to match schema
+  descricao?: string;
+  data_entrega?: Date;
+  projeto_id?: string;
+  cliente_id?: string;
 }
 
 export interface ProjectFormData {

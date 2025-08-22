@@ -3,6 +3,7 @@ import React, { createContext, useContext, ReactNode } from 'react';
 import { useTasks, Task } from '@/hooks/useTasks';
 import { useTaskTypes, TaskType } from '@/hooks/useTaskTypes';
 import { useKanbanConfigs, KanbanConfig } from '@/hooks/useKanbanConfigs';
+import { TaskFormData } from '@/types/database';
 
 interface TaskContextType {
   // Task operations
@@ -79,16 +80,16 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       // Convert Task to TaskFormData
       const taskFormData = {
-        titulo: task.title || '',
-        descricao: task.description,
+        titulo: task.titulo || '',
+        descricao: task.descricao,
         status: task.status || 'todo',
-        prioridade: task.priority || 'medium',
-        data_entrega: task.dueDate ? new Date(task.dueDate) : undefined,
-        projeto_id: task.projectId,
-        cliente_id: task.clientId,
-        responsavel: task.assignee || '',
+        prioridade: task.prioridade || 'medium',
+        data_entrega: task.data_entrega ? new Date(task.data_entrega) : undefined,
+        projeto_id: task.projeto_id,
+        cliente_id: task.cliente_id,
+        responsavel: task.responsavel || '',
         squad: task.squad || 'operacao',
-        tipo: task.type || 'task',
+        tipo: task.tipo || 'task',
         tags: task.tags || [],
       };
       return await createTask(taskFormData);
@@ -101,16 +102,16 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       // Convert Task updates to TaskFormData
       const taskFormData: Partial<TaskFormData> = {};
-      if (updates.title !== undefined) taskFormData.titulo = updates.title;
-      if (updates.description !== undefined) taskFormData.descricao = updates.description;
-      if (updates.status !== undefined) taskFormData.status = updates.status as any;
-      if (updates.priority !== undefined) taskFormData.prioridade = updates.priority as any;
-      if (updates.dueDate !== undefined) taskFormData.data_entrega = new Date(updates.dueDate);
-      if (updates.projectId !== undefined) taskFormData.projeto_id = updates.projectId;
-      if (updates.clientId !== undefined) taskFormData.cliente_id = updates.clientId;
-      if (updates.assignee !== undefined) taskFormData.responsavel = updates.assignee;
+      if (updates.titulo !== undefined) taskFormData.titulo = updates.titulo;
+      if (updates.descricao !== undefined) taskFormData.descricao = updates.descricao;
+      if (updates.status !== undefined) taskFormData.status = updates.status;
+      if (updates.prioridade !== undefined) taskFormData.prioridade = updates.prioridade;
+      if (updates.data_entrega !== undefined) taskFormData.data_entrega = new Date(updates.data_entrega);
+      if (updates.projeto_id !== undefined) taskFormData.projeto_id = updates.projeto_id;
+      if (updates.cliente_id !== undefined) taskFormData.cliente_id = updates.cliente_id;
+      if (updates.responsavel !== undefined) taskFormData.responsavel = updates.responsavel;
       if (updates.squad !== undefined) taskFormData.squad = updates.squad;
-      if (updates.type !== undefined) taskFormData.tipo = updates.type;
+      if (updates.tipo !== undefined) taskFormData.tipo = updates.tipo;
       if (updates.tags !== undefined) taskFormData.tags = updates.tags;
       
       return await updateTask(id, taskFormData);
