@@ -22,8 +22,15 @@ export const useTasksOptimized = (
 
   const fetchTasks = async (): Promise<{ data: TaskDTO[], count: number }> => {
     let query = supabase
-      .from('v_tarefas_completas')
-      .select('*', { count: 'exact' });
+      .from('tarefas')
+      .select(`
+        id, titulo, descricao, status, prioridade, data_entrega,
+        criado_em, atualizado_em, concluido_em, tags, squad, tipo,
+        campos_customizados, projeto_id, cliente_id, responsavel,
+        projetos:projeto_id(titulo, status),
+        clientes:cliente_id(nome, status),
+        profiles:responsavel(name, avatar_url, department)
+      `, { count: 'exact' });
 
     // Apply filters
     if (filters.status) {
@@ -57,7 +64,19 @@ export const useTasksOptimized = (
 
     if (error) throw error;
 
-    return { data: data || [], count: count || 0 };
+    // Transform data to match TaskDTO interface
+    const transformedData: TaskDTO[] = (data || []).map(task => ({
+      ...task,
+      projeto_nome: task.projetos?.titulo,
+      projeto_status: task.projetos?.status,
+      cliente_nome: task.clientes?.nome,
+      cliente_status: task.clientes?.status,
+      responsavel_nome: task.profiles?.name,
+      responsavel_avatar: task.profiles?.avatar_url,
+      responsavel_department: task.profiles?.department,
+    }));
+
+    return { data: transformedData, count: count || 0 };
   };
 
   return useQuery({
@@ -70,13 +89,30 @@ export const useTasksOptimized = (
 export const useTaskDetail = (id: string) => {
   const fetchTask = async (): Promise<TaskDTO> => {
     const { data, error } = await supabase
-      .from('v_tarefas_completas')
-      .select('*')
+      .from('tarefas')
+      .select(`
+        id, titulo, descricao, status, prioridade, data_entrega,
+        criado_em, atualizado_em, concluido_em, tags, squad, tipo,
+        campos_customizados, projeto_id, cliente_id, responsavel,
+        projetos:projeto_id(titulo, status),
+        clientes:cliente_id(nome, status),
+        profiles:responsavel(name, avatar_url, department)
+      `)
       .eq('id', id)
       .single();
 
     if (error) throw error;
-    return data;
+    
+    return {
+      ...data,
+      projeto_nome: data.projetos?.titulo,
+      projeto_status: data.projetos?.status,
+      cliente_nome: data.clientes?.nome,
+      cliente_status: data.clientes?.status,
+      responsavel_nome: data.profiles?.name,
+      responsavel_avatar: data.profiles?.avatar_url,
+      responsavel_department: data.profiles?.department,
+    };
   };
 
   return useQuery({

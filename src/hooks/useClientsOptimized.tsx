@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ClientDTO } from '@/types/database';
@@ -30,7 +31,7 @@ export const useClientsOptimized = (options: ClientsQueryOptions = {}) => {
 
       // Apply filters
       if (options.status && options.status.length > 0) {
-        query = query.in('status', options.status);
+        query = query.in('status', options.status as ('ativo' | 'inativo' | 'prospect')[]);
       }
 
       if (options.segmento && options.segmento.length > 0) {
@@ -73,6 +74,24 @@ export const useClientsOptimized = (options: ClientsQueryOptions = {}) => {
   });
 };
 
+// Hook for getting client options for selectors
+export const useClientOptions = () => {
+  return useQuery({
+    queryKey: ['client-options'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('clientes')
+        .select('id, nome')
+        .eq('status', 'ativo')
+        .order('nome');
+
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 1000 * 60 * 10, // 10 minutes
+  });
+};
+
 export const useClientOptimized = (id: string | null) => {
   return useQuery({
     queryKey: ['clients', id],
@@ -102,7 +121,7 @@ export const useCreateClient = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (clientData: Omit<ClientDTO, 'id' | 'criado_em' | 'atualizado_em'>) => {
+    mutationFn: async (clientData: Omit<ClientDTO, 'id' | 'criado_em'>) => {
       const { data, error } = await supabase
         .from('clientes')
         .insert(clientData)
@@ -181,7 +200,7 @@ export const useCheckClientDependencies = (clientId: string | null) => {
     queryFn: async () => {
       if (!clientId) return null;
       
-      // Use a direct query instead of RPC call
+      // Use direct queries instead of RPC call
       const [projectsResult, tasksResult] = await Promise.all([
         supabase
           .from('projetos')
@@ -209,3 +228,14 @@ export const useCheckClientDependencies = (clientId: string | null) => {
     enabled: !!clientId,
   });
 };
+
+// Export for compatibility
+export const clientKeys = {
+  all: ['clients'] as const,
+  lists: () => [...clientKeys.all, 'list'] as const,
+  list: (filters: any) => [...clientKeys.lists(), filters] as const,
+  details: () => [...clientKeys.all, 'detail'] as const,
+  detail: (id: string) => [...clientKeys.details(), id] as const,
+};
+
+export const useClientDetail = useClientOptimized;

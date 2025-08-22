@@ -1,6 +1,7 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { ProjectDTO, Database } from '@/types/database';
+import { ProjectDTO, ProjectFormData } from '@/types/database';
 import { toast } from 'sonner';
 
 interface ProjectsQueryOptions {
@@ -76,7 +77,8 @@ export const useProjectsOptimized = (options: ProjectsQueryOptions = {}) => {
       // Transform the data to ensure proper typing
       const projects: ProjectDTO[] = (data || []).map(project => ({
         ...project,
-        status: project.status as ProjectDTO['status']
+        status: project.status as ProjectDTO['status'],
+        prioridade: project.prioridade as ProjectDTO['prioridade']
       }));
 
       console.log('Projects fetched:', projects);
@@ -118,7 +120,8 @@ export const useProjectOptimized = (id: string | undefined) => {
 
       return {
         ...data,
-        status: data.status as ProjectDTO['status']
+        status: data.status as ProjectDTO['status'],
+        prioridade: data.prioridade as ProjectDTO['prioridade']
       } as ProjectDTO;
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -131,13 +134,25 @@ export const useCreateProject = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (projectData: Omit<ProjectDTO, 'id' | 'criado_em' | 'atualizado_em'>) => {
+    mutationFn: async (projectData: ProjectFormData) => {
+      const insertData = {
+        titulo: projectData.titulo,
+        cliente_id: projectData.cliente_id,
+        status: projectData.status,
+        prioridade: projectData.prioridade,
+        data_inicio: projectData.data_inicio?.toISOString().split('T')[0],
+        data_entrega: projectData.data_entrega?.toISOString().split('T')[0],
+        progresso: projectData.progresso,
+        equipe: projectData.equipe,
+        responsavel: projectData.responsavel,
+        briefing: projectData.briefing,
+        escopo: projectData.escopo,
+        observacoes: projectData.observacoes,
+      };
+
       const { data, error } = await supabase
         .from('projetos')
-        .insert({
-          ...projectData,
-          status: projectData.status as Database['public']['Tables']['projetos']['Insert']['status']
-        })
+        .insert(insertData)
         .select()
         .single();
 
@@ -174,13 +189,29 @@ export const useUpdateProject = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<ProjectDTO> }) => {
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<ProjectFormData> }) => {
+      const updateData: any = {};
+      
+      if (updates.titulo !== undefined) updateData.titulo = updates.titulo;
+      if (updates.cliente_id !== undefined) updateData.cliente_id = updates.cliente_id;
+      if (updates.status !== undefined) updateData.status = updates.status;
+      if (updates.prioridade !== undefined) updateData.prioridade = updates.prioridade;
+      if (updates.data_inicio !== undefined) {
+        updateData.data_inicio = updates.data_inicio?.toISOString().split('T')[0];
+      }
+      if (updates.data_entrega !== undefined) {
+        updateData.data_entrega = updates.data_entrega?.toISOString().split('T')[0];
+      }
+      if (updates.progresso !== undefined) updateData.progresso = updates.progresso;
+      if (updates.equipe !== undefined) updateData.equipe = updates.equipe;
+      if (updates.responsavel !== undefined) updateData.responsavel = updates.responsavel;
+      if (updates.briefing !== undefined) updateData.briefing = updates.briefing;
+      if (updates.escopo !== undefined) updateData.escopo = updates.escopo;
+      if (updates.observacoes !== undefined) updateData.observacoes = updates.observacoes;
+
       const { data, error } = await supabase
         .from('projetos')
-        .update({
-          ...updates,
-          status: updates.status as Database['public']['Tables']['projetos']['Update']['status']
-        })
+        .update(updateData)
         .eq('id', id)
         .select()
         .single();
@@ -193,13 +224,7 @@ export const useUpdateProject = () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
 
       // Optimistically update queries
-      queryClient.setQueriesData(
-        { queryKey: ['projects', updatedProject.id] },
-        (old: any) => {
-          if (!old) return old;
-          return updatedProject;
-        }
-      );
+      queryClient.setQueryData(['projects', updatedProject.id], updatedProject);
 
       toast.success('Projeto atualizado com sucesso!');
     },
@@ -247,3 +272,14 @@ export const useDeleteProject = () => {
     },
   });
 };
+
+// Export for compatibility
+export const projectKeys = {
+  all: ['projects'] as const,
+  lists: () => [...projectKeys.all, 'list'] as const,
+  list: (filters: any) => [...projectKeys.lists(), filters] as const,
+  details: () => [...projectKeys.all, 'detail'] as const,
+  detail: (id: string) => [...projectKeys.details(), id] as const,
+};
+
+export const useProjectDetail = useProjectOptimized;

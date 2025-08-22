@@ -5,22 +5,25 @@ import { useProjectsOptimized } from '@/hooks/useProjectsOptimized';
 import { Loader2 } from 'lucide-react';
 
 interface ProjectSelectorProps {
+  clientId?: string;
   value?: string;
   onValueChange: (value: string) => void;
-  clientId?: string;
   placeholder?: string;
   disabled?: boolean;
 }
 
 export const ProjectSelector: React.FC<ProjectSelectorProps> = ({
+  clientId,
   value,
   onValueChange,
-  clientId,
   placeholder = "Selecione um projeto",
   disabled = false,
 }) => {
-  const filters = clientId ? { cliente_id: clientId } : {};
-  const { data: projectsData, isLoading } = useProjectsOptimized(filters, { page: 1, limit: 100 });
+  const { data: projectsData, isLoading } = useProjectsOptimized({ 
+    clientId: clientId || undefined 
+  });
+
+  const projects = projectsData?.data || [];
 
   if (isLoading) {
     return (
@@ -31,10 +34,8 @@ export const ProjectSelector: React.FC<ProjectSelectorProps> = ({
     );
   }
 
-  const projects = projectsData?.data || [];
-
   return (
-    <Select value={value} onValueChange={onValueChange} disabled={disabled}>
+    <Select value={value} onValueChange={onValueChange} disabled={disabled || !clientId}>
       <SelectTrigger>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
@@ -42,11 +43,6 @@ export const ProjectSelector: React.FC<ProjectSelectorProps> = ({
         {projects.map((project) => (
           <SelectItem key={project.id} value={project.id}>
             {project.titulo}
-            {project.cliente_nome && (
-              <span className="text-xs text-muted-foreground ml-2">
-                - {project.cliente_nome}
-              </span>
-            )}
           </SelectItem>
         ))}
       </SelectContent>

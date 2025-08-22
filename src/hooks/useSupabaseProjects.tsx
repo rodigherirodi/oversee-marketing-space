@@ -33,8 +33,8 @@ export const useSupabaseProjects = () => {
     refetch 
   } = useProjectsOptimized();
 
-  const { data: clientsData } = useClientsOptimized({}, { page: 1, limit: 1000 });
-  const { data: profilesData } = useProfiles();
+  const { data: clientsData } = useClientsOptimized();
+  const { profiles: profilesData } = useProfiles();
 
   const createProjectMutation = useCreateProject();
   const updateProjectMutation = useUpdateProject();
@@ -56,7 +56,7 @@ export const useSupabaseProjects = () => {
 
   const updateProject = async (projectId: string, updates: Partial<ProjectFormData>): Promise<SupabaseProject | undefined> => {
     try {
-      const result = await updateProjectMutation.mutateAsync({ id: projectId, data: updates });
+      const result = await updateProjectMutation.mutateAsync({ id: projectId, updates });
       return result;
     } catch (error) {
       return undefined;

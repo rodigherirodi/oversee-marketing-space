@@ -13,7 +13,7 @@ import { ClientDTO, ClientFormData } from '@/types/database';
 // Re-exporta os tipos para compatibilidade
 export type SupabaseClient = ClientDTO;
 
-export { ClientFormData };
+export type { ClientFormData };
 
 export const useSupabaseClients = () => {
   const { 
@@ -52,7 +52,7 @@ export const useSupabaseClients = () => {
 
   const updateClient = async (id: string, updates: Partial<ClientFormData>): Promise<SupabaseClient | null> => {
     try {
-      const result = await updateClientMutation.mutateAsync({ id, data: updates });
+      const result = await updateClientMutation.mutateAsync({ id, updates });
       return result;
     } catch (error) {
       return null;

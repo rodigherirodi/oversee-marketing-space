@@ -16,7 +16,7 @@ import { ptBR } from 'date-fns/locale';
 import { CalendarIcon, Plus, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { TaskDTO } from '@/types/database';
+import { TaskDTO, TaskFormData } from '@/types/database';
 import { ClientSelector } from '@/components/shared/ClientSelector';
 import { ProjectSelector } from '@/components/shared/ProjectSelector';
 import TeamMemberSelector from '@/components/TeamMemberSelector';
@@ -40,7 +40,7 @@ type TaskSchemaType = z.infer<typeof taskSchema>;
 interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: any) => Promise<void>;
+  onSubmit: (data: TaskFormData) => Promise<void>;
   editTask?: TaskDTO | null;
 }
 
@@ -58,7 +58,6 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     handleSubmit,
     setValue,
     watch,
-    control,
     reset,
     formState: { errors, isSubmitting }
   } = useForm<TaskSchemaType>({
@@ -111,7 +110,22 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
   const handleFormSubmit = async (data: TaskSchemaType) => {
     try {
-      await onSubmit(data);
+      // Transform TaskSchemaType to TaskFormData
+      const formData: TaskFormData = {
+        titulo: data.titulo,
+        status: data.status,
+        prioridade: data.prioridade,
+        responsavel: data.responsavel,
+        squad: data.squad,
+        tipo: data.tipo,
+        tags: data.tags,
+        descricao: data.descricao,
+        data_entrega: data.data_entrega,
+        projeto_id: data.projeto_id,
+        cliente_id: data.cliente_id,
+      };
+      
+      await onSubmit(formData);
       toast.success(editTask ? 'Tarefa atualizada com sucesso!' : 'Tarefa criada com sucesso!');
     } catch (error) {
       toast.error('Erro ao salvar tarefa');
@@ -234,8 +248,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           <div className="space-y-2">
             <Label>Responsável *</Label>
             <TeamMemberSelector
-              selectedMember={watch('responsavel')}
-              onSelectMember={(memberId) => setValue('responsavel', memberId)}
+              value={watch('responsavel')}
+              onValueChange={(memberId) => setValue('responsavel', memberId)}
               disabled={false}
             />
             {errors.responsavel && (

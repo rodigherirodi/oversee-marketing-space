@@ -1,3 +1,4 @@
+
 // DTOs tipados para o fluxo integrado
 export interface TaskDTO {
   id: string;
@@ -88,7 +89,7 @@ export interface TaskFormData {
   responsavel: string;
   squad: string;
   tipo: string;
-  tags?: string[]; // Make optional to match schema
+  tags: string[]; // Required, not optional
   descricao?: string;
   data_entrega?: Date;
   projeto_id?: string;
@@ -157,3 +158,6 @@ export interface ClientFilters {
   temperatura?: string;
   search?: string;
 }
+
+// Database type for compatibility
+export type Database = any;
