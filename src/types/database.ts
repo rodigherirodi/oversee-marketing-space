@@ -1,4 +1,3 @@
-
 // DTOs tipados para o fluxo integrado
 export interface TaskDTO {
   id: string;
@@ -7,20 +6,19 @@ export interface TaskDTO {
   status: 'todo' | 'in_progress' | 'review' | 'completed' | 'cancelled';
   prioridade: 'low' | 'medium' | 'high';
   data_entrega?: string;
-  criado_em: string;
-  atualizado_em: string;
+  criado_em?: string;
+  atualizado_em?: string;
   concluido_em?: string;
-  tags: string[];
-  squad: string;
-  tipo: string;
-  campos_customizados: Record<string, any>;
-  
-  // FKs
+  tags?: string[];
+  squad?: string;
+  tipo?: string;
+  campos_customizados?: any;
   projeto_id?: string;
   cliente_id?: string;
-  responsavel: string;
+  responsavel?: string;
+  criado_por?: string;
   
-  // Dados relacionados (joins)
+  // Joined data from relations
   projeto_nome?: string;
   projeto_status?: string;
   cliente_nome?: string;
@@ -84,16 +82,16 @@ export interface ClientDTO {
 // Form data types
 export interface TaskFormData {
   titulo: string;
+  descricao?: string;
   status: 'todo' | 'in_progress' | 'review' | 'completed' | 'cancelled';
   prioridade: 'low' | 'medium' | 'high';
+  data_entrega?: Date;
+  projeto_id?: string;
+  cliente_id?: string;
   responsavel: string;
   squad: string;
   tipo: string;
   tags: string[]; // Required, not optional
-  descricao?: string;
-  data_entrega?: Date;
-  projeto_id?: string;
-  cliente_id?: string;
 }
 
 export interface ProjectFormData {

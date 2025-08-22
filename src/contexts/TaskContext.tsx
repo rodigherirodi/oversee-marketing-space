@@ -1,17 +1,17 @@
 
 import React, { createContext, useContext, ReactNode } from 'react';
-import { useTasks, Task } from '@/hooks/useTasks';
+import { useTasks, TaskDTO } from '@/hooks/useTasks';
 import { useTaskTypes, TaskType } from '@/hooks/useTaskTypes';
 import { useKanbanConfigs, KanbanConfig } from '@/hooks/useKanbanConfigs';
 import { TaskFormData } from '@/types/database';
 
 interface TaskContextType {
   // Task operations
-  tasks: Task[];
+  tasks: TaskDTO[];
   loading: boolean;
   error: string | null;
-  addTask: (task: Partial<Task>) => Promise<Task | undefined>;
-  updateTask: (id: string, updates: Partial<Task>) => Promise<Task | undefined>;
+  addTask: (task: Partial<TaskDTO>) => Promise<TaskDTO | undefined>;
+  updateTask: (id: string, updates: Partial<TaskDTO>) => Promise<TaskDTO | undefined>;
   deleteTask: (id: string) => Promise<void>;
   refetchTasks: () => Promise<void>;
   
@@ -28,7 +28,7 @@ interface TaskContextType {
   deleteKanbanConfig: (id: string) => Promise<void>;
   
   // Utility functions
-  getTasksByKanban: (kanbanId: string) => Task[];
+  getTasksByKanban: (kanbanId: string) => TaskDTO[];
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -64,7 +64,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     deleteKanbanConfig
   } = useKanbanConfigs();
 
-  const getTasksByKanban = (kanbanId: string): Task[] => {
+  const getTasksByKanban = (kanbanId: string): TaskDTO[] => {
     if (kanbanId === 'geral' || kanbanId === 'all') {
       return tasks;
     }
@@ -76,9 +76,9 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   // Wrapper functions to match expected return types with proper type conversion
-  const addTask = async (task: Partial<Task>): Promise<Task | undefined> => {
+  const addTask = async (task: Partial<TaskDTO>): Promise<TaskDTO | undefined> => {
     try {
-      // Convert Task to TaskFormData
+      // Convert TaskDTO to TaskFormData
       const taskFormData = {
         titulo: task.titulo || '',
         descricao: task.descricao,
@@ -98,9 +98,9 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const updateTaskWrapper = async (id: string, updates: Partial<Task>): Promise<Task | undefined> => {
+  const updateTaskWrapper = async (id: string, updates: Partial<TaskDTO>): Promise<TaskDTO | undefined> => {
     try {
-      // Convert Task updates to TaskFormData
+      // Convert TaskDTO updates to TaskFormData
       const taskFormData: Partial<TaskFormData> = {};
       if (updates.titulo !== undefined) taskFormData.titulo = updates.titulo;
       if (updates.descricao !== undefined) taskFormData.descricao = updates.descricao;
@@ -128,7 +128,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Combined loading state
   const loading = tasksLoading || kanbanLoading;
 
-  // Always provide the context - never conditionally render based on loading
   return (
     <TaskContext.Provider
       value={{

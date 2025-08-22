@@ -9,8 +9,9 @@ import {
 } from './useTasksOptimized';
 import { TaskDTO, TaskFormData } from '@/types/database';
 
-// Re-exporta os tipos para compatibilidade
+// Export TaskDTO type for compatibility
 export type Task = TaskDTO;
+export { TaskDTO };
 
 // Adapter para manter a interface existente
 export const useTasks = () => {
@@ -28,7 +29,7 @@ export const useTasks = () => {
   // Transform data to match existing interface
   const tasks = tasksData?.data || [];
 
-  const createTask = async (taskData: Partial<TaskFormData>): Promise<Task | undefined> => {
+  const createTask = async (taskData: Partial<TaskFormData>): Promise<TaskDTO | undefined> => {
     try {
       const result = await createTaskMutation.mutateAsync(taskData as TaskFormData);
       return result;
@@ -37,7 +38,7 @@ export const useTasks = () => {
     }
   };
 
-  const updateTask = async (id: string, updates: Partial<TaskFormData>): Promise<Task | undefined> => {
+  const updateTask = async (id: string, updates: Partial<TaskFormData>): Promise<TaskDTO | undefined> => {
     try {
       const result = await updateTaskMutation.mutateAsync({ id, data: updates });
       return result;
