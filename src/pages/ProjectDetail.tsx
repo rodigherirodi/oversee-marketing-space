@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { TaskProvider } from '@/contexts/TaskContext';
 import ProjectForm from '@/components/project/ProjectForm';
-import ProjectChecklist from '@/components/project/ProjectChecklist';
+import SimpleProjectChecklist from '@/components/SimpleProjectChecklist';
 import { useSupabaseProjects, SupabaseProject } from '@/hooks/useSupabaseProjects';
 
 const ProjectDetailContent = () => {
@@ -126,7 +126,7 @@ const ProjectDetailContent = () => {
         />
 
         <div className="mt-12">
-          <ProjectChecklist
+          <SimpleProjectChecklist
             checklist={checklist}
             isEditing={false}
             onUpdate={setChecklist}

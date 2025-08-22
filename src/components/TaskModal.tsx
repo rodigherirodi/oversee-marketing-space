@@ -19,7 +19,6 @@ import { toast } from 'sonner';
 import { TaskDTO, TaskFormData } from '@/types/database';
 import { ClientSelector } from '@/components/shared/ClientSelector';
 import { ProjectSelector } from '@/components/shared/ProjectSelector';
-import TeamMemberSelector from '@/components/TeamMemberSelector';
 
 const taskSchema = z.object({
   titulo: z.string().min(1, 'Título é obrigatório'),
@@ -32,7 +31,7 @@ const taskSchema = z.object({
   responsavel: z.string().min(1, 'Responsável é obrigatório'),
   squad: z.string().min(1, 'Squad é obrigatório'),
   tipo: z.string().min(1, 'Tipo é obrigatório'),
-  tags: z.array(z.string()).default([]),
+  tags: z.array(z.string()).optional().default([]),
 });
 
 type TaskSchemaType = z.infer<typeof taskSchema>;
@@ -110,7 +109,6 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
   const handleFormSubmit = async (data: TaskSchemaType) => {
     try {
-      // Transform TaskSchemaType to TaskFormData
       const formData: TaskFormData = {
         titulo: data.titulo,
         status: data.status,
@@ -118,7 +116,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         responsavel: data.responsavel,
         squad: data.squad,
         tipo: data.tipo,
-        tags: data.tags,
+        tags: data.tags || [],
         descricao: data.descricao,
         data_entrega: data.data_entrega,
         projeto_id: data.projeto_id,
@@ -155,7 +153,6 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         </DialogHeader>
 
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-          {/* Título */}
           <div className="space-y-2">
             <Label htmlFor="titulo">Título *</Label>
             <Input
@@ -168,7 +165,6 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             )}
           </div>
 
-          {/* Descrição */}
           <div className="space-y-2">
             <Label htmlFor="descricao">Descrição</Label>
             <Textarea
@@ -179,7 +175,6 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             />
           </div>
 
-          {/* Status e Prioridade */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Status</Label>
@@ -218,7 +213,6 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             </div>
           </div>
 
-          {/* Cliente e Projeto */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Cliente</Label>
@@ -227,7 +221,6 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 onValueChange={(clientId) => {
                   setSelectedClientId(clientId);
                   setValue('cliente_id', clientId);
-                  // Reset project when client changes
                   setValue('projeto_id', '');
                 }}
               />
@@ -244,20 +237,17 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             </div>
           </div>
 
-          {/* Responsável */}
           <div className="space-y-2">
             <Label>Responsável *</Label>
-            <TeamMemberSelector
-              selectedMember={watch('responsavel')}
-              onSelectMember={(memberId) => setValue('responsavel', memberId)}
-              disabled={false}
+            <Input
+              {...register('responsavel')}
+              placeholder="Digite o ID do responsável"
             />
             {errors.responsavel && (
               <p className="text-sm text-red-500">{errors.responsavel.message}</p>
             )}
           </div>
 
-          {/* Squad e Tipo */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Squad *</Label>
@@ -297,7 +287,6 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             </div>
           </div>
 
-          {/* Data de Entrega */}
           <div className="space-y-2">
             <Label>Data de Entrega</Label>
             <Popover>
@@ -328,7 +317,6 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             </Popover>
           </div>
 
-          {/* Tags */}
           <div className="space-y-2">
             <Label>Tags</Label>
             <div className="flex gap-2">
@@ -373,7 +361,6 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             )}
           </div>
 
-          {/* Buttons */}
           <div className="flex justify-end gap-3 pt-4">
             <Button
               type="button"
