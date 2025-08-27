@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, Filter, Calendar, List, LayoutGrid, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,33 +11,13 @@ import { TaskModal } from '@/components/TaskModal';
 import { TaskConfigDialog } from '@/components/tasks/TaskConfigDialog';
 import { KanbanSelector } from '@/components/tasks/KanbanSelector';
 import { useTaskContext } from '@/contexts/TaskContext';
-import { TaskDTO } from '@/types/database';
-
-// Helper function to transform TaskDTO to the format expected by components
-const transformTaskForView = (task: TaskDTO) => ({
-  id: task.id,
-  title: task.titulo,
-  description: task.descricao,
-  status: task.status,
-  priority: task.prioridade,
-  assignee: {
-    name: task.responsavel_nome || 'Não atribuído',
-    avatar: task.responsavel_avatar
-  },
-  dueDate: task.data_entrega,
-  tags: task.tags || [],
-  projectId: task.projeto_id,
-  clientId: task.cliente_id,
-  createdAt: task.criado_em,
-  ...task
-});
 
 const Tasks = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [assigneeFilter, setAssigneeFilter] = useState<string>('all');
-  const [selectedTask, setSelectedTask] = useState<TaskDTO | null>(null);
+  const [selectedTask, setSelectedTask] = useState<any | null>(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
@@ -55,12 +34,12 @@ const Tasks = () => {
 
   // Filter tasks based on search and filters
   const filteredTasks = tasks.filter(task => {
-    const matchesSearch = task.titulo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         task.descricao?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         task.description?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
-    const matchesPriority = priorityFilter === 'all' || task.prioridade === priorityFilter;
+    const matchesPriority = priorityFilter === 'all' || task.priority === priorityFilter;
     const matchesAssignee = assigneeFilter === 'all' || 
-                           (assigneeFilter === 'me' ? task.responsavel_nome === 'Current User' : true);
+                           (assigneeFilter === 'me' ? task.assignee?.name === 'Current User' : true);
     
     return matchesSearch && matchesStatus && matchesPriority && matchesAssignee;
   });
@@ -72,23 +51,7 @@ const Tasks = () => {
   };
 
   const handleEditTask = (task: any) => {
-    // If task is already a TaskDTO, use it directly; otherwise transform it
-    const taskData: TaskDTO = task.titulo ? task : {
-      id: task.id,
-      titulo: task.title || '',
-      descricao: task.description,
-      status: task.status,
-      prioridade: task.priority,
-      data_entrega: task.dueDate,
-      projeto_id: task.projectId,
-      cliente_id: task.clientId,
-      responsavel: task.assignee?.id || '',
-      squad: task.squad || 'operacao',
-      tipo: task.type || 'task',
-      tags: task.tags || [],
-    };
-    
-    setSelectedTask(taskData);
+    setSelectedTask(task);
     setIsCreatingTask(false);
     setIsTaskModalOpen(true);
   };
@@ -133,9 +96,6 @@ const Tasks = () => {
       </div>
     );
   }
-
-  // Transform tasks for views that expect the old format
-  const transformedTasks = filteredTasks.map(transformTaskForView);
 
   return (
     <div className="space-y-6">
@@ -235,7 +195,7 @@ const Tasks = () => {
 
         <TabsContent value="kanban" className="mt-6">
           <KanbanBoard 
-            tasks={transformedTasks as any}
+            tasks={filteredTasks as any}
             onUpdateTask={handleUpdateTask}
             onEditTask={handleEditTask}
             kanbanConfig={currentKanban}
@@ -244,7 +204,7 @@ const Tasks = () => {
 
         <TabsContent value="list" className="mt-6">
           <TaskListView 
-            tasks={transformedTasks as any}
+            tasks={filteredTasks as any}
             taskTypes={taskTypes}
             onEditTask={handleEditTask}
             onDeleteTask={handleDeleteTask}
@@ -253,7 +213,7 @@ const Tasks = () => {
 
         <TabsContent value="calendar" className="mt-6">
           <TaskCalendarView 
-            tasks={transformedTasks as any}
+            tasks={filteredTasks as any}
             onEditTask={handleEditTask}
           />
         </TabsContent>

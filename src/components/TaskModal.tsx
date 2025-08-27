@@ -1,382 +1,521 @@
-
-import React, { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import React, { useState, useEffect } from 'react';
+import { Task } from '@/hooks/useTasks';
+import { useTaskTypes } from '@/hooks/useTaskTypes';
+import { useKanbanConfigs } from '@/hooks/useKanbanConfigs';
+import { supabase } from '@/integrations/supabase/client';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { CalendarIcon, Plus, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Maximize2, Minimize2 } from 'lucide-react';
+import { TaskWatchersSelector } from './tasks/TaskWatchersSelector';
+import { TaskCommentsSection } from './tasks/TaskCommentsSection';
+import { TaskAttachmentsSection } from './tasks/TaskAttachmentsSection';
+import { TagInput } from './tasks/TagInput';
+import { ResponsibleSelector } from './tasks/ResponsibleSelector';
 import { toast } from 'sonner';
-import { TaskDTO, TaskFormData } from '@/types/database';
-import { ClientSelector } from '@/components/shared/ClientSelector';
-import { ProjectSelector } from '@/components/shared/ProjectSelector';
-import SimpleTeamMemberSelector from '@/components/SimpleTeamMemberSelector';
-
-const taskSchema = z.object({
-  titulo: z.string().min(1, 'Título é obrigatório'),
-  descricao: z.string().optional(),
-  status: z.enum(['todo', 'in_progress', 'review', 'completed', 'cancelled']),
-  prioridade: z.enum(['low', 'medium', 'high']),
-  data_entrega: z.date().optional(),
-  projeto_id: z.string().optional(),
-  cliente_id: z.string().optional(),
-  responsavel: z.string().min(1, 'Responsável é obrigatório'),
-  squad: z.string().min(1, 'Squad é obrigatório'),
-  tipo: z.string().min(1, 'Tipo é obrigatório'),
-  tags: z.array(z.string()).default([]),
-});
-
-type TaskSchemaType = z.infer<typeof taskSchema>;
 
 interface TaskModalProps {
+  editTask?: Task | null;
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: TaskFormData) => Promise<void>;
-  editTask?: TaskDTO | null;
+  onSubmit: (task: Partial<Task>) => void;
+}
+
+interface Client {
+  id: string;
+  nome: string;
+}
+
+interface Project {
+  id: string;
+  nome: string;
+  cliente_id: string;
 }
 
 export const TaskModal: React.FC<TaskModalProps> = ({
+  editTask,
   isOpen,
   onClose,
-  onSubmit,
-  editTask
+  onSubmit
 }) => {
-  const [currentTag, setCurrentTag] = useState('');
-  const [selectedClientId, setSelectedClientId] = useState<string>('');
-
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
-    reset,
-    formState: { errors, isSubmitting }
-  } = useForm<TaskSchemaType>({
-    resolver: zodResolver(taskSchema),
-    defaultValues: {
-      titulo: '',
-      descricao: '',
-      status: 'todo',
-      prioridade: 'medium',
-      responsavel: '',
-      squad: 'operacao',
-      tipo: 'task',
-      tags: [],
-    }
+  const { taskTypes, loading: taskTypesLoading } = useTaskTypes();
+  const { kanbanConfigs, currentKanban } = useKanbanConfigs();
+  
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [activeTab, setActiveTab] = useState('details');
+  const [clients, setClients] = useState<Client[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
+  const [loadingClients, setLoadingClients] = useState(false);
+  const [loadingProjects, setLoadingProjects] = useState(false);
+  const [assigneeId, setAssigneeId] = useState<string>('');
+  
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    priority: 'medium' as Task['priority'],
+    due_date: '',
+    status: 'todo',
+    type_id: '',
+    squad: 'operacao',
+    client_id: '',
+    project_id: '',
+    tags: [] as string[],
+    watchers: [] as string[]
   });
 
-  const watchedTags = watch('tags') || [];
-  const watchedDueDate = watch('data_entrega');
-
+  // Load task assignee when modal opens with editTask
   useEffect(() => {
-    if (editTask) {
-      reset({
-        titulo: editTask.titulo || '',
-        descricao: editTask.descricao || '',
-        status: editTask.status || 'todo',
-        prioridade: editTask.prioridade || 'medium',
-        data_entrega: editTask.data_entrega ? new Date(editTask.data_entrega) : undefined,
-        projeto_id: editTask.projeto_id || '',
-        cliente_id: editTask.cliente_id || '',
-        responsavel: editTask.responsavel || '',
-        squad: editTask.squad || 'operacao',
-        tipo: editTask.tipo || 'task',
-        tags: editTask.tags || [],
-      });
-      setSelectedClientId(editTask.cliente_id || '');
-    } else {
-      reset({
-        titulo: '',
-        descricao: '',
-        status: 'todo',
-        prioridade: 'medium',
-        responsavel: '',
-        squad: 'operacao',
-        tipo: 'task',
-        tags: [],
-      });
-      setSelectedClientId('');
-    }
-  }, [editTask, reset]);
+    const loadTaskAssignee = async () => {
+      if (editTask?.id) {
+        try {
+          const { data, error } = await supabase
+            .from('tarefas')
+            .select('responsavel')
+            .eq('id', editTask.id)
+            .single();
 
-  const handleFormSubmit = async (data: TaskSchemaType) => {
-    try {
-      const formData: TaskFormData = {
-        titulo: data.titulo,
-        status: data.status,
-        prioridade: data.prioridade,
-        responsavel: data.responsavel,
-        squad: data.squad,
-        tipo: data.tipo,
-        tags: data.tags,
-        descricao: data.descricao,
-        data_entrega: data.data_entrega,
-        projeto_id: data.projeto_id,
-        cliente_id: data.cliente_id,
-      };
+          if (error) throw error;
+          
+          if (data?.responsavel) {
+            setAssigneeId(String(data.responsavel));
+          } else {
+            setAssigneeId('');
+          }
+        } catch (err) {
+          console.error('Error loading task assignee:', err);
+          setAssigneeId('');
+        }
+      } else {
+        setAssigneeId('');
+      }
+    };
+
+    if (isOpen) {
+      loadTaskAssignee();
+    }
+  }, [editTask?.id, isOpen]);
+
+  // Load clients on component mount
+  useEffect(() => {
+    const fetchClients = async () => {
+      try {
+        setLoadingClients(true);
+        const { data, error } = await supabase
+          .from('clientes')
+          .select('id, nome')
+          .order('nome');
+
+        if (error) throw error;
+        setClients(data || []);
+      } catch (err) {
+        console.error('Error fetching clients:', err);
+        toast.error('Erro ao carregar clientes');
+      } finally {
+        setLoadingClients(false);
+      }
+    };
+
+    if (isOpen) {
+      fetchClients();
+    }
+  }, [isOpen]);
+
+  // Load projects when client changes
+  useEffect(() => {
+    const fetchProjects = async () => {
+      if (!formData.client_id) {
+        setProjects([]);
+        setFilteredProjects([]);
+        return;
+      }
+
+      try {
+        setLoadingProjects(true);
+        const { data, error } = await supabase
+          .from('projetos')
+          .select('id, titulo, cliente_id')
+          .eq('cliente_id', formData.client_id)
+          .order('titulo');
+
+        if (error) throw error;
+        const projectsData = (data || []).map(project => ({
+          id: project.id,
+          nome: project.titulo,
+          cliente_id: project.cliente_id
+        }));
+        setProjects(projectsData);
+        setFilteredProjects(projectsData);
+      } catch (err) {
+        console.error('Error fetching projects:', err);
+        toast.error('Erro ao carregar projetos');
+      } finally {
+        setLoadingProjects(false);
+      }
+    };
+
+    fetchProjects();
+  }, [formData.client_id]);
+
+  // Initialize form data when modal opens or editTask changes
+  useEffect(() => {
+    if (isOpen) {
+      if (editTask) {
+        setFormData({
+          title: editTask.title || '',
+          description: editTask.description || '',
+          priority: editTask.priority || 'medium',
+          due_date: editTask.due_date || '',
+          status: editTask.status || 'todo',
+          type_id: editTask.type_id || '',
+          squad: editTask.squad || 'operacao',
+          client_id: String(editTask.cliente_id || editTask.client_id || ''),
+          project_id: String(editTask.project_id || ''),
+          tags: editTask.tags || [],
+          watchers: editTask.watchers?.map(w => w.id) || []
+        });
+      } else {
+        setFormData({
+          title: '',
+          description: '',
+          priority: 'medium',
+          due_date: '',
+          status: currentKanban?.stages?.[0]?.id || 'todo',
+          type_id: '',
+          squad: 'operacao',
+          client_id: '',
+          project_id: '',
+          tags: [],
+          watchers: []
+        });
+      }
+    }
+  }, [editTask, isOpen, currentKanban]);
+
+  // Clear project if selected client changes and current project doesn't belong to new client
+  useEffect(() => {
+    if (formData.client_id && formData.project_id) {
+      const projectBelongsToClient = projects.some(
+        p => p.id === formData.project_id && p.cliente_id === formData.client_id
+      );
       
-      await onSubmit(formData);
-      toast.success(editTask ? 'Tarefa atualizada com sucesso!' : 'Tarefa criada com sucesso!');
-    } catch (error) {
-      toast.error('Erro ao salvar tarefa');
+      if (!projectBelongsToClient) {
+        setFormData(prev => ({ ...prev, project_id: '' }));
+      }
     }
+  }, [formData.client_id, projects, formData.project_id]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const taskData: Partial<Task> = {
+      title: formData.title,
+      description: formData.description,
+      priority: formData.priority,
+      assignee_id: assigneeId || undefined,
+      due_date: formData.due_date,
+      status: formData.status,
+      type_id: formData.type_id,
+      squad: formData.squad,
+      client_id: formData.client_id || undefined,
+      cliente_id: formData.client_id || undefined,
+      project_id: formData.project_id || undefined,
+      tags: formData.tags
+    };
+
+    // Auto-save assignee if editing task
+    if (editTask?.id && assigneeId !== editTask.assignee_id) {
+      try {
+        const { error } = await supabase
+          .from('tarefas')
+          .update({
+            responsavel: assigneeId || null,
+            atualizado_em: new Date().toISOString()
+          })
+          .eq('id', editTask.id);
+
+        if (error) throw error;
+      } catch (err) {
+        console.error('Error updating assignee:', err);
+        toast.error('Erro ao atualizar responsável');
+      }
+    }
+    
+    onSubmit(taskData);
   };
 
-  const handleAddTag = () => {
-    if (currentTag.trim() && !watchedTags.includes(currentTag.trim())) {
-      const newTags = [...watchedTags, currentTag.trim()];
-      setValue('tags', newTags);
-      setCurrentTag('');
-    }
+  const handleInputChange = (field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
-  const handleRemoveTag = (tagToRemove: string) => {
-    const newTags = watchedTags.filter(tag => tag !== tagToRemove);
-    setValue('tags', newTags);
+  const handleClientChange = (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      client_id: value,
+      project_id: '' // Clear project when client changes
+    }));
   };
+
+  const commonTags = ['urgente', 'bug', 'melhoria', 'feature', 'documentacao', 'teste', 'revisao'];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className={`${isFullscreen ? 'max-w-full max-h-full w-screen h-screen' : 'max-w-4xl max-h-[90vh]'} overflow-y-auto`}>
         <DialogHeader>
-          <DialogTitle>
-            {editTask ? 'Editar Tarefa' : 'Nova Tarefa'}
-          </DialogTitle>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-          
-          <div className="space-y-2">
-            <Label htmlFor="titulo">Título *</Label>
-            <Input
-              id="titulo"
-              {...register('titulo')}
-              placeholder="Digite o título da tarefa"
-            />
-            {errors.titulo && (
-              <p className="text-sm text-red-500">{errors.titulo.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="descricao">Descrição</Label>
-            <Textarea
-              id="descricao"
-              {...register('descricao')}
-              placeholder="Descreva a tarefa..."
-              rows={3}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Status</Label>
-              <Select
-                value={watch('status')}
-                onValueChange={(value: any) => setValue('status', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todo">A Fazer</SelectItem>
-                  <SelectItem value="in_progress">Em Progresso</SelectItem>
-                  <SelectItem value="review">Em Revisão</SelectItem>
-                  <SelectItem value="completed">Concluído</SelectItem>
-                  <SelectItem value="cancelled">Cancelado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Prioridade</Label>
-              <Select
-                value={watch('prioridade')}
-                onValueChange={(value: any) => setValue('prioridade', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione a prioridade" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Baixa</SelectItem>
-                  <SelectItem value="medium">Média</SelectItem>
-                  <SelectItem value="high">Alta</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Cliente</Label>
-              <ClientSelector
-                value={selectedClientId}
-                onValueChange={(clientId) => {
-                  setSelectedClientId(clientId);
-                  setValue('cliente_id', clientId);
-                  setValue('projeto_id', '');
-                }}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Projeto</Label>
-              <ProjectSelector
-                clientId={selectedClientId}
-                value={watch('projeto_id') || ''}
-                onValueChange={(projectId) => setValue('projeto_id', projectId)}
-                disabled={!selectedClientId}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Responsável *</Label>
-            <SimpleTeamMemberSelector
-              selectedMember={watch('responsavel')}
-              onSelectMember={(memberId) => setValue('responsavel', memberId)}
-            />
-            {errors.responsavel && (
-              <p className="text-sm text-red-500">{errors.responsavel.message}</p>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Squad *</Label>
-              <Select
-                value={watch('squad')}
-                onValueChange={(value) => setValue('squad', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione a squad" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="operacao">Operação</SelectItem>
-                  <SelectItem value="desenvolvimento">Desenvolvimento</SelectItem>
-                  <SelectItem value="design">Design</SelectItem>
-                  <SelectItem value="marketing">Marketing</SelectItem>
-                  <SelectItem value="comercial">Comercial</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Tipo *</Label>
-              <Select
-                value={watch('tipo')}
-                onValueChange={(value) => setValue('tipo', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="task">Tarefa</SelectItem>
-                  <SelectItem value="bug">Bug</SelectItem>
-                  <SelectItem value="feature">Feature</SelectItem>
-                  <SelectItem value="improvement">Melhoria</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Data de Entrega</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    'w-full justify-start text-left font-normal',
-                    !watchedDueDate && 'text-muted-foreground'
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {watchedDueDate ? (
-                    format(watchedDueDate, 'dd/MM/yyyy', { locale: ptBR })
-                  ) : (
-                    <span>Selecione uma data</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={watchedDueDate}
-                  onSelect={(date) => setValue('data_entrega', date)}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Tags</Label>
-            <div className="flex gap-2">
-              <Input
-                value={currentTag}
-                onChange={(e) => setCurrentTag(e.target.value)}
-                placeholder="Digite uma tag"
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddTag();
-                  }
-                }}
-              />
-              <Button
-                type="button"
-                onClick={handleAddTag}
-                size="sm"
-              >
-                <Plus className="w-4 h-4" />
-              </Button>
-            </div>
-            
-            {watchedTags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {watchedTags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full"
-                  >
-                    {tag}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveTag(tag)}
-                      className="hover:text-blue-600"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex items-center justify-between">
+            <DialogTitle>
+              {editTask ? 'Editar Tarefa' : 'Nova Tarefa'}
+            </DialogTitle>
             <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={isSubmitting}
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsFullscreen(!isFullscreen)}
             >
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Salvando...' : editTask ? 'Atualizar' : 'Criar'}
+              {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
             </Button>
           </div>
-        </form>
+        </DialogHeader>
+        
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="details">Detalhes</TabsTrigger>
+            <TabsTrigger value="watchers">Observadores</TabsTrigger>
+            {editTask && <TabsTrigger value="comments">Comentários</TabsTrigger>}
+            {editTask && <TabsTrigger value="attachments">Anexos</TabsTrigger>}
+          </TabsList>
+
+          <TabsContent value="details" className="mt-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Título *</Label>
+                  <Input
+                    id="title"
+                    value={formData.title}
+                    onChange={(e) => handleInputChange('title', e.target.value)}
+                    placeholder="Digite o título da tarefa"
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Responsável</Label>
+                  <Select value={String(assigneeId || '')} onValueChange={(v) => setAssigneeId(v)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o responsável" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <ResponsibleSelector
+                        value={assigneeId}
+                        onChange={setAssigneeId}
+                      />
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Descrição</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => handleInputChange('description', e.target.value)}
+                  placeholder="Descreva a tarefa"
+                  rows={3}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Prioridade</Label>
+                  <Select value={formData.priority} onValueChange={(value) => handleInputChange('priority', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a prioridade" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Baixa</SelectItem>
+                      <SelectItem value="medium">Média</SelectItem>
+                      <SelectItem value="high">Alta</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Tipo</Label>
+                  <Select value={formData.type_id} onValueChange={(value) => handleInputChange('type_id', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {taskTypesLoading ? (
+                        <SelectItem value="loading" disabled>Carregando...</SelectItem>
+                      ) : (
+                        taskTypes
+                          .filter(type => type.id && String(type.id).trim() !== '')
+                          .map(type => (
+                            <SelectItem key={type.id} value={String(type.id)}>
+                              <div className="flex items-center gap-2">
+                                <span>{type.icon}</span>
+                                <span>{type.name}</span>
+                              </div>
+                            </SelectItem>
+                          ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Squad</Label>
+                  <Select value={formData.squad} onValueChange={(value) => handleInputChange('squad', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a squad" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="operacao">Operação</SelectItem>
+                      <SelectItem value="comercial">Comercial</SelectItem>
+                      <SelectItem value="academy">Academy</SelectItem>
+                      <SelectItem value="cultura">Cultura</SelectItem>
+                      <SelectItem value="gestao">Gestão</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="due_date">Data de Vencimento</Label>
+                  <Input
+                    id="due_date"
+                    type="date"
+                    value={formData.due_date}
+                    onChange={(e) => handleInputChange('due_date', e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Status</Label>
+                  <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {currentKanban?.stages
+                        ?.filter(stage => stage.id && String(stage.id).trim() !== '')
+                        ?.map(stage => (
+                          <SelectItem key={stage.id} value={String(stage.id)}>
+                            {stage.name}
+                          </SelectItem>
+                        ))
+                      }
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Cliente</Label>
+                  <Select 
+                    value={formData.client_id} 
+                    onValueChange={handleClientChange}
+                    disabled={loadingClients}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={loadingClients ? "Carregando..." : "Selecione o cliente"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clients
+                        .filter(client => client.id && String(client.id).trim() !== '')
+                        .map(client => (
+                          <SelectItem key={client.id} value={String(client.id)}>
+                            {client.nome}
+                          </SelectItem>
+                        ))
+                      }
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Projeto</Label>
+                  <Select 
+                    value={formData.project_id} 
+                    onValueChange={(value) => handleInputChange('project_id', value)}
+                    disabled={!formData.client_id || loadingProjects}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={
+                        !formData.client_id 
+                          ? "Selecione um cliente primeiro" 
+                          : loadingProjects 
+                            ? "Carregando..." 
+                            : "Selecione o projeto"
+                      } />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filteredProjects
+                        .filter(project => project.id && String(project.id).trim() !== '')
+                        .map(project => (
+                          <SelectItem key={project.id} value={String(project.id)}>
+                            {project.nome}
+                          </SelectItem>
+                        ))
+                      }
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <TagInput
+                tags={formData.tags}
+                onChange={(tags) => handleInputChange('tags', tags)}
+                suggestions={commonTags}
+              />
+
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button type="button" variant="outline" onClick={onClose}>
+                  Cancelar
+                </Button>
+                <Button type="submit">
+                  {editTask ? 'Atualizar' : 'Criar'} Tarefa
+                </Button>
+              </div>
+            </form>
+          </TabsContent>
+
+          <TabsContent value="watchers" className="mt-6">
+            <TaskWatchersSelector
+              taskId={editTask?.id}
+              selectedWatchers={formData.watchers}
+              onChange={(watchers) => handleInputChange('watchers', watchers)}
+            />
+          </TabsContent>
+
+          {editTask && (
+            <>
+              <TabsContent value="comments" className="mt-6">
+                <TaskCommentsSection taskId={editTask.id} />
+              </TabsContent>
+
+              <TabsContent value="attachments" className="mt-6">
+                <TaskAttachmentsSection taskId={editTask.id} />
+              </TabsContent>
+            </>
+          )}
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

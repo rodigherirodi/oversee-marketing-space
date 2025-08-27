@@ -1,124 +1,87 @@
 
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { TaskDTO } from '@/types/database';
+import { useMemo } from 'react';
+import { useTaskContext } from '@/contexts/TaskContext';
+import { Task as FrontendTask } from '@/types/entities';
 
-interface TaskFilters {
-  status?: TaskDTO['status'];
-  assignedToMe?: boolean;
-  overdue?: boolean;
-}
+export const useUserTasks = () => {
+  const { tasks } = useTaskContext();
 
-export const useUserTasks = (filters: TaskFilters = {}) => {
-  return useQuery({
-    queryKey: ['user-tasks', filters],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
+  const processedTasks = useMemo(() => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
 
-      let query = supabase
-        .from('tarefas')
-        .select(`
-          id, titulo, descricao, status, prioridade, data_entrega,
-          criado_em, atualizado_em, concluido_em, tags, squad, tipo,
-          campos_customizados, cliente_id, responsavel,
-          criado_por
-        `);
+    // Map database tasks to frontend format
+    const mapToFrontendTask = (task: any): FrontendTask => ({
+      id: task.id,
+      title: task.title,
+      description: task.description || '',
+      status: task.status,
+      priority: task.priority,
+      type: task.task_type?.name || 'Task',
+      assignee: task.assignee?.name || 'Não atribuído',
+      watchers: [],
+      squad: task.squad || '',
+      clientId: task.client_id || '',
+      client: { 
+        id: task.client_id || '',
+        name: 'Cliente',
+        segment: '',
+        status: 'active' as const,
+        size: 'PME' as const,
+        address: '',
+        primaryContact: { name: '', phone: '', email: '' },
+        financialContact: { name: '', phone: '', email: '' },
+        socialMedia: {},
+        contractType: 'recurring' as const,
+        temperature: 'warm' as const,
+        entryDate: '',
+        responsibleManager: '',
+        createdAt: ''
+      },
+      projectId: task.project_id,
+      dueDate: task.due_date,
+      tags: task.tags || [],
+      createdAt: task.created_at,
+      comments: [],
+      attachments: [],
+      customFields: task.custom_fields || {},
+      completedAt: task.completed_at
+    });
 
-      // Apply filters
-      if (filters.assignedToMe) {
-        query = query.eq('responsavel', user.id);
-      }
-      
-      if (filters.status) {
-        query = query.eq('status', filters.status);
-      }
+    // Filter overdue tasks
+    const overdueTasks = tasks.filter(task => {
+      const dueDate = new Date(task.due_date);
+      return dueDate < today && task.status !== 'done' && task.status !== 'completed';
+    }).map(mapToFrontendTask);
 
-      if (filters.overdue) {
-        const today = new Date().toISOString().split('T')[0];
-        query = query.lt('data_entrega', today);
-      }
+    // Filter today's tasks
+    const todayTasks = tasks.filter(task => {
+      const dueDate = new Date(task.due_date);
+      return dueDate >= today && dueDate < tomorrow;
+    }).map(mapToFrontendTask);
 
-      query = query.order('data_entrega', { ascending: true });
+    return {
+      overdueTasks,
+      todayTasks
+    };
+  }, [tasks]);
 
-      const { data, error } = await query;
-      
-      if (error) throw error;
-      
-      return (data || []).map((task): TaskDTO => ({
-        ...task,
-        tags: task.tags || []
-      }));
-    },
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
-};
-
-export const useOverdueTasks = () => {
-  return useQuery({
-    queryKey: ['overdue-tasks'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) return [];
-
-      const today = new Date().toISOString().split('T')[0];
-      
-      const { data, error } = await supabase
-        .from('tarefas')
-        .select(`
-          id, titulo, descricao, status, prioridade, data_entrega,
-          criado_em, atualizado_em, concluido_em, tags, squad, tipo,
-          campos_customizados, cliente_id, responsavel,
-          criado_por
-        `)
-        .eq('responsavel', user.id)
-        .lt('data_entrega', today)
-        .neq('status', 'completed')
-        .order('data_entrega', { ascending: true });
-      
-      if (error) throw error;
-      
-      return (data || []).map((task): TaskDTO => ({
-        ...task,
-        tags: task.tags || []
-      }));
-    },
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
-};
-
-export const useTasksByStatus = (status: TaskDTO['status']) => {
-  return useQuery({
-    queryKey: ['tasks-by-status', status],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) return [];
-
-      const { data, error } = await supabase
-        .from('tarefas')
-        .select(`
-          id, titulo, descricao, status, prioridade, data_entrega,
-          criado_em, atualizado_em, concluido_em, tags, squad, tipo,
-          campos_customizados, cliente_id, responsavel,
-          criado_por
-        `)
-        .eq('responsavel', user.id)
-        .eq('status', status)
-        .order('criado_em', { ascending: false });
-      
-      if (error) throw error;
-      
-      return (data || []).map((task): TaskDTO => ({
-        ...task,
-        tags: task.tags || []
-      }));
-    },
-    enabled: !!status,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
+  return {
+    tasks: tasks.map(task => ({
+      ...task,
+      // Map snake_case to camelCase where needed for compatibility
+      type: task.task_type?.name || 'Task',
+      clientId: task.client_id,
+      client: { name: 'Cliente' }, // Simplified for now
+      dueDate: task.due_date,
+      createdAt: task.created_at,
+      updatedAt: task.updated_at,
+      assignee: task.assignee?.name || 'Não atribuído'
+    })) as any[],
+    loading: false,
+    error: null,
+    overdueTasks: processedTasks.overdueTasks,
+    todayTasks: processedTasks.todayTasks
+  };
 };

@@ -1,19 +1,28 @@
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
-// Mantém compatibilidade com o código existente
-import { 
-  useProjectsOptimized, 
-  useCreateProject, 
-  useUpdateProject, 
-  useDeleteProject,
-  useProjectDetail,
-  projectKeys 
-} from './useProjectsOptimized';
-import { useClientsOptimized } from './useClientsOptimized';
-import { useProfiles } from './useProfiles';
-import { ProjectDTO, ProjectFormData } from '@/types/database';
-
-// Re-exporta os tipos para compatibilidade
-export type SupabaseProject = ProjectDTO;
+export interface SupabaseProject {
+  id: string;
+  titulo: string;
+  cliente: string | null;
+  cliente_id: string | null;
+  status: 'planejamento' | 'em_andamento' | 'em_revisao' | 'em_pausa' | 'concluido';
+  prioridade: 'Alta' | 'Média' | 'Baixa' | null;
+  data_inicio: string | null;
+  data_entrega: string | null;
+  progresso: number;
+  equipe: string | null;
+  tags: string[] | null;
+  responsavel: string | null;
+  briefing: string | null;
+  escopo: string | null;
+  observacoes: string | null;
+  materiais: any | null;
+  criado_em: string;
+  atualizado_em: string;
+  cliente_nome?: string;
+}
 
 export interface ProfileOption {
   id: string;
@@ -26,67 +35,372 @@ export interface ClientOption {
 }
 
 export const useSupabaseProjects = () => {
-  const { 
-    data: projectsData, 
-    isLoading: loading, 
-    error, 
-    refetch 
-  } = useProjectsOptimized();
+  const [projects, setProjects] = useState<SupabaseProject[]>([]);
+  const [profiles, setProfiles] = useState<ProfileOption[]>([]);
+  const [clients, setClients] = useState<ClientOption[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
-  const { data: clientsData } = useClientsOptimized();
-  const { profiles: profilesData } = useProfiles();
-
-  const createProjectMutation = useCreateProject();
-  const updateProjectMutation = useUpdateProject();
-  const deleteProjectMutation = useDeleteProject();
-
-  // Transform data to match existing interface
-  const projects = projectsData?.data || [];
-  const clients = clientsData?.data?.map(client => ({ id: client.id, nome: client.nome })) || [];
-  const profiles = profilesData?.map(profile => ({ id: profile.id, name: profile.name })) || [];
-
-  const createProject = async (projectData: Partial<ProjectFormData>): Promise<SupabaseProject | undefined> => {
+  const fetchProjects = async () => {
     try {
-      const result = await createProjectMutation.mutateAsync(projectData as ProjectFormData);
-      return result;
-    } catch (error) {
-      return undefined;
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('projetos')
+        .select(`
+          id, 
+          titulo, 
+          cliente, 
+          cliente_id,
+          status, 
+          prioridade, 
+          data_inicio, 
+          data_entrega, 
+          progresso, 
+          equipe, 
+          tags, 
+          responsavel, 
+          briefing, 
+          escopo, 
+          observacoes, 
+          materiais, 
+          criado_em, 
+          atualizado_em,
+          clientes(nome)
+        `)
+        .order('data_entrega', { ascending: true });
+
+      if (error) throw error;
+      
+      const transformedData: SupabaseProject[] = (data || []).map(project => ({
+        id: project.id,
+        titulo: project.titulo,
+        cliente: project.cliente,
+        cliente_id: project.cliente_id,
+        status: (project.status as SupabaseProject['status']) || 'planejamento',
+        prioridade: (project.prioridade as SupabaseProject['prioridade']) || null,
+        data_inicio: project.data_inicio,
+        data_entrega: project.data_entrega,
+        progresso: project.progresso ?? 0,
+        equipe: project.equipe,
+        tags: project.tags,
+        responsavel: project.responsavel,
+        briefing: project.briefing,
+        escopo: project.escopo,
+        observacoes: project.observacoes,
+        materiais: project.materiais,
+        criado_em: project.criado_em,
+        atualizado_em: project.atualizado_em,
+        cliente_nome: project.clientes?.nome || project.cliente
+      }));
+      
+      setProjects(transformedData);
+    } catch (err) {
+      console.error('Error fetching projects:', err);
+      setError(err instanceof Error ? err.message : 'Error fetching projects');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const updateProject = async (projectId: string, updates: Partial<ProjectFormData>): Promise<SupabaseProject | undefined> => {
+  const fetchProfiles = async () => {
     try {
-      const result = await updateProjectMutation.mutateAsync({ id: projectId, updates });
-      return result;
-    } catch (error) {
-      return undefined;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name')
+        .order('name');
+
+      if (error) throw error;
+      setProfiles(data || []);
+    } catch (err) {
+      console.error('Error fetching profiles:', err);
+    }
+  };
+
+  const fetchClients = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('clientes')
+        .select('id, nome')
+        .eq('status', 'ativo')
+        .order('nome');
+
+      if (error) throw error;
+      setClients(data || []);
+    } catch (err) {
+      console.error('Error fetching clients:', err);
+    }
+  };
+
+  const createProject = async (projectData: Partial<SupabaseProject>): Promise<SupabaseProject | undefined> => {
+    try {
+      if (!projectData.titulo) {
+        toast({
+          title: "Erro",
+          description: "Título é obrigatório",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (projectData.progresso !== undefined && (projectData.progresso < 0 || projectData.progresso > 100)) {
+        toast({
+          title: "Erro",
+          description: "Progresso deve estar entre 0 e 100",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (projectData.data_inicio && projectData.data_entrega && 
+          new Date(projectData.data_inicio) > new Date(projectData.data_entrega)) {
+        toast({
+          title: "Erro",
+          description: "Data de início não pode ser posterior à data de entrega",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('projetos')
+        .insert({
+          titulo: projectData.titulo,
+          cliente_id: projectData.cliente_id,
+          cliente: projectData.cliente,
+          status: projectData.status || 'planejamento',
+          prioridade: projectData.prioridade,
+          data_inicio: projectData.data_inicio,
+          data_entrega: projectData.data_entrega,
+          progresso: projectData.progresso || 0,
+          equipe: projectData.equipe,
+          tags: projectData.tags,
+          responsavel: projectData.responsavel,
+          briefing: projectData.briefing,
+          escopo: projectData.escopo,
+          observacoes: projectData.observacoes,
+          materiais: projectData.materiais
+        })
+        .select(`
+          id, 
+          titulo, 
+          cliente, 
+          cliente_id,
+          status, 
+          prioridade, 
+          data_inicio, 
+          data_entrega, 
+          progresso, 
+          equipe, 
+          tags, 
+          responsavel, 
+          briefing, 
+          escopo, 
+          observacoes, 
+          materiais, 
+          criado_em, 
+          atualizado_em,
+          clientes(nome)
+        `)
+        .single();
+
+      if (error) throw error;
+
+      const transformedProject: SupabaseProject = {
+        id: data.id,
+        titulo: data.titulo,
+        cliente: data.cliente,
+        cliente_id: data.cliente_id,
+        status: (data.status as SupabaseProject['status']) || 'planejamento',
+        prioridade: (data.prioridade as SupabaseProject['prioridade']) || null,
+        data_inicio: data.data_inicio,
+        data_entrega: data.data_entrega,
+        progresso: data.progresso ?? 0,
+        equipe: data.equipe,
+        tags: data.tags,
+        responsavel: data.responsavel,
+        briefing: data.briefing,
+        escopo: data.escopo,
+        observacoes: data.observacoes,
+        materiais: data.materiais,
+        criado_em: data.criado_em,
+        atualizado_em: data.atualizado_em,
+        cliente_nome: data.clientes?.nome || data.cliente
+      };
+
+      setProjects(prev => [transformedProject, ...prev]);
+      toast({
+        title: "Sucesso",
+        description: "Projeto criado com sucesso!",
+      });
+      
+      return transformedProject;
+    } catch (err) {
+      console.error('Error creating project:', err);
+      toast({
+        title: "Erro",
+        description: "Erro ao criar projeto",
+        variant: "destructive",
+      });
+      throw err;
+    }
+  };
+
+  const updateProject = async (projectId: string, updates: Partial<SupabaseProject>): Promise<SupabaseProject | undefined> => {
+    try {
+      console.log('Updating project:', projectId, updates);
+
+      if (updates.progresso !== undefined && (updates.progresso < 0 || updates.progresso > 100)) {
+        toast({
+          title: "Erro",
+          description: "Progresso deve estar entre 0 e 100",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (updates.data_inicio && updates.data_entrega && 
+          new Date(updates.data_inicio) > new Date(updates.data_entrega)) {
+        toast({
+          title: "Erro",
+          description: "Data de início não pode ser posterior à data de entrega",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Remove cliente_nome from updates as it's not a real column
+      const { cliente_nome, ...cleanUpdates } = updates;
+
+      // Prepare the update data with proper field mapping
+      const updateData = {
+        ...cleanUpdates,
+        // Ensure atualizado_em is updated automatically by trigger
+      };
+
+      console.log('Sending update data to Supabase:', updateData);
+
+      const { data, error } = await supabase
+        .from('projetos')
+        .update(updateData)
+        .eq('id', projectId)
+        .select(`
+          id, 
+          titulo, 
+          cliente, 
+          cliente_id,
+          status, 
+          prioridade, 
+          data_inicio, 
+          data_entrega, 
+          progresso, 
+          equipe, 
+          tags, 
+          responsavel, 
+          briefing, 
+          escopo, 
+          observacoes, 
+          materiais, 
+          criado_em, 
+          atualizado_em,
+          clientes(nome)
+        `)
+        .single();
+
+      if (error) {
+        console.error('Supabase update error:', error);
+        throw error;
+      }
+
+      console.log('Update successful, received data:', data);
+
+      const transformedProject: SupabaseProject = {
+        id: data.id,
+        titulo: data.titulo,
+        cliente: data.cliente,
+        cliente_id: data.cliente_id,
+        status: (data.status as SupabaseProject['status']) || 'planejamento',
+        prioridade: (data.prioridade as SupabaseProject['prioridade']) || null,
+        data_inicio: data.data_inicio,
+        data_entrega: data.data_entrega,
+        progresso: data.progresso ?? 0,
+        equipe: data.equipe,
+        tags: data.tags,
+        responsavel: data.responsavel,
+        briefing: data.briefing,
+        escopo: data.escopo,
+        observacoes: data.observacoes,
+        materiais: data.materiais,
+        criado_em: data.criado_em,
+        atualizado_em: data.atualizado_em,
+        cliente_nome: data.clientes?.nome || data.cliente
+      };
+
+      setProjects(prev => prev.map(project => 
+        project.id === projectId ? transformedProject : project
+      ));
+      
+      return transformedProject;
+    } catch (err) {
+      console.error('Error updating project:', err);
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar projeto: " + (err instanceof Error ? err.message : 'Erro desconhecido'),
+        variant: "destructive",
+      });
+      throw err;
     }
   };
 
   const deleteProject = async (projectId: string): Promise<boolean> => {
     try {
-      await deleteProjectMutation.mutateAsync(projectId);
+      const { error } = await supabase
+        .from('projetos')
+        .delete()
+        .eq('id', projectId);
+
+      if (error) throw error;
+
+      setProjects(prev => prev.filter(project => project.id !== projectId));
+      
+      toast({
+        title: "Sucesso",
+        description: "Projeto excluído com sucesso!",
+      });
+      
       return true;
-    } catch (error) {
+    } catch (err) {
+      console.error('Error deleting project:', err);
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir projeto",
+        variant: "destructive",
+      });
       return false;
     }
   };
 
-  const getProjectById = (id: string): SupabaseProject | undefined => {
+  const getProjectById = useCallback((id: string): SupabaseProject | undefined => {
     return projects.find(project => project.id === id);
-  };
+  }, [projects]);
 
   const getProjectsByClientId = (clientId: string): SupabaseProject[] => {
     return projects.filter(project => project.cliente_id === clientId);
   };
+
+  useEffect(() => {
+    fetchProjects();
+    fetchProfiles();
+    fetchClients();
+  }, []);
 
   return {
     projects,
     profiles,
     clients,
     loading,
-    error: error?.message || null,
-    refetch,
+    error,
+    refetch: fetchProjects,
     createProject,
     updateProject,
     deleteProject,
@@ -94,5 +408,3 @@ export const useSupabaseProjects = () => {
     getProjectsByClientId
   };
 };
-
-export { useProjectDetail, projectKeys };
